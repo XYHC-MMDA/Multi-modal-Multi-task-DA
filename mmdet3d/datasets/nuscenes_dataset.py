@@ -172,7 +172,6 @@ class NuScenesDataset(Custom3DDataset):
         Returns:
             list[dict]: List of annotations sorted by timestamps.
         """
-        print('here nuscenes')
         data = mmcv.load(ann_file)
         data_infos = list(sorted(data['infos'], key=lambda e: e['timestamp']))
         data_infos = data_infos[::self.load_interval]
