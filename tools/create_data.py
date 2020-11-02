@@ -236,7 +236,7 @@ parser.add_argument(
     '--out-dir',
     type=str,
     default='./data/kitti',
-    required='False',
+    required=False,
     help='name of info pkl')
 parser.add_argument('--extra-tag', type=str, default='kitti')
 parser.add_argument(
@@ -260,6 +260,8 @@ if __name__ == '__main__':
             dataset_name='NuscMultiModalDataset', # 'NuScenesDataset',
             out_dir=args.out_dir,
             max_sweeps=args.max_sweeps)
+        print('trainval finished')
+        exit(0)
         test_version = f'{args.version}-test'
         # nuscenes_data_prep(
         nusc_multi_modal_prep(
