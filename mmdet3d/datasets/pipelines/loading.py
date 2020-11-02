@@ -369,6 +369,74 @@ class LoadPointsFromFile(object):
 
 
 @PIPELINES.register_module()
+class LoadPointsAndLabelFromFile(object):
+    """Load Points and seg label From File.
+
+    Load sunrgbd and scannet points from file.
+
+    Args:
+        load_dim (int): The dimension of the loaded points.
+            Defaults to 6.
+        use_dim (list[int]): Which dimensions of the points to be used.
+            Defaults to [0, 1, 2]. For KITTI dataset, set use_dim=4
+            or use_dim=[0, 1, 2, 3] to use the intensity dimension.
+        shift_height (bool): Whether to use shifted height. Defaults to False.
+        file_client_args (dict): Config dict of file clients, refer to
+            https://github.com/open-mmlab/mmcv/blob/master/mmcv/fileio/file_client.py
+            for more details. Defaults to dict(backend='disk').
+    """
+
+    def __init__(self,
+                 load_dim=6,
+                 use_dim=[0, 1, 2],
+                 shift_height=False):
+        self.shift_height = shift_height
+        if isinstance(use_dim, int):
+            use_dim = list(range(use_dim))
+        assert max(use_dim) < load_dim, \
+            f'Expect all used dimensions < {load_dim}, got {use_dim}'
+
+        self.load_dim = load_dim
+        self.use_dim = use_dim
+
+    def __call__(self, results):
+        """Call function to load points data from file.
+
+        Args:
+            results (dict): Result dict containing point clouds data.
+
+        Returns:
+            dict: The result dict containing the point clouds data. \
+                Added key and value are described below.
+
+                - points (np.ndarray): Point clouds data.
+        """
+        pts_filename = results['pts_filename']
+        points = np.fromfile(pts_filename, dtype=np.float32)
+        points = points.reshape(-1, self.load_dim)
+        points = points[:, self.use_dim]
+
+        seglabel_filename = results['seglabel_filename']
+        seg_label = np.fromfile(seglabel_filename, dtype=np.uint8)
+        classmap = [10] * 32
+        idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
+                  [22, 3], [23, 1]]
+        for k, v in idxmap:
+            classmap[k] = v
+        for i in range(len(seg_label)):
+            seg_label[i] = classmap[seg_label[i]]
+
+        if self.shift_height:
+            floor_height = np.percentile(points[:, 2], 0.99)
+            height = points[:, 2] - floor_height
+            points = np.concatenate([points, np.expand_dims(height, 1)], 1)
+
+        results['points'] = points
+        results['seg_label'] = seg_label
+        return results
+
+
+@PIPELINES.register_module()
 class LoadAnnotations3D(LoadAnnotations):
     """Load Annotations3D.
 
