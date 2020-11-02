@@ -1,0 +1,68 @@
+#### TODO ####
+ - prepare dataset split: usa-singapore, day-night(trained with train_usa & train_singapore, test on test_singapore with highest acc ckpt on val_singapore)
+   train_sg: 9665  val_sg: 2770  test_sg:2929
+ - pts_bbox_head:loss; mmcv:call_hook('after_train_iter'), backward
+ - joint training, shared optimizer
+ - FPN
+ - ldiarseg: check xmuda benchmark
+ - how register/decorator works? when decorators are called?
+
+
+#### cmds ####
+CUDA_VISIBLE_DEVICES=5 python tools/train.py ./configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py --work-dir ./results/debug
+
+CUDA_VISIBLE_DEVICES=1 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pth --out checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pkl --eval mAP
+
+CUDA_VISIBLE_DEVICES=8 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py results/epoch_24.pth --out results/epoch-24.pkl --eval mAP
+
+python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../nuscenes_unzip --extra-tag nuscenes
+
+
+#### model dict ####
+ - type: 'MVXFasterRCNN':
+   mmdet3d/models/detectors/mvx_faster_rcnn.py  inherit  mvx_two_stage.py(same folder)
+
+ - self.pts_voxel_layer; model.pts_voxel_layer
+   mmdet3d/ops/voxel/voxelize: 
+      Voxelization(nn.Module); 
+      return voxels_out, coors_out, num_points_per_voxel_out
+   hard_voxelize: src/voxelization_cpu.cpp, src/voxelization_cuda.cu,
+
+ - self.pts_voxel_encoder; model.pts_voxel_encoder: HardVFE
+   mmdet3d/models/voxel_encoders/voxel_encoder.py
+   VFELayer: ./utils.py
+
+ - self.pts_middle_encoder: model.pts_middle_encoder: PointPillarsScatter
+   mmdet3d/models/middle_encoders/pillar_scatter.py
+   
+ - self.pts_backbone: model.pts_backbone: SECOND
+   mmdet3d/models/backbones/second.py
+
+ - self.pts_neck: model.pts_neck: FPN
+   mmdet/models/necks/fpn.py
+
+ - self.pts_bbox_head: model.pts_bbox_head: Anchor3DHead
+   mmdet3d/models/dense_heads/anchor3d_head.py
+
+
+
+forward call:
+mmcv/runner/base_runner.py: EpochBasedRunner: 
+	train() ==> run_iter() ==> self.model.train_step(data_batch, optimizer, **kwargs(None))
+
+mmdet/models/detectors/base.py: BaseDetector: 
+	train_step(data_batch, optimizer) ==> forward(**data_batch)
+
+mmdet3d/models/detectors/base.py: Base3DDetector:
+	forward(**data_batch) ==> forward_train(**data_batch)
+
+mmdet3d/models/detectors/mvx_two_stage.py: MVXTwoStageDetector: 
+	forward_train(**data_batch)  # return losses(dict)
+
+
+#### dataset.__getitem__() ####
+mmdet3d/datasets/custom_3d.py, nuscenes_dataset.py: Custom3DDataset, NuScenesDataset
+	__getitem__() ==> prepare_train_data() ==> NuScenesDataset.get_data_info() ==> self.pipeline() ==> mmdet3d/datasets/pipelines/loading.py
+
+
+

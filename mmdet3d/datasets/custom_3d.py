@@ -76,6 +76,7 @@ class Custom3DDataset(Dataset):
         Returns:
             list[dict]: List of annotations.
         """
+        print('here custom')
         return mmcv.load(ann_file)
 
     def get_data_info(self, index):
