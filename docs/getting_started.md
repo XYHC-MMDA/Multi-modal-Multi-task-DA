@@ -95,7 +95,7 @@ Note that if your local disk does not have enough space for saving converted dat
 Download nuScenes V1.0 full dataset data [HERE]( https://www.nuscenes.org/download). Prepare nuscenes data by running
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
+python tools/create_data.py nuscenes --root-path path/to/nuscenes --extra-tag nuscenes
 ```
 
 Download Lyft 3D detection data [HERE](https://www.kaggle.com/c/3d-object-detection-for-autonomous-vehicles/data). Prepare Lyft data by running

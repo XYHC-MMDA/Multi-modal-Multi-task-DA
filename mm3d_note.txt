@@ -1,11 +1,27 @@
 #### TODO ####
+ - loading.multisweeps
+ - share .pkl
  - prepare dataset split: usa-singapore, day-night(trained with train_usa & train_singapore, test on test_singapore with highest acc ckpt on val_singapore)
    train_sg: 9665  val_sg: 2770  test_sg:2929
  - pts_bbox_head:loss; mmcv:call_hook('after_train_iter'), backward
  - joint training, shared optimizer
  - FPN
- - ldiarseg: check xmuda benchmark
  - how register/decorator works? when decorators are called?
+
+
+### modify ####
+mmdetection3d/mmdet3d/ops/norm.py
+configs/_base_/datasets/nus-3d: data_root
+
+tools/create.py, nusc_multi_modal_converter.py
+_base_/datasets/nus-segdet.py, _base_/models/mmda.py
+loading.py
+models/backbones, dense_heads, detectors
+mmdet3d/datasets/nusc_multi_modal_dataset.py
+
+
+### config ###
+configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py
 
 
 #### cmds ####
@@ -46,7 +62,7 @@ python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../
 
 
 
-forward call:
+### forward call ###
 mmcv/runner/base_runner.py: EpochBasedRunner: 
 	train() ==> run_iter() ==> self.model.train_step(data_batch, optimizer, **kwargs(None))
 
@@ -60,9 +76,9 @@ mmdet3d/models/detectors/mvx_two_stage.py: MVXTwoStageDetector:
 	forward_train(**data_batch)  # return losses(dict)
 
 
-#### dataset.__getitem__() ####
+#### dataset ####
 mmdet3d/datasets/custom_3d.py, nuscenes_dataset.py: Custom3DDataset, NuScenesDataset
-	__getitem__() ==> prepare_train_data() ==> NuScenesDataset.get_data_info() ==> self.pipeline() ==> mmdet3d/datasets/pipelines/loading.py
+	self.data_infos=NuScenesDataset.load_annotations() ==> Custom3DDataset.__getitem__() ==> Custom3DDataset.prepare_train_data() ==> NuScenesDataset.get_data_info(), self.pipeline() ==> mmdet3d/datasets/pipelines/loading.py
 
 
 

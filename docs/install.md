@@ -89,11 +89,11 @@ pip install -v -e .  # or "python setup.py develop"
 e. Clone the MMDetection3D repository.
 
 ```shell
-git clone https://github.com/open-mmlab/mmdetection3d.git
-cd mmdetection3d
+git clone https://github.com/XYHC-MMDA/Multi-modal-Multi-task-DA.git
+cd Multi-modal-Multi-task-DA
 ```
 
-f.Install build requirements and then install MMDetection3D.
+f.Install build requirements and then install MMDA.
 
 ```shell
 pip install -v -e .  # or "python setup.py develop"
@@ -153,9 +153,9 @@ pip install mmcv-full
 # install mmdetection
 pip install git+https://github.com/open-mmlab/mmdetection.git
 
-# install mmdetection3d
-git clone https://github.com/open-mmlab/mmdetection3d.git
-cd mmdetection3d
+# install MMDA 
+git clone https://github.com/XYHC-MMDA/Multi-modal-Multi-task-DA.git
+cd Multi-modal-Multi-task-DA
 pip install -v -e .
 ```
 
