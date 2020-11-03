@@ -36,7 +36,7 @@ class MMDA(Base3DDetector):
                  train_cfg=None,
                  test_cfg=None,
                  pretrained=None):
-        super(MVXTwoStageDetector, self).__init__()
+        super(MMDA, self).__init__()
 
         if pts_voxel_layer:
             self.pts_voxel_layer = Voxelization(**pts_voxel_layer)

@@ -431,8 +431,9 @@ class LoadPointsAndLabelFromFile(object):
             height = points[:, 2] - floor_height
             points = np.concatenate([points, np.expand_dims(height, 1)], 1)
 
-        results['points'] = points
-        results['seg_label'] = seg_label
+        results['points'] = points  # later mixed with sweeps
+        results['points_seg'] = points.copy()  # points of the key frame; used only for projection
+        results['seg_label'] = seg_label  # seg labels of 'points_seg'
         return results
 
 

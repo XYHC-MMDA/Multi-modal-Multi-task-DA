@@ -27,7 +27,7 @@ pts = np.concatenate([pts_lidar, np.ones((N, 1))], axis=1) @ rot.T
 pts = pts[:, :3]
 
 mask = np.ones(N, dtype=bool)
-mask = np.logical_and(mask, pts[: ,2] > 1e-5)
+mask = np.logical_and(mask, pts[:, 2] > 1e-5)
 pts = pts[mask]
 pts_lidar = pts_lidar[mask]
 pts[:, 0] /= pts[:, 2]
