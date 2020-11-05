@@ -369,7 +369,7 @@ class LoadPointsFromFile(object):
 
 
 @PIPELINES.register_module()
-class LoadPointsAndLabelFromFile(object):
+class LoadSegDetPointsFromFile(object):
     """Load Points and seg label From File.
 
     Load sunrgbd and scannet points from file.

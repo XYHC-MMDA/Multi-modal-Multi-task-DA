@@ -524,6 +524,49 @@ class PointsRangeFilter(object):
         return repr_str
 
 
+class SegDetPointsRangeFilter(object):
+    """Filter points by the range.
+
+    Args:
+        point_cloud_range (list[float]): Point cloud range.
+    """
+
+    def __init__(self, point_cloud_range):
+        self.pcd_range = np.array(
+            point_cloud_range, dtype=np.float32)[np.newaxis, :]
+
+    def __call__(self, input_dict):
+        """Call function to filter points by the range.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Results after filtering, 'points' keys are updated \
+                in the result dict.
+        """
+        points = input_dict['points']
+        points_mask = ((points[:, :3] >= self.pcd_range[:, :3])
+                       & (points[:, :3] < self.pcd_range[:, 3:]))
+        points_mask = points_mask[:, 0] & points_mask[:, 1] & points_mask[:, 2]
+        clean_points = points[points_mask, :]
+        input_dict['points'] = clean_points
+
+        pts_seg = input_dict['points_seg']
+        pts_mask = ((pts_seg[:, :3] >= self.pcd_range[:, :3])
+                    & (pts_seg[:, :3] < self.pcd_range[:, 3:]))
+        pts_mask = pts_mask[:, 0] & pts_mask[:, 1] & pts_mask[:, 2]
+        input_dict['points_seg'] = pts_seg[pts_mask]
+        input_dict['seg_label'] = input_dict['seg_label'][pts_mask]
+
+        return input_dict
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += '(point_cloud_range={})'.format(self.pcd_range.tolist())
+        return repr_str
+
 @PIPELINES.register_module()
 class ObjectNameFilter(object):
     """Filter GT objects by their names.

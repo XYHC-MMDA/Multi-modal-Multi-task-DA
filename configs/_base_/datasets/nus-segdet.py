@@ -1,6 +1,6 @@
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
-point_cloud_range = [-50, -50, -5, 50, 50, 3]
+point_cloud_range = [-50, 0, -5, 50, 50, 3]
 # For nuScenes we usually do 10-class detection
 class_names = [
     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
@@ -28,7 +28,7 @@ file_client_args = dict(backend='disk')
 #     }))
 train_pipeline = [
     dict(
-        type='LoadPointsAndLabelFromFile',
+        type='LoadSegDetPointsFromFile',  # modify
         load_dim=5,
         use_dim=5,
         file_client_args=file_client_args),
@@ -43,12 +43,12 @@ train_pipeline = [
         scale_ratio_range=[0.95, 1.05],
         translation_std=[0, 0, 0]),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
-    dict(type='PointsRangeFilter', point_cloud_range=point_cloud_range),
+    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
     dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(type='Collect3D', keys=['points', 'gt_bboxes_3d', 'gt_labels_3d'])
+    dict(type='Collect3D', keys=['points_seg', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d'])  # TODO
 ]
 test_pipeline = [
     dict(

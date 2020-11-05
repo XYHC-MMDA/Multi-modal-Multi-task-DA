@@ -239,6 +239,8 @@ class MMDA(Base3DDetector):
         return voxels, num_points, coors_batch
 
     def forward_train(self,
+                      points_seg=None,
+                      seg_label=None,
                       points=None,
                       img_metas=None,
                       gt_bboxes_3d=None,

@@ -63,8 +63,13 @@ python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../
 
 
 ### forward call ###
+tools/train.py:
+    train_detector()
+mmdet.apis.train.py:
+    train_detector() ==> runner.run(data_loaders)
+
 mmcv/runner/base_runner.py: EpochBasedRunner: 
-	train() ==> run_iter() ==> self.model.train_step(data_batch, optimizer, **kwargs(None))
+	run(data_loaders) ==> train(data_loader) ==> run_iter(data_batch) ==> self.model.train_step(data_batch, optimizer, **kwargs(None))
 
 mmdet/models/detectors/base.py: BaseDetector: 
 	train_step(data_batch, optimizer) ==> forward(**data_batch)
