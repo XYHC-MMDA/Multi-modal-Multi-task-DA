@@ -12,7 +12,7 @@ cfg = Config.fromfile(args.config)
 # cfg.data.train.modality.use_camera=True
 print('cfg loaded')
 
-dataset = build_dataset(cfg.data.train)
+dataset = build_dataset(cfg.data.mini_train)
 print('dataset loaded')
 data = dataset.get_data_info(0)
 print(data.keys())
