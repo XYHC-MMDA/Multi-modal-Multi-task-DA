@@ -1,8 +1,22 @@
 import mmcv
 import numpy as np
+from PIL import Image
 
 from mmdet.datasets.builder import PIPELINES
 from mmdet.datasets.pipelines import LoadAnnotations
+
+
+@PIPELINES.register_module()
+class LoadFrontImage(object):
+    def __init__(self, resize=(400, 225)):
+        self.resize = resize
+
+    def __call__(self, results):
+        filepath = results['img_filename'][0]
+        img = Image.open(filepath)
+        if self.resize:
+            img = img.resize(self.resize, Image.BILINEAR)
+
 
 
 @PIPELINES.register_module()

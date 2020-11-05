@@ -27,6 +27,7 @@ file_client_args = dict(backend='disk')
 #         'data/nuscenes/': 's3://nuscenes/nuscenes/'
 #     }))
 train_pipeline = [
+    dict(type='LoadFrontImage'),
     dict(
         type='LoadSegDetPointsFromFile',  # modify
         load_dim=5,
