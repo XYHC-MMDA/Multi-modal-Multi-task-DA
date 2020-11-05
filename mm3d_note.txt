@@ -16,8 +16,10 @@ configs/_base_/datasets/nus-3d: data_root
 tools/create.py, nusc_multi_modal_converter.py
 _base_/datasets/nus-segdet.py, _base_/models/mmda.py
 loading.py
-models/backbones, dense_heads, detectors
-mmdet3d/datasets/nusc_multi_modal_dataset.py
+
+mmdet3d:
+models/backbones, detectors
+datasets/nusc_multi_modal_dataset.py
 
 
 ### config ###
