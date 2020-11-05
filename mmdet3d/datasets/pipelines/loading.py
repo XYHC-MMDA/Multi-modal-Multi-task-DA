@@ -8,14 +8,43 @@ from mmdet.datasets.pipelines import LoadAnnotations
 
 @PIPELINES.register_module()
 class LoadFrontImage(object):
-    def __init__(self, resize=(400, 225)):
+    def __init__(self, resize=(400, 225), fliplr=0.5, normalizer=None):
+        # TODO: 2d augmentation fliplr
         self.resize = resize
 
     def __call__(self, results):
         filepath = results['img_filename'][0]
+        rot = results['lidar2img'][0]
+        pts_seg = results['points_seg']  # After RangeFilter; within pc_range
+        seg_label = results['seg_label']
         img = Image.open(filepath)
+        img_size = img.size  # (1600, 900)
+        print('image size:', img_size)
+
+        # img_indices
+        N = len(pts_seg)
+        pts = np.concatenate([pts_seg, np.ones((N, 1))], axis=1) @ rot.T
+        pts = pts[:, :3]
+        assert all(pts[:, 2] > 0), "Make sure points are in front of the camera."
+        pts[:, 0] /= pts[:, 2]
+        pts[:, 1] /= pts[:, 2]
+        mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < img_size)
+        pts_img = pts[mask][:, :2]
+        # img_indices = pts[:, :2].astype(np.int64)
+        seg_label = seg_label[mask]
+
         if self.resize:
             img = img.resize(self.resize, Image.BILINEAR)
+            pts_img = pts_img * self.resize / img_size
+
+        img = np.array(img, dtype=np.float32) / 255.
+        print('image shape:', img.shape)
+        img_indices = np.fliplr(pts_img).astype(np.int64)
+        results['img'] = img  # TODO: moveaxis or not
+        results['img_indices'] = img_indices  # (N, 2): (row, column)
+        print('img_indices:', img_indices.shape)
+        results['seg_label'] = seg_label
+        return results
 
 
 
@@ -446,7 +475,7 @@ class LoadSegDetPointsFromFile(object):
             points = np.concatenate([points, np.expand_dims(height, 1)], 1)
 
         results['points'] = points  # later mixed with sweeps
-        results['points_seg'] = points.copy()  # points of the key frame; used only for projection
+        results['points_seg'] = points[:, :3].copy()  # points of the key frame; used only for projection
         results['seg_label'] = seg_label  # seg labels of 'points_seg'
         return results
 

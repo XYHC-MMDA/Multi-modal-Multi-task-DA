@@ -27,9 +27,8 @@ file_client_args = dict(backend='disk')
 #         'data/nuscenes/': 's3://nuscenes/nuscenes/'
 #     }))
 train_pipeline = [
-    dict(type='LoadFrontImage'),
     dict(
-        type='LoadSegDetPointsFromFile',  # modify
+        type='LoadSegDetPointsFromFile',  # new
         load_dim=5,
         use_dim=5),
     dict(
@@ -43,12 +42,13 @@ train_pipeline = [
         scale_ratio_range=[0.95, 1.05],
         translation_std=[0, 0, 0]),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
-    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),  # new
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
-    dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(type='Collect3D', keys=['points_seg', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d'])  # TODO
+    dict(type='LoadFrontImage'),  # new
+    # dict(type='DefaultFormatBundle3D', class_names=class_names),
+    # dict(type='Collect3D', keys=['points_seg', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d'])  # TODO
 ]
 test_pipeline = [
     dict(

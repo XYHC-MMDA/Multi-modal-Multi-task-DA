@@ -9,17 +9,20 @@ parser.add_argument('--config', help='train config file path')
 args = parser.parse_args()
 
 cfg = Config.fromfile(args.config)
-# cfg.data.train.modality.use_camera=True
 print('cfg loaded')
-
 dataset = build_dataset(cfg.data.mini_train)
 print('dataset loaded')
+
 data = dataset.get_data_info(0)
+print('get_data_info:')
 print(data.keys())
+
+data = dataset[0]
+print('getitem:')
+print(data.keys())
+
 exit(0)
-print(data['img_filename'][0])
-# for k, v in data.items():
-#   print(k, type(v))
+
 pts_lidar = np.fromfile(data['pts_filename'], dtype=np.float32).reshape(-1, 5)[:, :3]
 N = pts_lidar.shape[0]
 print('pts total:', N)

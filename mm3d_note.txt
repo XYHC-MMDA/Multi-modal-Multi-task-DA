@@ -17,8 +17,8 @@ tools/create_data.py ==> nusc_multi_modal_converter.py
 
 configs:
     _base_:
-        datasets/nus-segdet.py  # note: modify data_root
-        models/mmda.py
+        datasets: nus-segdet.py  # note: modify data_root
+        models: mmda.py
 
 mmdet3d:
     models:
@@ -26,7 +26,7 @@ mmdet3d:
         detectors: mmda.py
 datasets:
     pipelines:
-        loading.py: LoadSegDetPointsFromFile
+        loading.py: LoadSegDetPointsFromFile, LoadFrontImage
         transforms_3d.py: SegDetPointsRangeFilter
     nusc_multi_modal_dataset.py
 
