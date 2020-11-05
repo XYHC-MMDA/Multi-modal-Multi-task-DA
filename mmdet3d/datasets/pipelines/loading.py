@@ -19,30 +19,26 @@ class LoadFrontImage(object):
         seg_label = results['seg_label']
         img = Image.open(filepath)
         img_size = img.size  # (1600, 900)
-        print('image size:', img_size)
 
         # img_indices
         N = len(pts_seg)
         pts = np.concatenate([pts_seg, np.ones((N, 1))], axis=1) @ rot.T
         pts = pts[:, :3]
-        assert all(pts[:, 2] > 0), "Make sure points are in front of the camera."
         pts[:, 0] /= pts[:, 2]
         pts[:, 1] /= pts[:, 2]
         mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < img_size)
+        mask = mask[:, 0] & mask[:, 1]
         pts_img = pts[mask][:, :2]
-        # img_indices = pts[:, :2].astype(np.int64)
         seg_label = seg_label[mask]
 
         if self.resize:
             img = img.resize(self.resize, Image.BILINEAR)
             pts_img = pts_img * self.resize / img_size
 
-        img = np.array(img, dtype=np.float32) / 255.
-        print('image shape:', img.shape)
+        img = np.array(img, dtype=np.float32) / 255. # shape=(225, 400, 3)
         img_indices = np.fliplr(pts_img).astype(np.int64)
         results['img'] = img  # TODO: moveaxis or not
         results['img_indices'] = img_indices  # (N, 2): (row, column)
-        print('img_indices:', img_indices.shape)
         results['seg_label'] = seg_label
         return results
 
