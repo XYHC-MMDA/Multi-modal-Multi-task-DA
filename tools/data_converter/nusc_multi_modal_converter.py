@@ -80,6 +80,17 @@ def create_nuscenes_infos(root_path,
         info_path = osp.join(root_path,
                              '{}_infos_test.pkl'.format(info_prefix))
         mmcv.dump(data, info_path)
+    elif 'mini' in version:
+        print('train sample: {}, val sample: {}'.format(
+            len(train_nusc_infos), len(val_nusc_infos)))
+        data = dict(infos=train_nusc_infos, metadata=metadata)
+        info_path = osp.join(root_path,
+                             '{}_infos_mini_train.pkl'.format(info_prefix))
+        mmcv.dump(data, info_path)
+        data['infos'] = val_nusc_infos
+        info_val_path = osp.join(root_path,
+                                 '{}_infos_mini_val.pkl'.format(info_prefix))
+        mmcv.dump(data, info_val_path)
     else:
         print('train sample: {}, val sample: {}'.format(
             len(train_nusc_infos), len(val_nusc_infos)))

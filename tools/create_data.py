@@ -273,11 +273,12 @@ if __name__ == '__main__':
             max_sweeps=args.max_sweeps)
     elif args.dataset == 'nuscenes' and args.version == 'v1.0-mini':
         train_version = f'{args.version}'
-        nuscenes_data_prep(
+        # nuscenes_data_prep(
+        nusc_multi_modal_prep(
             root_path=args.root_path,
             info_prefix=args.extra_tag,
             version=train_version,
-            dataset_name='NuScenesDataset',
+            dataset_name='NuscMultiModalDataset',
             out_dir=args.out_dir,
             max_sweeps=args.max_sweeps)
     elif args.dataset == 'lyft':
