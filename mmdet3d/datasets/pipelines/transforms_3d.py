@@ -524,6 +524,7 @@ class PointsRangeFilter(object):
         return repr_str
 
 
+@PIPELINES.register_module()
 class SegDetPointsRangeFilter(object):
     """Filter points by the range.
 

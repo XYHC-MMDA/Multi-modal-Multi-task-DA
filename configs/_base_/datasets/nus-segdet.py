@@ -30,8 +30,7 @@ train_pipeline = [
     dict(
         type='LoadSegDetPointsFromFile',  # modify
         load_dim=5,
-        use_dim=5,
-        file_client_args=file_client_args),
+        use_dim=5),
     dict(
         type='LoadPointsFromMultiSweeps',
         sweeps_num=10,

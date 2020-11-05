@@ -3,12 +3,14 @@ from .dbsampler import DataBaseSampler
 from .formating import Collect3D, DefaultFormatBundle, DefaultFormatBundle3D
 from .loading import (LoadAnnotations3D, LoadMultiViewImageFromFiles,
                       LoadPointsFromFile, LoadPointsFromMultiSweeps,
-                      NormalizePointsColor, PointSegClassMapping)
+                      NormalizePointsColor, PointSegClassMapping,
+                      LoadSegDetPointsFromFile)
 from .test_time_aug import MultiScaleFlipAug3D
 from .transforms_3d import (BackgroundPointsFilter, GlobalRotScaleTrans,
                             IndoorPointSample, ObjectNoise, ObjectRangeFilter,
                             ObjectSample, PointShuffle, PointsRangeFilter,
-                            RandomFlip3D, VoxelBasedPointSampler)
+                            RandomFlip3D, VoxelBasedPointSampler,
+                            SegDetPointsRangeFilter)
 
 __all__ = [
     'ObjectSample', 'RandomFlip3D', 'ObjectNoise', 'GlobalRotScaleTrans',
