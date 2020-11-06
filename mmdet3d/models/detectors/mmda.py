@@ -77,7 +77,7 @@ class MMDA(Base3DDetector):
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
-        super(MVXTwoStageDetector, self).init_weights(pretrained)
+        super(MMDA, self).init_weights(pretrained)
         if pretrained is None:
             img_pretrained = None
             pts_pretrained = None
@@ -275,9 +275,6 @@ class MMDA(Base3DDetector):
         Returns:
             dict: Losses of different branches.
         """
-        print(points[0].shape)
-        print(img.shape)
-        exit(0)
         img_feats, pts_feats = self.extract_feat(
             points, img=img, img_metas=img_metas)
         losses = dict()

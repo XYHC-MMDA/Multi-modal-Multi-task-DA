@@ -55,6 +55,15 @@ class UNetResNet34(nn.Module):
         )
         return conv, t_conv
 
+    def init_weights(self, pretrained=None):
+        """Initialize weights of the 2D backbone."""
+        # Do not initialize the conv layers
+        # to follow the original implementation
+        if isinstance(pretrained, str):
+            from mmdet3d.utils import get_root_logger
+            logger = get_root_logger()
+            load_checkpoint(self, pretrained, strict=False, logger=logger)
+
     def forward(self, x):
         # pad input to be divisible by 16 = 2 ** 4
         h, w = x.shape[2], x.shape[3]
