@@ -352,19 +352,8 @@ class MMDA(Base3DDetector):
         Returns:
             dict: Losses of each branch.
         """
-        logits = self.img_seg_head(x, img_metas, img_indices)
-        img_seg_losses = self.img_seg_head.loss(logits, seg_label)
+        img_seg_losses = self.img_seg_head.loss(x, img_metas, img_indices, seg_label)
         return img_seg_losses
-
-        # bbox head forward and loss
-        if self.with_img_bbox:
-            # bbox head forward and loss
-            img_roi_losses = self.img_roi_head.forward_train(
-                x, img_metas, proposal_list, gt_bboxes, gt_labels,
-                gt_bboxes_ignore, **kwargs)
-            losses.update(img_roi_losses)
-
-        return losses
 
     def simple_test_img(self, x, img_metas, proposals=None, rescale=False):
         """Test without augmentation."""
