@@ -8,7 +8,13 @@ model = dict(
     type='MMDA',
     img_backbone=dict(
         type='UNetResNet34',
+        out_channels=64,
         pretrained=True),
+    img_seg_head=dict(
+        type='ImageSegHead',
+        in_channels=64,
+        num_classes=11
+    ),
     pts_voxel_layer=dict(
         max_num_points=64,
         point_cloud_range=[-50, -50, -5, 50, 50, 3],

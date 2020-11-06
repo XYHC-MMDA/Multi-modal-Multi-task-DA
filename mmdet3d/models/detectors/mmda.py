@@ -278,12 +278,13 @@ class MMDA(Base3DDetector):
         img_feats, pts_feats = self.extract_feat(
             points, img=img, img_metas=img_metas)
         losses = dict()
+        # pts_feats: tuple
         if pts_feats:
             losses_pts = self.forward_pts_train(pts_feats, gt_bboxes_3d,
                                                 gt_labels_3d, img_metas,
                                                 gt_bboxes_ignore)
             losses.update(losses_pts)
-        if img_feats:
+        if img_feats is not None:
             losses_img = self.forward_img_train(
                 img_feats,
                 img_indices=img_indices,

@@ -22,7 +22,6 @@ class ImageSegHead(nn.Module):
         Returns: logits=(M, num_classes); M: total pts in a batch
 
         """
-        img_indices = None
         x = img_feats.permute(0, 2, 3, 1)
         mask_feats = []
         for i in range(x.shape[0]):
@@ -34,6 +33,9 @@ class ImageSegHead(nn.Module):
 
     def loss(self, img_feats, img_meta, img_indices, seg_label):
         seg_logits = self.forward(img_feats, img_meta, img_indices)
-        seg_loss = F.cross_entropy(seg_logits, torch.cat(seg_label), weight=None)
+        # seg_label[0].device: cuda:0
+        y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
+        y = y.type(torch.LongTensor).cuda()
+        seg_loss = F.cross_entropy(seg_logits, y, weight=None)
         return dict(seg_loss=seg_loss)
 
