@@ -47,8 +47,8 @@ train_pipeline = [
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
     dict(type='LoadFrontImage'),  # new
-    # dict(type='DefaultFormatBundle3D', class_names=class_names),
-    # dict(type='Collect3D', keys=['points_seg', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d'])  # TODO
+    dict(type='DefaultFormatBundle3D', class_names=class_names),
+    dict(type='Collect3D', keys=['img', 'img_indices', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d'])  # TODO
 ]
 test_pipeline = [
     dict(

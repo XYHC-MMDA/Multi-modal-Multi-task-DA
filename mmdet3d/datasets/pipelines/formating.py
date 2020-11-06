@@ -54,11 +54,13 @@ class DefaultFormatBundle(object):
         ]:
             if key not in results:
                 continue
+            print(key, type(key))
             if isinstance(results[key], list):
                 results[key] = DC([to_tensor(res) for res in results[key]])
             else:
                 results[key] = DC(to_tensor(results[key]))
         if 'gt_bboxes_3d' in results:
+            print(key, type(key))
             if isinstance(results['gt_bboxes_3d'], BaseInstance3DBoxes):
                 results['gt_bboxes_3d'] = DC(
                     results['gt_bboxes_3d'], cpu_only=True)
@@ -256,3 +258,38 @@ class DefaultFormatBundle3D(DefaultFormatBundle):
         repr_str += 'with_gt={}, with_label={})'.format(
             self.with_gt, self.with_label)
         return repr_str
+
+
+@PIPELINES.register_module()
+class SegDetFormatBundle(object):
+    def __init__(self, class_names):
+        self.class_names = class_names
+
+    def __call__(self, results):
+        # stack=False
+        for key in [
+            'points', 'img_indices', 'seg_label'
+        ]:
+            assert key in results.keys(), f"key {key} does not exist."
+            results[key] = DC(to_tensor(results[key]), stack=False)
+
+        # stack=True
+        img = np.ascontiguousarray(results['img'].transpose(2, 0, 1))
+        results['img'] = DC(to_tensor(img), stack=True)
+
+        for key in [
+            'gt_labels_3d', 'pts_semantic_mask'
+        ]:
+            if key not in results:
+                continue
+            if isinstance(results[key], list):
+                results[key] = DC([to_tensor(res) for res in results[key]])
+            else:
+                results[key] = DC(to_tensor(results[key]))
+        if 'gt_bboxes_3d' in results:
+            if isinstance(results['gt_bboxes_3d'], BaseInstance3DBoxes):
+                results['gt_bboxes_3d'] = DC(
+                    results['gt_bboxes_3d'], cpu_only=True)
+            else:
+                results['gt_bboxes_3d'] = DC(
+                    to_tensor(results['gt_bboxes_3d']))
