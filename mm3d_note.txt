@@ -29,6 +29,7 @@ datasets:
         loading.py: LoadSegDetPointsFromFile, LoadFrontImage
         transforms_3d.py: SegDetPointsRangeFilter
     nusc_multi_modal_dataset.py
+    gt_bboxes_3d: <class 'mmdet3d.core.bbox.structures.lidar_box3d.LiDARInstance3DBoxes'>
 
 
 #### cmds ####

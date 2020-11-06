@@ -1,5 +1,6 @@
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset
+from mmdet.datasets import build_dataloader
 from mmcv import Config, DictAction
 import argparse
 import numpy as np
@@ -21,6 +22,17 @@ data = dataset[0]
 print('getitem:')
 print(data.keys())
 
+dataloader = build_dataloader(
+    dataset,
+    cfg.data.samples_per_gpu,
+    cfg.data.workers_per_gpu,
+    len(cfg.gpu_ids),
+    dist=False,
+    seed=cfg.seed
+)
+
+data_batch = dataloader[0]
+print('data_batch:', data_batch.keys())
 exit(0)
 
 pts_lidar = np.fromfile(data['pts_filename'], dtype=np.float32).reshape(-1, 5)[:, :3]

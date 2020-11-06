@@ -54,13 +54,11 @@ class DefaultFormatBundle(object):
         ]:
             if key not in results:
                 continue
-            print(key, type(key))
             if isinstance(results[key], list):
                 results[key] = DC([to_tensor(res) for res in results[key]])
             else:
                 results[key] = DC(to_tensor(results[key]))
         if 'gt_bboxes_3d' in results:
-            print(key, type(key))
             if isinstance(results['gt_bboxes_3d'], BaseInstance3DBoxes):
                 results['gt_bboxes_3d'] = DC(
                     results['gt_bboxes_3d'], cpu_only=True)
@@ -277,6 +275,7 @@ class SegDetFormatBundle(object):
         img = np.ascontiguousarray(results['img'].transpose(2, 0, 1))
         results['img'] = DC(to_tensor(img), stack=True)
 
+        # gt_labels_3d: list of int
         for key in [
             'gt_labels_3d', 'pts_semantic_mask'
         ]:
