@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from mmdet.models import HEADS
 
 
+@HEADS.register_module()
 class ImageSegHead(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(ImageSegHead, self).__init__()
@@ -10,7 +12,7 @@ class ImageSegHead(nn.Module):
         self.num_classes = num_classes
         self.linear = nn.Linear(in_channels, num_classes)
 
-    def forward(self, img_feats, img_meta):
+    def forward(self, img_feats, img_meta, img_indices):
         """
 
         Args:
@@ -30,8 +32,8 @@ class ImageSegHead(nn.Module):
         seg_logits = self.linear(mask_feats)  # shape=(M, num_classes)
         return seg_logits
 
-    def loss(self, img_feats, img_meta):
-        seg_logits = self.forward(img_feats, img_meta)
-        seg_loss = F.cross_entropy(seg_logits, img_meta['seg_label'], weight=None)
+    def loss(self, img_feats, img_meta, img_indices, seg_label):
+        seg_logits = self.forward(img_feats, img_meta, img_indices)
+        seg_loss = F.cross_entropy(seg_logits, torch.cat(seg_label), weight=None)
         return dict(seg_loss=seg_loss)
 

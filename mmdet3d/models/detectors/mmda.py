@@ -189,7 +189,7 @@ class MMDA(Base3DDetector):
             return None
         if self.with_img_neck:
             img_feats = self.img_neck(img_feats)
-        return img_feats
+        return img_feats  # shape=(N, C, H, W)
 
     def extract_pts_feat(self, pts, img_feats, img_metas):
         """Extract features of points."""
@@ -239,7 +239,8 @@ class MMDA(Base3DDetector):
         return voxels, num_points, coors_batch
 
     def forward_train(self,
-                      points_seg=None,
+                      img=None,
+                      img_indices=None,
                       seg_label=None,
                       points=None,
                       img_metas=None,
@@ -247,7 +248,6 @@ class MMDA(Base3DDetector):
                       gt_labels_3d=None,
                       gt_labels=None,
                       gt_bboxes=None,
-                      img=None,
                       proposals=None,
                       gt_bboxes_ignore=None):
         """Forward training function.
@@ -275,6 +275,9 @@ class MMDA(Base3DDetector):
         Returns:
             dict: Losses of different branches.
         """
+        print(points[0].shape)
+        print(img.shape)
+        exit(0)
         img_feats, pts_feats = self.extract_feat(
             points, img=img, img_metas=img_metas)
         losses = dict()
@@ -286,6 +289,8 @@ class MMDA(Base3DDetector):
         if img_feats:
             losses_img = self.forward_img_train(
                 img_feats,
+                img_indices=img_indices,
+                seg_label=seg_label,
                 img_metas=img_metas,
                 gt_bboxes=gt_bboxes,
                 gt_labels=gt_labels,
@@ -323,6 +328,8 @@ class MMDA(Base3DDetector):
 
     def forward_img_train(self,
                           x,
+                          img_indices,
+                          seg_label,
                           img_metas,
                           gt_bboxes,
                           gt_labels,
@@ -348,8 +355,8 @@ class MMDA(Base3DDetector):
         Returns:
             dict: Losses of each branch.
         """
-        logits = self.img_seg_head(x, img_metas)
-        img_seg_losses = self.img_seg_head.loss(logits)
+        logits = self.img_seg_head(x, img_metas, img_indices)
+        img_seg_losses = self.img_seg_head.loss(logits, seg_label)
         return img_seg_losses
 
         # bbox head forward and loss
