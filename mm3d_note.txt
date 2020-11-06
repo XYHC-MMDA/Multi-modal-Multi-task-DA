@@ -1,16 +1,19 @@
 #### TODO ####
+ - dataloader -> kwargs
+ - evaluate
+ - joint training, shared optimizer
+
  - loading.multisweeps
  - share .pkl
  - prepare dataset split: usa-singapore, day-night(trained with train_usa & train_singapore, test on test_singapore with highest acc ckpt on val_singapore)
    train_sg: 9665  val_sg: 2770  test_sg:2929
  - pts_bbox_head:loss; mmcv:call_hook('after_train_iter'), backward
- - joint training, shared optimizer
  - FPN
  - how register/decorator works? when decorators are called?
 
 
 ### modify ####
-mmdetection3d/mmdet3d/ops/norm.py
+mmdet3d/ops/norm.py  # SyncBN
 
 # create data
 tools/create_data.py ==> nusc_multi_modal_converter.py
@@ -33,6 +36,10 @@ datasets:
 
 
 #### cmds ####
+CUDA_VISIBLE_DEVICES=5 python tools/train.py ./configs/pointpillars/nus_mmda.py --work-dir ./checkpoints/v0
+
+CUDA_VISIBLE_DEVICES=5 python tools/mini_train.py ./configs/pointpillars/nus_mmda.py --work-dir ./checkpoints/debug
+
 CUDA_VISIBLE_DEVICES=5 python tools/train.py ./configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py --work-dir ./results/debug
 
 CUDA_VISIBLE_DEVICES=1 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pth --out checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pkl --eval mAP

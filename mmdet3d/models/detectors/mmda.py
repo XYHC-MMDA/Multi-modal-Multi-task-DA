@@ -195,21 +195,21 @@ class MMDA(Base3DDetector):
         """Extract features of points."""
         if not self.with_pts_bbox:
             return None
-        voxels, num_points, coors = self.voxelize(pts)
+        voxels, num_points, coors = self.voxelize(pts)  # voxels=(M, T=64, ndim=4)
         voxel_features = self.pts_voxel_encoder(voxels, num_points, coors,
-                                                img_feats, img_metas)
-        batch_size = coors[-1, 0] + 1
-        x = self.pts_middle_encoder(voxel_features, coors, batch_size)
-        x = self.pts_backbone(x)
-        if self.with_pts_neck:
-            x = self.pts_neck(x)
+                                                img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
+        batch_size = coors[-1, 0] + 1  # the first column of coord indicates which batch
+        x = self.pts_middle_encoder(voxel_features, coors, batch_size)  # (N, C, H, W) = (4, 64, 400, 400)
+        x = self.pts_backbone(x)  # tuple of tensor: ((4, 64, 200, 200), (4, 128, 100, 100), (4, 256, 50, 50))
+        if self.with_pts_neck:    # FPN
+            x = self.pts_neck(x)  # tuple of tensor: ((4, 256, 200, 200), (4, 256, 100, 100), (4, 256, 50, 50))
         return x
 
     def extract_feat(self, points, img, img_metas):
         """Extract features from images and points."""
         img_feats = self.extract_img_feat(img, img_metas)
         pts_feats = self.extract_pts_feat(points, img_feats, img_metas)
-        return (img_feats, pts_feats)
+        return img_feats, pts_feats
 
     @torch.no_grad()
     @force_fp32()
