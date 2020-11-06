@@ -292,3 +292,4 @@ class SegDetFormatBundle(object):
             else:
                 results['gt_bboxes_3d'] = DC(
                     to_tensor(results['gt_bboxes_3d']))
+        return results

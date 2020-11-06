@@ -21,6 +21,7 @@ print(data.keys())
 data = dataset[0]
 print('getitem:')
 print(data.keys())
+print()
 
 dataloader = build_dataloader(
     dataset,
@@ -28,10 +29,19 @@ dataloader = build_dataloader(
     cfg.data.workers_per_gpu,
     1,
     dist=False,
+    shuffle=False
 )
 
 data_batch = iter(dataloader).next()
 print('data_batch:', data_batch.keys())
+print(type(data_batch['img_indices']._data[0]))  # list
+print(len(data_batch['img_indices']._data[0]))  # list
+print(data_batch['img_indices']._data[0][0].shape)  # list
+print(len(data_batch['seg_label']._data[0]))
+print(data_batch['seg_label']._data[0][0].shape)  # list
+print(len(data_batch['points']._data[0]))
+print(data_batch['points']._data[0][0].shape)  # list
+print(data_batch['img']._data[0].shape)
 exit(0)
 
 pts_lidar = np.fromfile(data['pts_filename'], dtype=np.float32).reshape(-1, 5)[:, :3]
