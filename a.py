@@ -26,12 +26,11 @@ dataloader = build_dataloader(
     dataset,
     cfg.data.samples_per_gpu,
     cfg.data.workers_per_gpu,
-    len(cfg.gpu_ids),
+    1,
     dist=False,
-    seed=cfg.seed
 )
 
-data_batch = dataloader[0]
+data_batch = iter(dataloader).next()
 print('data_batch:', data_batch.keys())
 exit(0)
 
