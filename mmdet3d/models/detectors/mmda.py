@@ -343,7 +343,7 @@ class MMDA(Base3DDetector):
         ]
         return bbox_results
 
-    def simple_test(self, points, img_metas, img=None, rescale=False):
+    def simple_test(self, points, img_metas, img=None, img_indices=None, rescale=False):
         """Test function without augmentaiton."""
         print()
         print(type(img))
@@ -357,7 +357,9 @@ class MMDA(Base3DDetector):
             for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
                 result_dict['pts_bbox'] = pts_bbox
         if img_feats is not None:
+            seg_logits = self.img_seg_head(img_feats, img_metas, img_indices)
             print(111)
+        print(333)
         exit(0)
         return bbox_list
 
