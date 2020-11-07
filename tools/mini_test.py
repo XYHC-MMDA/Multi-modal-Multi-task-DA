@@ -103,6 +103,7 @@ def main():
 
     # build the dataloader
     samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
+    print('samples_per_gpu:', samples_per_gpu)  # 1
     dataset = build_dataset(cfg.data.mini_test)
     data_loader = build_dataloader(
         dataset,
@@ -112,7 +113,10 @@ def main():
         shuffle=False)
     data_batch = iter(data_loader).next()
     print(data_batch.keys())
-    print(type(data_batch['points']))
+    print(type(data_batch['points'][0].data[0][0]))
+    print(type(data_batch['img'][0].data))
+    print(type(data_batch['img_indices'][0].data))
+    print(len(data_batch['img_indices'][0]))
 
     # build the model and load checkpoint
     model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)

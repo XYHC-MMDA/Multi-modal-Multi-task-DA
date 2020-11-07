@@ -12,7 +12,7 @@ from mmdet.models.detectors import BaseDetector
 class Base3DDetector(BaseDetector):
     """Base class for detectors."""
 
-    def forward_test(self, points, img_metas, img=None, **kwargs):
+    def forward_test(self, points, img_metas, img=None, img_indices=None, **kwargs):
         """
         Args:
             points (list[torch.Tensor]): the outer list indicates test-time
@@ -39,7 +39,8 @@ class Base3DDetector(BaseDetector):
 
         if num_augs == 1:
             img = [img] if img is None else img
-            return self.simple_test(points[0], img_metas[0], img[0], **kwargs)
+            img_indices = [img_indices] if img_indices is None else img_indices
+            return self.simple_test(points[0], img_metas[0], img[0], img_indices[0], **kwargs)
         else:
             return self.aug_test(points, img_metas, img, **kwargs)
 
