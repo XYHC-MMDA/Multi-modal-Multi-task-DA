@@ -37,6 +37,5 @@ class ImageSegHead(nn.Module):
         y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
         # y = y.type(torch.LongTensor).cuda()
         seg_loss = F.cross_entropy(seg_logits, y, weight=None)
-        exit(0)
         return dict(seg_loss=seg_loss)
 

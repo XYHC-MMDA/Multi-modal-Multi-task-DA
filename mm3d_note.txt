@@ -1,8 +1,9 @@
 #### TODO ####
- - dataloader, multi gpu, MMDataParallel
- - loss, log
  - evaluate
+ - dataloader, multi gpu, MMDataParallel
+ - loss, log, mmcv.Config
  - joint training, shared optimizer
+ - img_indices, sel_label collate
 
  - loading.multisweeps
  - share .pkl

@@ -27,12 +27,9 @@ class MMDA(Base3DDetector):
                  pts_fusion_layer=None,
                  img_backbone=None,
                  pts_backbone=None,
-                 img_neck=None,
                  pts_neck=None,
                  pts_bbox_head=None,
                  img_seg_head=None,
-                 img_roi_head=None,
-                 img_rpn_head=None,
                  train_cfg=None,
                  test_cfg=None,
                  pretrained=None):
@@ -64,12 +61,6 @@ class MMDA(Base3DDetector):
             self.img_backbone = builder.build_backbone(img_backbone)
         if img_seg_head:
             self.img_seg_head = builder.build_head(img_seg_head)
-        if img_neck is not None:
-            self.img_neck = builder.build_neck(img_neck)
-        if img_rpn_head is not None:
-            self.img_rpn_head = builder.build_head(img_rpn_head)
-        if img_roi_head is not None:
-            self.img_roi_head = builder.build_head(img_roi_head)
 
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
@@ -178,12 +169,6 @@ class MMDA(Base3DDetector):
             # update real input shape of each single img
             for img_meta in img_metas:
                 img_meta.update(input_shape=input_shape)
-
-            #if img.dim() == 5 and img.size(0) == 1:
-            #    img.squeeze_()
-            #elif img.dim() == 5 and img.size(0) > 1:
-            #    B, N, C, H, W = img.size()
-            #    img = img.view(B * N, C, H, W)
             img_feats = self.img_backbone(img)
         else:
             return None
@@ -324,35 +309,8 @@ class MMDA(Base3DDetector):
             *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
         return losses
 
-    def forward_img_train(self,
-                          x,
-                          img_indices,
-                          seg_label,
-                          img_metas,
-                          gt_bboxes,
-                          gt_labels,
-                          gt_bboxes_ignore=None,
-                          proposals=None,
-                          **kwargs):
-        """Forward function for image branch.
-
-        This function works similar to the forward function of Faster R-CNN.
-
-        Args:
-            x (list[torch.Tensor]): Image features of shape (B, C, H, W)
-                of multiple levels.
-            img_metas (list[dict]): Meta information of images.
-            gt_bboxes (list[torch.Tensor]): Ground truth boxes of each image
-                sample.
-            gt_labels (list[torch.Tensor]): Ground truth labels of boxes.
-            gt_bboxes_ignore (list[torch.Tensor], optional): Ground truth
-                boxes to be ignored. Defaults to None.
-            proposals (list[torch.Tensor], optional): Proposals of each sample.
-                Defaults to None.
-
-        Returns:
-            dict: Losses of each branch.
-        """
+    def forward_img_train(self, x, img_indices, seg_label, img_metas):
+        # x: img_feats; shape=(B, C, H, W)
         img_seg_losses = self.img_seg_head.loss(x, img_metas, img_indices, seg_label)
         return img_seg_losses
 
@@ -396,11 +354,9 @@ class MMDA(Base3DDetector):
                 pts_feats, img_metas, rescale=rescale)
             for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
                 result_dict['pts_bbox'] = pts_bbox
-        if img_feats and self.with_img_bbox:
-            bbox_img = self.simple_test_img(
-                img_feats, img_metas, rescale=rescale)
-            for result_dict, img_bbox in zip(bbox_list, bbox_img):
-                result_dict['img_bbox'] = img_bbox
+        if img_feats:
+            print(111)
+        exit(0)
         return bbox_list
 
     def aug_test(self, points, img_metas, imgs=None, rescale=False):
