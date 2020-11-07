@@ -15,7 +15,7 @@ class LoadFrontImage(object):
     def __call__(self, results):
         filepath = results['img_filename'][0]
         rot = results['lidar2img'][0]
-        pts_seg = results['points_seg']  # After RangeFilter; within pc_range
+        pts_seg = results['points_seg'] 
         seg_label = results['seg_label']
         img = Image.open(filepath)
         img_size = img.size  # (1600, 900)
@@ -29,6 +29,7 @@ class LoadFrontImage(object):
         mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < img_size)
         mask = mask[:, 0] & mask[:, 1]
         pts_img = pts[mask][:, :2]
+        pts_seg = pts_seg[mask]
         seg_label = seg_label[mask]
 
         if self.resize:
@@ -39,6 +40,7 @@ class LoadFrontImage(object):
         img_indices = np.fliplr(pts_img).astype(np.int64)
         results['img'] = img  # TODO: moveaxis or not
         results['img_indices'] = img_indices  # (N, 2): (row, column)
+        results['points_seg'] = pts_seg
         results['seg_label'] = seg_label
         return results
 

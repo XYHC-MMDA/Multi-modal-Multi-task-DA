@@ -35,6 +35,7 @@ train_pipeline = [
         type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
+    dict(type='LoadFrontImage'),  # new
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(
         type='GlobalRotScaleTrans',
@@ -46,20 +47,19 @@ train_pipeline = [
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
-    dict(type='LoadFrontImage'),  # new
     dict(type='SegDetFormatBundle', class_names=class_names),
     dict(type='Collect3D', keys=['img', 'img_indices', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d'])  # TODO
 ]
 test_pipeline = [
     dict(
-        type='LoadPointsFromFile',
+        type='LoadSegDetPointsFromFile',
         load_dim=5,
-        use_dim=5,
-        file_client_args=file_client_args),
+        use_dim=5),
     dict(
         type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
+    dict(type='LoadFrontImage'),  # new
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -73,12 +73,11 @@ test_pipeline = [
                 translation_std=[0, 0, 0]),
             dict(type='RandomFlip3D'),
             dict(
-                type='PointsRangeFilter', point_cloud_range=point_cloud_range),
+                type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
             dict(
-                type='DefaultFormatBundle3D',
-                class_names=class_names,
-                with_label=False),
-            dict(type='Collect3D', keys=['points'])
+                type='SegDetFormatBundle',
+                class_names=class_names),
+            dict(type='Collect3D', keys=['img', 'img_indices', 'points'])
         ])
 ]
 

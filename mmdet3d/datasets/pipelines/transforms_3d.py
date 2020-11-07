@@ -557,8 +557,10 @@ class SegDetPointsRangeFilter(object):
         pts_mask = ((pts_seg[:, :3] >= self.pcd_range[:, :3])
                     & (pts_seg[:, :3] < self.pcd_range[:, 3:]))
         pts_mask = pts_mask[:, 0] & pts_mask[:, 1] & pts_mask[:, 2]
-        input_dict['points_seg'] = pts_seg[pts_mask]
-        input_dict['seg_label'] = input_dict['seg_label'][pts_mask]
+        for key in ['points_seg', 'seg_label', 'img_indices']:
+            if key not in input_dict.keys():
+                continue
+            input_dict[key] = input_dict[key][pts_mask]
 
         return input_dict
 

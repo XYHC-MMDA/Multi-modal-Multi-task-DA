@@ -34,11 +34,6 @@ dataloader = build_dataloader(
     shuffle=False
 )
 
-for i, data_batch in enumerate(dataloader):
-    print(data_batch.keys())
-    print(type(data_batch['img']))
-    exit(0)
-
 data_batch = iter(dataloader).next()
 print('data_batch:', data_batch.keys())
 print(type(data_batch['img_indices']._data[0]))  # list
