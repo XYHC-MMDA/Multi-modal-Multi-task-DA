@@ -13,10 +13,12 @@ cfg = Config.fromfile(args.config)
 print('cfg loaded')
 dataset = build_dataset(cfg.data.mini_train)
 print('dataset loaded')
+print()
 
 data = dataset.get_data_info(0)
 print('get_data_info:')
 print(data.keys())
+print()
 
 data = dataset[0]
 print('getitem:')
@@ -31,6 +33,11 @@ dataloader = build_dataloader(
     dist=False,
     shuffle=False
 )
+
+for i, data_batch in enumerate(dataloader):
+    print(data_batch.keys())
+    print(type(data_batch['img']))
+    exit(0)
 
 data_batch = iter(dataloader).next()
 print('data_batch:', data_batch.keys())
