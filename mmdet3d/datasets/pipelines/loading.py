@@ -456,7 +456,7 @@ class LoadSegDetPointsFromFile(object):
         points = points[:, self.use_dim]
 
         seglabel_filename = results['seglabel_filename']
-        seg_label = np.fromfile(seglabel_filename, dtype=np.uint8)
+        seg_label = np.fromfile(seglabel_filename, dtype=np.uint8).astype(np.int64)
         classmap = [10] * 32
         idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
                   [22, 3], [23, 1]]

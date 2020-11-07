@@ -1,5 +1,6 @@
 #### TODO ####
- - dataloader -> kwargs
+ - dataloader, multi gpu, MMDataParallel
+ - loss, log
  - evaluate
  - joint training, shared optimizer
 
