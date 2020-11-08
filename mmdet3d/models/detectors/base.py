@@ -12,7 +12,7 @@ from mmdet.models.detectors import BaseDetector
 class Base3DDetector(BaseDetector):
     """Base class for detectors."""
 
-    def forward_test(self, points, img_metas, img=None, img_indices=None, **kwargs):
+    def forward_test(self, points, img_metas, img=None, img_indices=None, seg_label=None, **kwargs):
         """
         Args:
             points (list[torch.Tensor]): the outer list indicates test-time

@@ -102,6 +102,10 @@ def main():
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=False,
         shuffle=False)
+    data_batch = iter(data_loader).next()
+    # print(len(data_batch['seg_label'][0].data[0]))
+    # print(type(data_batch['seg_label'][0].data[0][0]))
+    # print(data_batch['seg_label'][0].data[0][0].shape)
 
     # build the model and load checkpoint
     model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)

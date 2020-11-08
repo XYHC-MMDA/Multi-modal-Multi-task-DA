@@ -1,7 +1,7 @@
 from .inference import inference_detector, init_detector, show_result_meshlab
-from .test import single_gpu_test
+from .test import single_gpu_test, mmda_single_gpu_test
 
 __all__ = [
     'inference_detector', 'init_detector', 'single_gpu_test',
-    'show_result_meshlab'
+    'show_result_meshlab', 'mmda_single_gpu_test'
 ]
