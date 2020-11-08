@@ -4,23 +4,6 @@ from tools.evaluator import SegEvaluator
 
 
 def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
-    """Test model with single gpu.
-
-    This method tests model with single gpu and gives the 'show' option.
-    By setting ``show=True``, it saves the visualization results under
-    ``out_dir``.
-
-    Args:
-        model (nn.Module): Model to be tested.
-        data_loader (nn.Dataloader): Pytorch data loader.
-        show (bool): Whether to save viualization results.
-            Default: True.
-        out_dir (str): The path to save visualization results.
-            Default: None.
-
-    Returns:
-        list[dict]: The prediction results.
-    """
     model.eval()
     box_preds = []
     dataset = data_loader.dataset
@@ -39,18 +22,12 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
         pred_list = []
         gt_list = []
         left_idx = 0
-        print()
         for i in range(len(seg_label)):
-            print('idx:', idx)
-            print('seg_label:', seg_label[0].shape)
-            print('seg_pred:', seg_pred.shape)
             num_points = len(img_indices[i])
             right_idx = left_idx + num_points
             pred_list.append(seg_pred[left_idx: right_idx])
             gt_list.append(seg_label[i].numpy())
             left_idx = right_idx
-        print(len(pred_list), len(gt_list))
-        print(pred_list[0].shape, gt_list[0].shape)
         evaluator.batch_update(pred_list, gt_list)
 
         # handle box
@@ -67,7 +44,6 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     print(evaluator.print_table())
     print('overall_acc:', evaluator.overall_acc)
     print('overall_iou:', evaluator.overall_iou)
-    exit(0)
     return box_preds
 
 

@@ -328,14 +328,14 @@ class NuscMultiModalDataset(Custom3DDataset):
                     elif name in ['bicycle', 'motorcycle']:
                         attr = 'cycle.with_rider'
                     else:
-                        attr = NuScenesDataset.DefaultAttribute[name]
+                        attr = NuscMultiModalDataset.DefaultAttribute[name]
                 else:
                     if name in ['pedestrian']:
                         attr = 'pedestrian.standing'
                     elif name in ['bus']:
                         attr = 'vehicle.stopped'
                     else:
-                        attr = NuScenesDataset.DefaultAttribute[name]
+                        attr = NuscMultiModalDataset.DefaultAttribute[name]
 
                 nusc_anno = dict(
                     sample_token=sample_token,
