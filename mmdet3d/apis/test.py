@@ -25,7 +25,7 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     box_preds = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
-    evaluator = SegEvaluator(class_names=dataset.CLASSES)
+    evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
     print()
     print('batch_size:', data_loader.batch_size)
     for idx, data in enumerate(data_loader):
