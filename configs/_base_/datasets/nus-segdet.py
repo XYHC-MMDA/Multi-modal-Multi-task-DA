@@ -2,9 +2,22 @@
 # cloud range accordingly
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 # For nuScenes we usually do 10-class detection
+# class_names = [
+#     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
+#     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+# ]
 class_names = [
-    'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+    "car",  # 0
+    "truck",  # 1
+    "bus",  # 2
+    "trailer",  # 3
+    "construction_vehicle",  # 4
+    "pedestrian",  # 5
+    "motorcycle",  # 6
+    "bicycle",  # 7
+    "traffic_cone",  # 8
+    "barrier",  # 9
+    # "background"
 ]
 dataset_type = 'NuscMultiModalDataset'
 data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'

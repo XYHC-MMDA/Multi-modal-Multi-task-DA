@@ -97,9 +97,12 @@ class NuscMultiModalDataset(Custom3DDataset):
         'vehicle.parked',
         'vehicle.stopped',
     ]
-    CLASSES = ('car', 'truck', 'trailer', 'bus', 'construction_vehicle',
-               'bicycle', 'motorcycle', 'pedestrian', 'traffic_cone',
+    CLASSES = ('car', 'truck', 'bus', 'trailer', 'construction_vehicle',
+               'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone',
                'barrier')
+    SEG_CLASSES = ('car', 'truck', 'bus', 'trailer', 'construction_vehicle',
+                   'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone',
+                   'barrier', 'background')
 
     def __init__(self,
                  ann_file,
