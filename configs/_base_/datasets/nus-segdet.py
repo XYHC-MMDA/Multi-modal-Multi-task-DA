@@ -77,7 +77,7 @@ test_pipeline = [
             dict(
                 type='SegDetFormatBundle',
                 class_names=class_names),
-            dict(type='Collect3D', keys=['img', 'img_indices', 'points'])
+            dict(type='Collect3D', keys=['img', 'img_indices', 'seg_label', 'points'])
         ])
 ]
 
