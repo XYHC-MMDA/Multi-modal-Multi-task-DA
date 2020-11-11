@@ -44,7 +44,7 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     print(evaluator.print_table())
     print('overall_acc:', evaluator.overall_acc)
     print('overall_iou:', evaluator.overall_iou)
-    return box_preds
+    return box_preds  # list of dict; key='pts_bbox'
 
 
 def single_gpu_test(model, data_loader, show=False, out_dir=None):

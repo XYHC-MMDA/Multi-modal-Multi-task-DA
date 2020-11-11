@@ -223,6 +223,39 @@ class MMDA(Base3DDetector):
         coors_batch = torch.cat(coors_batch, dim=0)
         return voxels, num_points, coors_batch
 
+
+    def forward_pts_train(self,
+                          pts_feats,
+                          gt_bboxes_3d,
+                          gt_labels_3d,
+                          img_metas,
+                          gt_bboxes_ignore=None):
+        """Forward function for point cloud branch.
+
+        Args:
+            pts_feats (list[torch.Tensor]): Features of point cloud branch
+            gt_bboxes_3d (list[:obj:`BaseInstance3DBoxes`]): Ground truth
+                boxes for each sample.
+            gt_labels_3d (list[torch.Tensor]): Ground truth labels for
+                boxes of each sampole
+            img_metas (list[dict]): Meta information of samples.
+            gt_bboxes_ignore (list[torch.Tensor], optional): Ground truth
+                boxes to be ignored. Defaults to None.
+
+        Returns:
+            dict: Losses of each branch.
+        """
+        outs = self.pts_bbox_head(pts_feats)
+        loss_inputs = outs + (gt_bboxes_3d, gt_labels_3d, img_metas)
+        losses = self.pts_bbox_head.loss(
+            *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
+        return losses
+
+    def forward_img_train(self, x, img_indices, seg_label, img_metas):
+        # x: img_feats; shape=(B, C, H, W)
+        img_seg_losses = self.img_seg_head.loss(x, img_metas, img_indices, seg_label)
+        return img_seg_losses
+
     def forward_train(self,
                       img=None,
                       img_indices=None,
@@ -281,56 +314,6 @@ class MMDA(Base3DDetector):
                 proposals=proposals)
             losses.update(losses_img)
         return losses
-
-    def forward_pts_train(self,
-                          pts_feats,
-                          gt_bboxes_3d,
-                          gt_labels_3d,
-                          img_metas,
-                          gt_bboxes_ignore=None):
-        """Forward function for point cloud branch.
-
-        Args:
-            pts_feats (list[torch.Tensor]): Features of point cloud branch
-            gt_bboxes_3d (list[:obj:`BaseInstance3DBoxes`]): Ground truth
-                boxes for each sample.
-            gt_labels_3d (list[torch.Tensor]): Ground truth labels for
-                boxes of each sampole
-            img_metas (list[dict]): Meta information of samples.
-            gt_bboxes_ignore (list[torch.Tensor], optional): Ground truth
-                boxes to be ignored. Defaults to None.
-
-        Returns:
-            dict: Losses of each branch.
-        """
-        outs = self.pts_bbox_head(pts_feats)
-        loss_inputs = outs + (gt_bboxes_3d, gt_labels_3d, img_metas)
-        losses = self.pts_bbox_head.loss(
-            *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
-        return losses
-
-    def forward_img_train(self, x, img_indices, seg_label, img_metas):
-        # x: img_feats; shape=(B, C, H, W)
-        img_seg_losses = self.img_seg_head.loss(x, img_metas, img_indices, seg_label)
-        return img_seg_losses
-
-    def simple_test_img(self, x, img_metas, proposals=None, rescale=False):
-        """Test without augmentation."""
-        if proposals is None:
-            proposal_list = self.simple_test_rpn(x, img_metas,
-                                                 self.test_cfg.img_rpn)
-        else:
-            proposal_list = proposals
-
-        return self.img_roi_head.simple_test(
-            x, proposal_list, img_metas, rescale=rescale)
-
-    def simple_test_rpn(self, x, img_metas, rpn_test_cfg):
-        """RPN test function."""
-        rpn_outs = self.img_rpn_head(x)
-        proposal_inputs = rpn_outs + (img_metas, rpn_test_cfg)
-        proposal_list = self.img_rpn_head.get_bboxes(*proposal_inputs)
-        return proposal_list
 
     def simple_test_pts(self, x, img_metas, rescale=False):
         """Test function of point cloud branch."""
