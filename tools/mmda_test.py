@@ -95,14 +95,14 @@ def main():
 
     # build the dataloader
     samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
-    dataset = build_dataset(cfg.data.mini_test)
+    dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=False,
         shuffle=False)
-    data_batch = iter(data_loader).next()
+    # data_batch = iter(data_loader).next()
     # print(len(data_batch['seg_label'][0].data[0]))
     # print(type(data_batch['seg_label'][0].data[0][0]))
     # print(data_batch['seg_label'][0].data[0][0].shape)
@@ -134,7 +134,7 @@ def main():
         if args.format_only:
             dataset.format_results(outputs, **kwargs)
         if args.eval:
-            dataset.evaluate(outputs, args.eval, **kwargs)
+            dataset.evaluate(outputs, args.eval, jsonfile_prefix="./checkpoints/box_eval", **kwargs)
 
 
 if __name__ == '__main__':
