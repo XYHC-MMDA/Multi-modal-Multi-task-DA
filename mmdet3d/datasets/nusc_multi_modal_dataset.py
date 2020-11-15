@@ -308,7 +308,7 @@ class NuscMultiModalDataset(Custom3DDataset):
         print('Start to convert detection format...')
         for sample_id, det in enumerate(mmcv.track_iter_progress(results)):
             annos = []
-            boxes = output_to_nusc_box(det)
+            boxes = output_to_nusc_box(det) # list of NuScenesBox
             sample_token = self.data_infos[sample_id]['token']
             boxes = lidar_nusc_box_to_global(self.data_infos[sample_id], boxes,
                                              mapped_class_names,
@@ -367,7 +367,7 @@ class NuscMultiModalDataset(Custom3DDataset):
         """Evaluation for a single model in nuScenes protocol.
 
         Args:
-            result_path (str): Path of the result file.
+            result_path (str): Path of the result file; results_nusc.json
             logger (logging.Logger | str | None): Logger used for printing
                 related information during evaluation. Default: None.
             metric (str): Metric name used for evaluation. Default: 'bbox'.

@@ -12,8 +12,11 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     print()
     print('batch_size:', data_loader.batch_size)
     for idx, data in enumerate(data_loader):
+        # print(type(data['img'][0]))  # DataContainter
         with torch.no_grad():
             seg_res, box_res = model(return_loss=False, rescale=True, **data)
+        # len(box_res) == batch_size
+        # print(box_res[0].keys())  # 'pts_bbox'
 
         # handle seg
         seg_label = data['seg_label'][0].data[0]  # list of tensor

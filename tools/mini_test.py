@@ -1,5 +1,4 @@
 import argparse
-import time
 import mmcv
 import os
 import torch
@@ -82,10 +81,7 @@ def main():
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
 
-    cfg_start_time = time.time()
     cfg = Config.fromfile(args.config)
-    cfg_last = time.time() - cfg_start_time
-    print('cfg time:', cfg_last)
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
@@ -99,23 +95,19 @@ def main():
 
     # build the dataloader
     samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
-    dataset_start_time = time.time()
-    dataset = build_dataset(cfg.data.test)
+    dataset = build_dataset(cfg.data.mini_test)
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=False,
         shuffle=False)
-    dataset_last = time.time() - dataset_start_time
-    print('dataset & dataloader time:', dataset_last)
     # data_batch = iter(data_loader).next()
-    # print(len(data_batch['points'][0].data[0]))
+    # print(len(data_batch['seg_label'][0].data[0]))
     # print(type(data_batch['seg_label'][0].data[0][0]))
     # print(data_batch['seg_label'][0].data[0][0].shape)
 
     # build the model and load checkpoint
-    model_start_time = time.time()
     model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
@@ -129,20 +121,20 @@ def main():
         model.CLASSES = checkpoint['meta']['CLASSES']
     else:
         model.CLASSES = dataset.CLASSES
-    model_time = time.time() - model_start_time
-    print('model time:', model_time)
 
     model = MMDataParallel(model, device_ids=[0])
-    outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
+    outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)
 
-    if args.out:
-        print(f'\nwriting results to {args.out}')
-        mmcv.dump(outputs, args.out)
-    kwargs = {} if args.options is None else args.options
-    if args.format_only:
-        dataset.format_results(outputs, **kwargs)
-    if args.eval:
-        dataset.evaluate(outputs, args.eval, jsonfile_prefix="./checkpoints/box_eval", **kwargs)
+    rank, _ = get_dist_info()
+    if rank == 0:
+        if args.out:
+            print(f'\nwriting results to {args.out}')
+            mmcv.dump(outputs, args.out)
+        kwargs = {} if args.options is None else args.options
+        if args.format_only:
+            dataset.format_results(outputs, **kwargs)
+        if args.eval:
+            dataset.evaluate(outputs, args.eval, jsonfile_prefix="./checkpoints/box_eval", **kwargs)
 
 
 if __name__ == '__main__':

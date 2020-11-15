@@ -4,6 +4,10 @@ from mmdet.datasets import build_dataloader
 from mmcv import Config, DictAction
 import argparse
 import numpy as np
+import os
+
+print(os.path.dirname(os.path.abspath(__file__)))
+exit(0)
 
 parser = argparse.ArgumentParser(description='Train a detector')
 parser.add_argument('--config', help='train config file path')
