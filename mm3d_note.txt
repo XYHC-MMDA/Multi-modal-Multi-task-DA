@@ -82,7 +82,7 @@ python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../
 
 
 
-### forward call ###
+### forward train ###
 tools/train.py:
     train_detector()
 mmdet.apis.train.py:
@@ -91,14 +91,35 @@ mmdet.apis.train.py:
 mmcv/runner/base_runner.py: EpochBasedRunner: 
 	run(data_loaders) ==> train(data_loader) ==> run_iter(data_batch) ==> self.model.train_step(data_batch, optimizer, **kwargs(None))
 
-mmdet/models/detectors/base.py: BaseDetector: 
-	train_step(data_batch, optimizer) ==> forward(**data_batch)
+mmcv/parallel/data_parallel.py: MMDataParallel
+    train_step(*inputs, **kwargs):
+        inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
+        return self.module.train_step(*inputs[0], **kwargs[0])
+
+mmdet/models/detectors/base.py: BaseDetector:
+    train_step(data_batch, optimizer) ==> forward(**data_batch)
 
 mmdet3d/models/detectors/base.py: Base3DDetector:
 	forward(**data_batch) ==> forward_train(**data_batch)
 
 mmdet3d/models/detectors/mvx_two_stage.py: MVXTwoStageDetector: 
 	forward_train(**data_batch)  # return losses(dict)
+
+
+### forward test ###
+tools/mmda_test.py:
+    model = MMDataParallel(model, device_ids=[0])
+    outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)
+
+mmdet3d/apis/test.py: mmda_single_gpu_test
+    seg_res, box_res = model(return_loss=False, rescale=True, **data)
+
+mmcv/parallel/data_parallel.py: MMDataParallel
+    forward():
+        return super().forward(*inputs, **kwargs)  # TODO: where is scatter???
+
+
+
 
 
 #### dataset ####
