@@ -3,6 +3,7 @@
 # Usually voxel size is changed consistently with the point cloud range
 # If point cloud range is modified, do remember to change all related
 # keys in the config.
+pc_range = [-50, 0, -5, 50, 50, 3]
 voxel_size = [0.25, 0.25, 8]
 model = dict(
     type='MMDA',
@@ -17,7 +18,7 @@ model = dict(
     ),
     pts_voxel_layer=dict(
         max_num_points=64,
-        point_cloud_range=[-50, -50, -5, 50, 50, 3],
+        point_cloud_range=pc_range,
         voxel_size=voxel_size,
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
@@ -28,10 +29,10 @@ model = dict(
         voxel_size=voxel_size,
         with_cluster_center=True,
         with_voxel_center=True,
-        point_cloud_range=[-50, -50, -5, 50, 50, 3],
+        point_cloud_range=pc_range,
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
-        type='PointPillarsScatter', in_channels=64, output_shape=[400, 400]),
+        type='PointPillarsScatter', in_channels=64, output_shape=[200, 400]),
     pts_backbone=dict(
         type='SECOND',
         in_channels=64,
@@ -55,7 +56,7 @@ model = dict(
         use_direction_classifier=True,
         anchor_generator=dict(
             type='AlignedAnchor3DRangeGenerator',
-            ranges=[[-50, -50, -1.8, 50, 50, -1.8]],
+            ranges=[[-50, 0, -1.8, 50, 50, -1.8]],
             scales=[1, 2, 4],
             sizes=[
                 [0.8660, 2.5981, 1.],  # 1.5/sqrt(3)

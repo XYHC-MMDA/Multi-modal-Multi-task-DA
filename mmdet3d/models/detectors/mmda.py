@@ -307,11 +307,7 @@ class MMDA(Base3DDetector):
                 img_feats,
                 img_indices=img_indices,
                 seg_label=seg_label,
-                img_metas=img_metas,
-                gt_bboxes=gt_bboxes,
-                gt_labels=gt_labels,
-                gt_bboxes_ignore=gt_bboxes_ignore,
-                proposals=proposals)
+                img_metas=img_metas)
             losses.update(losses_img)
         return losses
 
