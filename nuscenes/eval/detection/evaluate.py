@@ -87,6 +87,8 @@ class DetectionEval:
         # Add center distances.
         self.pred_boxes = add_center_dist(nusc, self.pred_boxes)
         self.gt_boxes = add_center_dist(nusc, self.gt_boxes)
+        print('kksp')
+        exit(0)
 
         # Filter boxes (distance, points per box, etc.).
         if verbose:

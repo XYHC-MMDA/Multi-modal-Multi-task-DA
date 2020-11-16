@@ -476,7 +476,8 @@ class NuscMultiModalDataset(Custom3DDataset):
         Returns:
             dict[str, float]: Results of each evaluation metric.
         """
-        result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
+        # result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
+        result_files = dict(pts_bbox=osp.join(jsonfile_prefix, 'pts_bbox/results_nusc.json'))
 
         if isinstance(result_files, dict):
             results_dict = dict()
@@ -487,8 +488,8 @@ class NuscMultiModalDataset(Custom3DDataset):
         elif isinstance(result_files, str):
             results_dict = self._evaluate_single(result_files)
 
-        if tmp_dir is not None:
-            tmp_dir.cleanup()
+        # if tmp_dir is not None:
+        #     tmp_dir.cleanup()
 
         if show:
             self.show(results, out_dir)

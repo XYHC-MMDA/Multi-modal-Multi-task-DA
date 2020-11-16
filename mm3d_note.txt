@@ -45,7 +45,7 @@ CUDA_VISIBLE_DEVICES=5 python tools/mini_train.py ./configs/pointpillars/nus_mmd
 
 CUDA_VISIBLE_DEVICES=5 python tools/train.py ./configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py --work-dir ./results/debug
 
-CUDA_VISIBLE_DEVICES=8 python tools/mini_test.py configs/pointpillars/nus_mmda.py checkpoints/v0/epoch_6.pth --out results/epoch_6.pkl --eval mAP
+CUDA_VISIBLE_DEVICES=8 python tools/a_test.py configs/pointpillars/nus_mmda.py checkpoints/v0/epoch_24.pth --out checkpoints/v0/epoch_24.pkl --eval mAP
 
 CUDA_VISIBLE_DEVICES=1 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pth --out checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pkl --eval mAP
 
