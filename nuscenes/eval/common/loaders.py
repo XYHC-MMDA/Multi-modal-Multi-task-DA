@@ -224,6 +224,7 @@ def filter_eval_boxes(nusc: NuScenes,
         # Filter on distance first.
         total += len(eval_boxes[sample_token])
         eval_boxes.boxes[sample_token] = [box for box in eval_boxes[sample_token] if
+                                          box.ego_translation[1] > 0 and
                                           box.ego_dist < max_dist[box.__getattribute__(class_field)]]
         dist_filter += len(eval_boxes[sample_token])
 
