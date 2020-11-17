@@ -188,6 +188,7 @@ def add_center_dist(nusc: NuScenes,
         sample_rec = nusc.get('sample', sample_token)
         sd_record = nusc.get('sample_data', sample_rec['data']['LIDAR_TOP'])
         pose_record = nusc.get('ego_pose', sd_record['ego_pose_token'])
+        cs_record = nusc.get('calibrated_sensor', sd_record['calibrated_sensor_token'])
 
         for box in eval_boxes[sample_token]:
             # Both boxes and ego pose are given in global coord system, so distance can be calculated directly.
@@ -195,8 +196,12 @@ def add_center_dist(nusc: NuScenes,
             ego_translation = (box.translation[0] - pose_record['translation'][0],
                                box.translation[1] - pose_record['translation'][1],
                                box.translation[2] - pose_record['translation'][2])
+            lidar_translation = (ego_translation[0] - cs_record['translation'][0],
+                                 ego_translation[1] - cs_record['translation'][1],
+                                 ego_translation[2] - cs_record['translation'][2])
             if isinstance(box, DetectionBox) or isinstance(box, TrackingBox):
                 box.ego_translation = ego_translation
+                box.lidar_translation = lidar_translation
             else:
                 raise NotImplementedError
 
@@ -281,7 +286,7 @@ def filter_gt_boxes(nusc: NuScenes,
         # Filter on distance first.
         total += len(eval_boxes[sample_token])
         eval_boxes.boxes[sample_token] = [box for box in eval_boxes[sample_token] if
-                                          box.ego_translation[1] > 0 and
+                                          box.lidar_translation[1] > 0 and
                                           box.ego_dist < max_dist[box.__getattribute__(class_field)]]
         dist_filter += len(eval_boxes[sample_token])
 

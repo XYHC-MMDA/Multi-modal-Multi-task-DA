@@ -18,6 +18,7 @@ class EvalBox(abc.ABC):
                  rotation: Tuple[float, float, float, float] = (0, 0, 0, 0),
                  velocity: Tuple[float, float] = (0, 0),
                  ego_translation: Tuple[float, float, float] = (0, 0, 0),  # Translation to ego vehicle in meters.
+                 lidar_translation: Tuple[float, float, float] = (0, 0, 0),  # Translation to lidar sensor in meters.
                  num_pts: int = -1):  # Nbr. LIDAR or RADAR inside the box. Only for gt boxes.
 
         # Assert data for shape and NaNs.
@@ -48,6 +49,7 @@ class EvalBox(abc.ABC):
         self.rotation = rotation
         self.velocity = velocity
         self.ego_translation = ego_translation
+        self.lidar_translation = lidar_translation
         self.num_pts = num_pts
 
     @property
