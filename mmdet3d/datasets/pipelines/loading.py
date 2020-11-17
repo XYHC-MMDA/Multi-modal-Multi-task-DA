@@ -13,7 +13,7 @@ class LoadFrontImage(object):
         self.resize = resize
 
     def __call__(self, results):
-        filepath = results['img_filename'][0]
+        filepath = results['img_filename'][0]  # front image
         rot = results['lidar2img'][0]
         pts_seg = results['points_seg'] 
         seg_label = results['seg_label']
@@ -36,14 +36,13 @@ class LoadFrontImage(object):
             img = img.resize(self.resize, Image.BILINEAR)
             pts_img = pts_img * self.resize / img_size
 
-        img = np.array(img, dtype=np.float32) / 255. # shape=(225, 400, 3)
+        img = np.array(img, dtype=np.float32) / 255.  # shape=(225, 400, 3)
         img_indices = np.fliplr(pts_img).astype(np.int64)
         results['img'] = img  # TODO: moveaxis or not
         results['img_indices'] = img_indices  # (N, 2): (row, column)
         results['points_seg'] = pts_seg
         results['seg_label'] = seg_label
         return results
-
 
 
 @PIPELINES.register_module()
@@ -107,52 +106,20 @@ class LoadMultiViewImageFromFiles(object):
 
 @PIPELINES.register_module()
 class LoadPointsFromMultiSweeps(object):
-    """Load points from multiple sweeps.
-
-    This is usually used for nuScenes dataset to utilize previous sweeps.
-
-    Args:
-        sweeps_num (int): Number of sweeps. Defaults to 10.
-        load_dim (int): Dimension number of the loaded points. Defaults to 5.
-        use_dim (list[int]): Which dimension to use. Defaults to [0, 1, 2, 4].
-        file_client_args (dict): Config dict of file clients, refer to
-            https://github.com/open-mmlab/mmcv/blob/master/mmcv/fileio/file_client.py
-            for more details. Defaults to dict(backend='disk').
-        pad_empty_sweeps (bool): Whether to repeat keyframe when
-            sweeps is empty. Defaults to False.
-        remove_close (bool): Whether to remove close points.
-            Defaults to False.
-        test_mode (bool): If test_model=True used for testing, it will not
-            randomly sample sweeps but select the nearest N frames.
-            Defaults to False.
-    """
-
     def __init__(self,
                  sweeps_num=10,
                  load_dim=5,
                  use_dim=[0, 1, 2, 4],
                  file_client_args=dict(backend='disk'),
-                 pad_empty_sweeps=False,
-                 remove_close=False,
                  test_mode=False):
         self.load_dim = load_dim
         self.sweeps_num = sweeps_num
         self.use_dim = use_dim
         self.file_client_args = file_client_args.copy()
         self.file_client = None
-        self.pad_empty_sweeps = pad_empty_sweeps
-        self.remove_close = remove_close
         self.test_mode = test_mode
 
     def _load_points(self, pts_filename):
-        """Private function to load point clouds data.
-
-        Args:
-            pts_filename (str): Filename of point clouds data.
-
-        Returns:
-            np.ndarray: An array containing point clouds data.
-        """
         if self.file_client is None:
             self.file_client = mmcv.FileClient(**self.file_client_args)
         try:
@@ -166,68 +133,32 @@ class LoadPointsFromMultiSweeps(object):
                 points = np.fromfile(pts_filename, dtype=np.float32)
         return points
 
-    def _remove_close(self, points, radius=1.0):
-        """Removes point too close within a certain radius from origin.
-
-        Args:
-            points (np.ndarray): Sweep points.
-            radius (float): Radius below which points are removed.
-                Defaults to 1.0.
-
-        Returns:
-            np.ndarray: Points after removing.
-        """
-        x_filt = np.abs(points[:, 0]) < radius
-        y_filt = np.abs(points[:, 1]) < radius
-        not_close = np.logical_not(np.logical_and(x_filt, y_filt))
-        return points[not_close, :]
-
     def __call__(self, results):
-        """Call function to load multi-sweep point clouds from files.
-
-        Args:
-            results (dict): Result dict containing multi-sweep point cloud \
-                filenames.
-
-        Returns:
-            dict: The result dict containing the multi-sweep points data. \
-                Added key and value are described below.
-
-                - points (np.ndarray): Multi-sweep point cloud arrays.
-        """
         points = results['points']
         points[:, 4] = 0
         sweep_points_list = [points]
         ts = results['timestamp']
-        if self.pad_empty_sweeps and len(results['sweeps']) == 0:
-            for i in range(self.sweeps_num):
-                if self.remove_close:
-                    sweep_points_list.append(self._remove_close(points))
-                else:
-                    sweep_points_list.append(points)
+
+        if len(results['sweeps']) <= self.sweeps_num:
+            choices = np.arange(len(results['sweeps']))
+        elif self.test_mode:
+            choices = np.arange(self.sweeps_num)
         else:
-            if len(results['sweeps']) <= self.sweeps_num:
-                choices = np.arange(len(results['sweeps']))
-            elif self.test_mode:
-                choices = np.arange(self.sweeps_num)
-            else:
-                choices = np.random.choice(
-                    len(results['sweeps']), self.sweeps_num, replace=False)
-            for idx in choices:
-                sweep = results['sweeps'][idx]
-                points_sweep = self._load_points(sweep['data_path'])
-                points_sweep = np.copy(points_sweep).reshape(-1, self.load_dim)
-                if self.remove_close:
-                    points_sweep = self._remove_close(points_sweep)
-                sweep_ts = sweep['timestamp'] / 1e6
-                points_sweep[:, :3] = points_sweep[:, :3] @ sweep[
-                    'sensor2lidar_rotation'].T
-                points_sweep[:, :3] += sweep['sensor2lidar_translation']
-                points_sweep[:, 4] = ts - sweep_ts
-                sweep_points_list.append(points_sweep)
+            choices = np.random.choice(
+                len(results['sweeps']), self.sweeps_num, replace=False)
+        for idx in choices:
+            sweep = results['sweeps'][idx]
+            points_sweep = self._load_points(sweep['data_path'])
+            points_sweep = np.copy(points_sweep).reshape(-1, self.load_dim)
+            sweep_ts = sweep['timestamp'] / 1e6
+            points_sweep[:, :3] = points_sweep[:, :3] @ sweep[
+                'sensor2lidar_rotation'].T
+            points_sweep[:, :3] += sweep['sensor2lidar_translation']
+            points_sweep[:, 4] = ts - sweep_ts
+            sweep_points_list.append(points_sweep)
 
         points = np.concatenate(sweep_points_list, axis=0)[:, self.use_dim]
-        results['points'] = points
+        results['points'] = points  # np.ndarray
         return results
 
     def __repr__(self):
@@ -411,27 +342,9 @@ class LoadPointsFromFile(object):
 
 @PIPELINES.register_module()
 class LoadSegDetPointsFromFile(object):
-    """Load Points and seg label From File.
-
-    Load sunrgbd and scannet points from file.
-
-    Args:
-        load_dim (int): The dimension of the loaded points.
-            Defaults to 6.
-        use_dim (list[int]): Which dimensions of the points to be used.
-            Defaults to [0, 1, 2]. For KITTI dataset, set use_dim=4
-            or use_dim=[0, 1, 2, 3] to use the intensity dimension.
-        shift_height (bool): Whether to use shifted height. Defaults to False.
-        file_client_args (dict): Config dict of file clients, refer to
-            https://github.com/open-mmlab/mmcv/blob/master/mmcv/fileio/file_client.py
-            for more details. Defaults to dict(backend='disk').
-    """
-
     def __init__(self,
                  load_dim=6,
-                 use_dim=[0, 1, 2],
-                 shift_height=False):
-        self.shift_height = shift_height
+                 use_dim=[0, 1, 2]):
         if isinstance(use_dim, int):
             use_dim = list(range(use_dim))
         assert max(use_dim) < load_dim, \
@@ -441,17 +354,6 @@ class LoadSegDetPointsFromFile(object):
         self.use_dim = use_dim
 
     def __call__(self, results):
-        """Call function to load points data from file.
-
-        Args:
-            results (dict): Result dict containing point clouds data.
-
-        Returns:
-            dict: The result dict containing the point clouds data. \
-                Added key and value are described below.
-
-                - points (np.ndarray): Point clouds data.
-        """
         pts_filename = results['pts_filename']
         points = np.fromfile(pts_filename, dtype=np.float32)
         points = points.reshape(-1, self.load_dim)
@@ -466,11 +368,6 @@ class LoadSegDetPointsFromFile(object):
             classmap[k] = v
         for i in range(len(seg_label)):
             seg_label[i] = classmap[seg_label[i]]
-
-        if self.shift_height:
-            floor_height = np.percentile(points[:, 2], 0.99)
-            height = points[:, 2] - floor_height
-            points = np.concatenate([points, np.expand_dims(height, 1)], 1)
 
         results['points'] = points  # later mixed with sweeps
         results['points_seg'] = points[:, :3].copy()  # points of the key frame; used only for projection
@@ -533,27 +430,11 @@ class LoadAnnotations3D(LoadAnnotations):
         self.with_seg_3d = with_seg_3d
 
     def _load_bboxes_3d(self, results):
-        """Private function to load 3D bounding box annotations.
-
-        Args:
-            results (dict): Result dict from :obj:`mmdet3d.CustomDataset`.
-
-        Returns:
-            dict: The dict containing loaded 3D bounding box annotations.
-        """
         results['gt_bboxes_3d'] = results['ann_info']['gt_bboxes_3d']
         results['bbox3d_fields'].append('gt_bboxes_3d')
         return results
 
     def _load_labels_3d(self, results):
-        """Private function to load label annotations.
-
-        Args:
-            results (dict): Result dict from :obj:`mmdet3d.CustomDataset`.
-
-        Returns:
-            dict: The dict containing loaded label annotations.
-        """
         results['gt_labels_3d'] = results['ann_info']['gt_labels_3d']
         return results
 

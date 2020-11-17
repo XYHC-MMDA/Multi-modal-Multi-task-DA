@@ -13,42 +13,6 @@ from .custom_3d import Custom3DDataset
 
 @DATASETS.register_module()
 class NuscMultiModalDataset(Custom3DDataset):
-    r"""NuScenes Dataset.
-
-    This class serves as the API for experiments on the NuScenes Dataset.
-
-    Please refer to `NuScenes Dataset <https://www.nuscenes.org/download>`_
-    for data downloading.
-
-    Args:
-        ann_file (str): Path of annotation file.
-        pipeline (list[dict], optional): Pipeline used for data processing.
-            Defaults to None.
-        data_root (str): Path of dataset root.
-        classes (tuple[str], optional): Classes used in the dataset.
-            Defaults to None.
-        load_interval (int, optional): Interval of loading the dataset. It is
-            used to uniformly sample the dataset. Defaults to 1.
-        with_velocity (bool, optional): Whether include velocity prediction
-            into the experiments. Defaults to True.
-        modality (dict, optional): Modality to specify the sensor data used
-            as input. Defaults to None.
-        box_type_3d (str, optional): Type of 3D box of this dataset.
-            Based on the `box_type_3d`, the dataset will encapsulate the box
-            to its original format then converted them to `box_type_3d`.
-            Defaults to 'LiDAR' in this dataset. Available options includes.
-            - 'LiDAR': Box in LiDAR coordinates.
-            - 'Depth': Box in depth coordinates, usually for indoor dataset.
-            - 'Camera': Box in camera coordinates.
-        filter_empty_gt (bool, optional): Whether to filter empty GT.
-            Defaults to True.
-        test_mode (bool, optional): Whether the dataset is in test mode.
-            Defaults to False.
-        eval_version (bool, optional): Configuration version of evaluation.
-            Defaults to  'detection_cvpr_2019'.
-        use_valid_flag (bool): Whether to use `use_valid_flag` key in the info
-            file as mask to filter gt_boxes and gt_names. Defaults to False.
-    """
     NameMapping = {
         'movable_object.barrier': 'barrier',
         'vehicle.bicycle': 'bicycle',
@@ -167,42 +131,22 @@ class NuscMultiModalDataset(Custom3DDataset):
         return cat_ids
 
     def load_annotations(self, ann_file):
-        """Load annotations from ann_file.
-
-        Args:
-            ann_file (str): Path of the annotation file.
-
-        Returns:
-            list[dict]: List of annotations sorted by timestamps.
-        """
+        # init: self.data_infos = self.load_annotations()
         data = mmcv.load(ann_file)
-        data_infos = list(sorted(data['infos'], key=lambda e: e['timestamp']))
+        data_infos = list(sorted(data['infos'], key=lambda e: e['timestamp']))  # list of info dict
         data_infos = data_infos[::self.load_interval]
         self.metadata = data['metadata']
         self.version = self.metadata['version']
         return data_infos
 
     def get_data_info(self, index):
-        """Get data info according to the given index.
-
-        Args:
-            index (int): Index of the sample data to get.
-
-        Returns:
-            dict: Data information that will be passed to the data \
-                preprocessing pipelines. It includes the following keys:
-
-                - sample_idx (str): Sample index.
-                - pts_filename (str): Filename of point clouds.
-                - sweeps (list[dict]): Infos of sweeps.
-                - timestamp (float): Sample timestamp.
-                - img_filename (str, optional): Image filename.
-                - lidar2img (list[np.ndarray], optional): Transformations \
-                    from lidar to different cameras.
-                - ann_info (dict): Annotation info.
-        """
+        '''
+            input_dict = self.get_data_info(index)
+            self.pre_pipeline(input_dict)
+            example = self.pipeline(input_dict)
+            return example
+        '''
         info = self.data_infos[index]
-        # standard protocal modified from SECOND.Pytorch
         input_dict = dict(
             sample_idx=info['token'],
             pts_filename=info['lidar_path'],

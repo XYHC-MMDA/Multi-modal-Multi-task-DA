@@ -47,9 +47,10 @@ CUDA_VISIBLE_DEVICES=5 python tools/train.py ./configs/pointpillars/hv_pointpill
 
 CUDA_VISIBLE_DEVICES=8 python tools/a_test.py configs/pointpillars/nus_mmda.py checkpoints/v0/epoch_24.pth --out checkpoints/v0/epoch_24.pkl --eval mAP
 
-CUDA_VISIBLE_DEVICES=1 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pth --out checkpoints/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pkl --eval mAP
+CUDA_VISIBLE_DEVICES=6 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py checkpoints/reproduce/epoch_24.pth --out checkpoints/reproduce/epoch_24.pkl --eval mAP --json checkpoints/reproduce
 
-CUDA_VISIBLE_DEVICES=8 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py results/epoch_24.pth --out results/epoch-24.pkl --eval mAP
+CUDA_VISIBLE_DEVICES=1 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py pretrained/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pth --out pretrained/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pkl --eval mAP
+
 
 python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../nuscenes_unzip --extra-tag nuscenes
 
@@ -117,8 +118,6 @@ mmdet3d/apis/test.py: mmda_single_gpu_test
 mmcv/parallel/data_parallel.py: MMDataParallel
     forward():
         return super().forward(*inputs, **kwargs)  # TODO: where is scatter???
-
-
 
 
 

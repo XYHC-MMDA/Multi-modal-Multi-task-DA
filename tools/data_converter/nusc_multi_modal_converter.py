@@ -49,7 +49,7 @@ def create_nuscenes_infos(root_path,
     else:
         raise ValueError('unknown')
 
-    # filter existing scenes.
+    # filter existing scenes;
     available_scenes = get_available_scenes(nusc)
     available_scene_names = [s['name'] for s in available_scenes]
     train_scenes = list(

@@ -224,7 +224,6 @@ def filter_eval_boxes(nusc: NuScenes,
         # Filter on distance first.
         total += len(eval_boxes[sample_token])
         eval_boxes.boxes[sample_token] = [box for box in eval_boxes[sample_token] if
-                                          box.ego_translation[1] > 0 and
                                           box.ego_dist < max_dist[box.__getattribute__(class_field)]]
         dist_filter += len(eval_boxes[sample_token])
 
@@ -260,6 +259,63 @@ def filter_eval_boxes(nusc: NuScenes,
 
     return eval_boxes
 
+
+def filter_gt_boxes(nusc: NuScenes,
+                      eval_boxes: EvalBoxes,
+                      max_dist: Dict[str, float],
+                      verbose: bool = False) -> EvalBoxes:
+    """
+    Applies filtering to boxes. Distance, bike-racks and points per box.
+    :param nusc: An instance of the NuScenes class.
+    :param eval_boxes: An instance of the EvalBoxes class.
+    :param max_dist: Maps the detection name to the eval distance threshold for that class.
+    :param verbose: Whether to print to stdout.
+    """
+    # Retrieve box type for detectipn/tracking boxes.
+    class_field = _get_box_class_field(eval_boxes)
+
+    # Accumulators for number of filtered boxes.
+    total, dist_filter, point_filter, bike_rack_filter = 0, 0, 0, 0
+    for ind, sample_token in enumerate(eval_boxes.sample_tokens):
+
+        # Filter on distance first.
+        total += len(eval_boxes[sample_token])
+        eval_boxes.boxes[sample_token] = [box for box in eval_boxes[sample_token] if
+                                          box.ego_translation[1] > 0 and
+                                          box.ego_dist < max_dist[box.__getattribute__(class_field)]]
+        dist_filter += len(eval_boxes[sample_token])
+
+        # Then remove boxes with zero points in them. Eval boxes have -1 points by default.
+        eval_boxes.boxes[sample_token] = [box for box in eval_boxes[sample_token] if not box.num_pts == 0]
+        point_filter += len(eval_boxes[sample_token])
+
+        # Perform bike-rack filtering.
+        sample_anns = nusc.get('sample', sample_token)['anns']
+        bikerack_recs = [nusc.get('sample_annotation', ann) for ann in sample_anns if
+                         nusc.get('sample_annotation', ann)['category_name'] == 'static_object.bicycle_rack']
+        bikerack_boxes = [Box(rec['translation'], rec['size'], Quaternion(rec['rotation'])) for rec in bikerack_recs]
+        filtered_boxes = []
+        for box in eval_boxes[sample_token]:
+            if box.__getattribute__(class_field) in ['bicycle', 'motorcycle']:
+                in_a_bikerack = False
+                for bikerack_box in bikerack_boxes:
+                    if np.sum(points_in_box(bikerack_box, np.expand_dims(np.array(box.translation), axis=1))) > 0:
+                        in_a_bikerack = True
+                if not in_a_bikerack:
+                    filtered_boxes.append(box)
+            else:
+                filtered_boxes.append(box)
+
+        eval_boxes.boxes[sample_token] = filtered_boxes
+        bike_rack_filter += len(eval_boxes.boxes[sample_token])
+
+    if verbose:
+        print("=> Original number of boxes: %d" % total)
+        print("=> After distance based filtering: %d" % dist_filter)
+        print("=> After LIDAR points based filtering: %d" % point_filter)
+        print("=> After bike rack filtering: %d" % bike_rack_filter)
+
+    return eval_boxes
 
 def _get_box_class_field(eval_boxes: EvalBoxes) -> str:
     """

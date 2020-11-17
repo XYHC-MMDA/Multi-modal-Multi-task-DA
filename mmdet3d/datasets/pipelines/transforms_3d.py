@@ -537,15 +537,6 @@ class SegDetPointsRangeFilter(object):
             point_cloud_range, dtype=np.float32)[np.newaxis, :]
 
     def __call__(self, input_dict):
-        """Call function to filter points by the range.
-
-        Args:
-            input_dict (dict): Result dict from loading pipeline.
-
-        Returns:
-            dict: Results after filtering, 'points' keys are updated \
-                in the result dict.
-        """
         points = input_dict['points']
         points_mask = ((points[:, :3] >= self.pcd_range[:, :3])
                        & (points[:, :3] < self.pcd_range[:, 3:]))
