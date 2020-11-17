@@ -38,6 +38,10 @@ def parse_args():
         nargs='+',
         help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
         ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC')
+    parser.add_argument(
+        '--json',
+        type=str
+    )
     parser.add_argument('--show', action='store_true', help='show results')
     parser.add_argument(
         '--show-dir', help='directory where results will be saved')
@@ -142,7 +146,7 @@ def main():
     if args.format_only:
         dataset.format_results(outputs, **kwargs)
     if args.eval:
-        dataset.evaluate(outputs, args.eval, jsonfile_prefix="./checkpoints/box_eval", **kwargs)
+        dataset.evaluate(outputs, args.eval, jsonfile_prefix=args.json, **kwargs)
 
 
 if __name__ == '__main__':

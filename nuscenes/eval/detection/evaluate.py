@@ -82,7 +82,7 @@ class DetectionEval:
         print('DetectionEval: prediction loaded')
         from collections import defaultdict
         out_dict = defaultdict(list)
-        debug = False
+        debug = False 
         if debug:
             for token in self.pred_boxes.sample_tokens:
                 out_dict[token].append(len(self.pred_boxes[token]))
@@ -118,6 +118,7 @@ class DetectionEval:
                 print(*out_dict[token][:2])
                 print(*out_dict[token][2:])
                 print()
+            exit(0)
             
     def evaluate(self) -> Tuple[DetectionMetrics, DetectionMetricDataList]:
         """
