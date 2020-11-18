@@ -82,7 +82,7 @@ class DetectionEval:
         print('DetectionEval: prediction loaded')
         from collections import defaultdict
         out_dict = defaultdict(list)
-        debug = False 
+        debug = True 
         if debug:
             for token in self.pred_boxes.sample_tokens:
                 out_dict[token].append(len(self.pred_boxes[token]))
@@ -117,7 +117,11 @@ class DetectionEval:
                 print(token)
                 print(*out_dict[token][:2])
                 print(*out_dict[token][2:])
+                for box in self.pred_boxes[token]:
+                    print('pred:', box.lidar_translation)
                 print()
+                for box in self.gt_boxes[token]:
+                    print('gt:', box.lidar_translation)
             exit(0)
             
     def evaluate(self) -> Tuple[DetectionMetrics, DetectionMetricDataList]:
