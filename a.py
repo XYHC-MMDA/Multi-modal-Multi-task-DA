@@ -4,6 +4,7 @@ from mmdet.datasets import build_dataloader
 from mmcv import Config, DictAction
 import argparse
 import numpy as np
+from PIL import Image
 import os
 
 parser = argparse.ArgumentParser(description='Train a detector')
@@ -19,11 +20,11 @@ print()
 print_dataset = True 
 data_idx = 0
 if print_dataset:
-    data = dataset.get_data_info(data_idx)
+    data_info = dataset.get_data_info(data_idx)
     print('get_data_info:')
-    print(data.keys())
-    img_filepath = data['img_filename'][0]
-    pts_filepath = data['pts_filename']
+    print(data_info.keys())
+    img_filepath = data_info['img_filename'][0]
+    pts_filepath = data_info['pts_filename']
     print(img_filepath)
     print(pts_filepath)
     print()
@@ -32,9 +33,6 @@ if print_dataset:
     data = dataset[data_idx]
     print('getitem:')
     print(data.keys())
-    pts_dataset = data['points'].data
-    gt_bboxes_3d = data['gt_bboxes_3d'].data
-    print(gt_bboxes_3d.corners)
     print()
 
 dataloader = build_dataloader(
@@ -57,11 +55,30 @@ print('data_batch:', data_batch.keys())
 # print(data_batch['points']._data[0][0].shape)  # tensor; (N, 4)
 # print(data_batch['img']._data[0].shape)  #(B, 3, 225, 400)
 
-import open3d as o3d
+###########################################
 from PIL import Image
+img = Image.open(img_filepath)
+img = np.array(img)
+
+gt_bboxes_3d = data['gt_bboxes_3d'].data
+rot = data['lidar2img'][0]
+corners = gt_bboxes_3d.corners  # (N, 8, 3)
+corners = corners.reshape(-1, 3)
+pts = np.concatenate([corners, np.ones((corners.shape[0], 1))], axis=1) @ rot.T
+pts = pts[:, :3]
+pts[:, 0] /= pts[:, 2]
+pts[:, 1] /= pts[:, 2]
+corner_img_indices = pts.reshape(-1, 8, 3).astype(np.int64)
+
+from tools.draw_utils import draw_box3d_image
+box_img = draw_box3d_image(img, corner_img_indices)
+
+###########################################
+import open3d as o3d
 pcd = o3d.geometry.PointCloud()
 v3d = o3d.utility.Vector3dVector
 
+pts_dataset = data['points'].data
 pcd.points = v3d(pts_dataset[:, :3].numpy())
 o3d.io.write_point_cloud(f'debug/mini_train/{data_idx}_half.pcd', pcd)
 
@@ -72,6 +89,7 @@ img = Image.open(img_filepath)
 img.save(f'debug/mini_train/{data_idx}_front.png')
 exit(0)
 
+###########################################
 pts_lidar = np.fromfile(data['pts_filename'], dtype=np.float32).reshape(-1, 5)[:, :3]
 N = pts_lidar.shape[0]
 print('pts total:', N)
