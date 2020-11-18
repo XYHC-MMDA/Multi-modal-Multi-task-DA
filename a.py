@@ -6,9 +6,6 @@ import argparse
 import numpy as np
 import os
 
-print(os.path.dirname(os.path.abspath(__file__)))
-exit(0)
-
 parser = argparse.ArgumentParser(description='Train a detector')
 parser.add_argument('--config', help='train config file path')
 args = parser.parse_args()
@@ -19,35 +16,60 @@ dataset = build_dataset(cfg.data.mini_train)
 print('dataset loaded')
 print()
 
-data = dataset.get_data_info(0)
-print('get_data_info:')
-print(data.keys())
-print()
+print_dataset = True 
+data_idx = 0
+if print_dataset:
+    data = dataset.get_data_info(data_idx)
+    print('get_data_info:')
+    print(data.keys())
+    img_filepath = data['img_filename'][0]
+    pts_filepath = data['pts_filename']
+    print(img_filepath)
+    print(pts_filepath)
+    print()
 
-data = dataset[0]
-print('getitem:')
-print(data.keys())
-print()
+if print_dataset:
+    data = dataset[data_idx]
+    print('getitem:')
+    print(data.keys())
+    pts_dataset = data['points'].data
+    gt_bboxes_3d = data['gt_bboxes_3d'].data
+    print(gt_bboxes_3d.corners)
+    print()
 
 dataloader = build_dataloader(
     dataset,
     cfg.data.samples_per_gpu,
     cfg.data.workers_per_gpu,
-    1,
+    1, # num_gpu
     dist=False,
     shuffle=False
 )
+print('dataloader finished')
+print()
 
 data_batch = iter(dataloader).next()
 print('data_batch:', data_batch.keys())
-print(type(data_batch['img_indices']._data[0]))  # list
-print(len(data_batch['img_indices']._data[0]))  # list
-print(data_batch['img_indices']._data[0][0].shape)  # list
-print(len(data_batch['seg_label']._data[0]))
-print(data_batch['seg_label']._data[0][0].shape)  # list
-print(len(data_batch['points']._data[0]))
-print(data_batch['points']._data[0][0].shape)  # list
-print(data_batch['img']._data[0].shape)
+# print(data_batch['gt_bboxes_3d']._data[0][0].center)  # tensor;(N,3) 
+# print(len(data_batch['img_indices']._data[0]))  # batch_size
+# print(data_batch['img_indices']._data[0][0].shape)  # tensor;(N,4) 
+# print(len(data_batch['points']._data[0]))
+# print(data_batch['points']._data[0][0].shape)  # tensor; (N, 4)
+# print(data_batch['img']._data[0].shape)  #(B, 3, 225, 400)
+
+import open3d as o3d
+from PIL import Image
+pcd = o3d.geometry.PointCloud()
+v3d = o3d.utility.Vector3dVector
+
+pcd.points = v3d(pts_dataset[:, :3].numpy())
+o3d.io.write_point_cloud(f'debug/mini_train/{data_idx}_half.pcd', pcd)
+
+pcd.points = v3d(np.fromfile(pts_filepath, dtype=np.float32).reshape(-1, 5)[:, :3])
+o3d.io.write_point_cloud(f'debug/mini_train/{data_idx}_all.pcd', pcd)
+
+img = Image.open(img_filepath)
+img.save(f'debug/mini_train/{data_idx}_front.png')
 exit(0)
 
 pts_lidar = np.fromfile(data['pts_filename'], dtype=np.float32).reshape(-1, 5)[:, :3]
@@ -73,10 +95,10 @@ pts = pts[mask]
 pts_lidar = pts_lidar[mask]
 print('pts:', pts.shape[0])
 
+
 import open3d as o3d
+from PIL import Image
 pcd = o3d.geometry.PointCloud()
 v3d = o3d.utility.Vector3dVector
 pcd.points = v3d(pts_lidar)
 o3d.io.write_point_cloud('sample.pcd', pcd)
-
-
