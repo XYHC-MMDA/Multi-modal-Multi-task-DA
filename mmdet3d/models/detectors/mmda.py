@@ -246,6 +246,10 @@ class MMDA(Base3DDetector):
             dict: Losses of each branch.
         """
         outs = self.pts_bbox_head(pts_feats)
+        # Hs, Ws = [(100, 200), (50, 100), (25, 50)]
+        # outs[0]: cls_pred; shapes=(B, 80, Hs, Ws)
+        # outs[1]: bbox_pred; shapes=(B, 72, Hs, Ws)
+        # outs[2]: direction_pred; shapes=(B, 16, Hs, Ws)
         loss_inputs = outs + (gt_bboxes_3d, gt_labels_3d, img_metas)
         losses = self.pts_bbox_head.loss(
             *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)

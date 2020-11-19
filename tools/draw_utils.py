@@ -5,7 +5,6 @@ import os
 import pickle
 from pyquaternion import Quaternion
 from nuscenes.utils.geometry_utils import view_points
-from utils import center_to_corner
 
 def map_lidar_to_imgidx(pts, info):
     # Param: pts=(N, 3)

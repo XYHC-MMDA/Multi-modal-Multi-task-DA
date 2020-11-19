@@ -118,10 +118,10 @@ class DetectionEval:
                 print(*out_dict[token][:2])
                 print(*out_dict[token][2:])
                 for box in self.pred_boxes[token]:
-                    print('pred:', box.lidar_translation)
+                    print('pred:', box.lidar_translation, box.ego_translation)
                 print()
                 for box in self.gt_boxes[token]:
-                    print('gt:', box.lidar_translation)
+                    print('gt:', box.lidar_translation, box.ego_translation)
             exit(0)
             
     def evaluate(self) -> Tuple[DetectionMetrics, DetectionMetricDataList]:

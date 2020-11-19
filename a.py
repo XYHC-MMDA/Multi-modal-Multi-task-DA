@@ -61,7 +61,9 @@ img = Image.open(img_filepath)
 img = np.array(img)
 
 gt_bboxes_3d = data['gt_bboxes_3d'].data
-rot = data['lidar2img'][0]
+# gt_bboxes_3d = data_info['ann_info']['gt_bboxes_3d']
+# print(np.concatenate([gt_bboxes_3d.center, gt_bboxes_3d.dims], axis=1).astype(np.int64))
+rot = data_info['lidar2img'][0]
 corners = gt_bboxes_3d.corners  # (N, 8, 3)
 corners = corners.reshape(-1, 3)
 pts = np.concatenate([corners, np.ones((corners.shape[0], 1))], axis=1) @ rot.T
@@ -72,6 +74,9 @@ corner_img_indices = pts.reshape(-1, 8, 3).astype(np.int64)
 
 from tools.draw_utils import draw_box3d_image
 box_img = draw_box3d_image(img, corner_img_indices)
+box_img = Image.fromarray(box_img)
+box_img.save(f'debug/mini_train/{data_idx}_front_box.png')
+exit(0)
 
 ###########################################
 import open3d as o3d
