@@ -180,7 +180,7 @@ class MMDA(Base3DDetector):
         """Extract features of points."""
         if not self.with_pts_bbox:
             return None
-        voxels, num_points, coors = self.voxelize(pts)  # voxels=(M, T=64, ndim=4)
+        voxels, num_points, coors = self.voxelize(pts)  # voxels=(M, T=64, ndim=4); coors=(M, 4), (batch _idx, z, y, x)
         voxel_features = self.pts_voxel_encoder(voxels, num_points, coors,
                                                 img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
         batch_size = coors[-1, 0] + 1  # the first column of coord indicates which batch
@@ -297,6 +297,7 @@ class MMDA(Base3DDetector):
         Returns:
             dict: Losses of different branches.
         """
+        # print(points[0].shape); (N, 4)
         img_feats, pts_feats = self.extract_feat(
             points, img=img, img_metas=img_metas)
         losses = dict()
