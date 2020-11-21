@@ -39,6 +39,7 @@ class AnchorTrainMixin(object):
         """
         num_imgs = len(input_metas)
         assert len(anchor_list) == num_imgs
+        print('len anchor_list:', num_imgs)
 
         if isinstance(anchor_list[0][0], list):
             # sizes of anchors are different

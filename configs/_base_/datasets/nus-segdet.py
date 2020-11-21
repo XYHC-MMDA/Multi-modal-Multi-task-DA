@@ -95,8 +95,8 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=6,
-    workers_per_gpu=6,
+    samples_per_gpu=4,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -137,6 +137,15 @@ data = dict(
         modality=input_modality,
         test_mode=True,
         box_type_3d='LiDAR'),
+    test_on_train=dict(
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + 'nuscenes_infos_train.pkl',
+        pipeline=test_pipeline,
+        classes=class_names,
+        modality=input_modality,
+        test_mode=True,
+        box_type_3d='LiDAR'),
     mini_test=dict(
         type=dataset_type,
         data_root=data_root,
@@ -150,4 +159,4 @@ data = dict(
 # Since the models are trained by 24 epochs by default, we set evaluation
 # interval to be 24. Please change the interval accordingly if you do not
 # use a default schedule.
-evaluation = dict(interval=24)
+evaluation = dict(interval=25)

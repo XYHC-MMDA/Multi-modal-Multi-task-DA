@@ -113,6 +113,8 @@ class DetectionEval:
         self.sample_tokens = self.gt_boxes.sample_tokens
         if debug:
             for i, token in enumerate(self.sample_tokens):
+                if i == 1000:
+                    break
                 print(f'[{i}]')
                 print(token)
                 print(*out_dict[token][:2])
