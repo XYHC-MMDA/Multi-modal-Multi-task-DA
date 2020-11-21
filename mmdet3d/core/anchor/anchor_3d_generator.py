@@ -141,6 +141,7 @@ class Anchor3DRangeGenerator(object):
                     anchor_size,
                     self.rotations,
                     device=device))
+        # print(mr_anchors[0].shape)  # (1,100, 200, 1, 2, 9)
         mr_anchors = torch.cat(mr_anchors, dim=-3)
         return mr_anchors
 
@@ -312,9 +313,11 @@ class AlignedAnchor3DRangeGenerator(Anchor3DRangeGenerator):
         tile_size_shape = list(rets[0].shape)
         tile_size_shape[3] = 1
         sizes = sizes.repeat(tile_size_shape)
+        # print(sizes.shape)  # (200, 100, 1, 1, 2, 3)
         rets.insert(3, sizes)
 
         ret = torch.cat(rets, dim=-1).permute([2, 1, 0, 3, 4, 5])
+        # print(ret.shape)  # (1, 100, 200, 1, 2, 7); xyzwlhr
 
         if len(self.custom_values) > 0:
             custom_ndim = len(self.custom_values)
@@ -322,6 +325,7 @@ class AlignedAnchor3DRangeGenerator(Anchor3DRangeGenerator):
             # TODO: check the support of custom values
             # custom[:] = self.custom_values
             ret = torch.cat([ret, custom], dim=-1)
+        # print(ret.shape)  # (1, 100, 200, 1, 2, 9)
         return ret
 
 

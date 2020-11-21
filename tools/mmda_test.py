@@ -104,7 +104,7 @@ def main():
     # build the dataloader
     samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
     dataset_start_time = time.time()
-    dataset = build_dataset(cfg.data.test)
+    dataset = build_dataset(cfg.data.test_on_train)
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,

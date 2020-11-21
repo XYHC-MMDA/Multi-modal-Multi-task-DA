@@ -177,7 +177,7 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
             list[list[torch.Tensor]]: Anchors of each image, valid flags \
                 of each image.
         """
-        num_imgs = len(input_metas)
+        num_imgs = len(input_metas) # batch_size
         # since feature map sizes of all images are the same, we only compute
         # anchors for one time
         multi_level_anchors = self.anchor_generator.grid_anchors(
@@ -220,16 +220,23 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
         # regression loss
         bbox_pred = bbox_pred.permute(0, 2, 3,
                                       1).reshape(-1, self.box_code_size)
+        # print(bbox_targets.shape); (4, 160000, 9)
         bbox_targets = bbox_targets.reshape(-1, self.box_code_size)
         bbox_weights = bbox_weights.reshape(-1, self.box_code_size)
 
         bg_class_ind = self.num_classes
+        # print('labels:', len(labels)); 640000
         pos_inds = ((labels >= 0)
                     & (labels < bg_class_ind)).nonzero().reshape(-1)
         num_pos = len(pos_inds)
 
         pos_bbox_pred = bbox_pred[pos_inds]
         pos_bbox_targets = bbox_targets[pos_inds]
+        # for i in range(num_pos):
+        #     print(i)
+        #     print(pos_bbox_pred[i].data[:7])
+        #     print(pos_bbox_targets[i].data[:7])
+        #     print()
         pos_bbox_weights = bbox_weights[pos_inds]
 
         # dir loss

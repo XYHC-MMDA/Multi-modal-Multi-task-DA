@@ -473,6 +473,8 @@ class NuScenesDataset(Custom3DDataset):
             dict[str, float]: Results of each evaluation metric.
         """
         result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
+        # result_files = dict(pts_bbox=osp.join(jsonfile_prefix, 'pts_bbox/results_nusc.json'))
+        # tmp_dir = None
 
         if isinstance(result_files, dict):
             results_dict = dict()
