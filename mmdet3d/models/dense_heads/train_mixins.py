@@ -290,8 +290,12 @@ class AnchorTrainMixin(object):
         if gt_labels is not None:
             labels += num_classes
         if len(pos_inds) > 0:
+            # sampling_result.pos_bboxes.shape ==
+            # sampling_result.pos_gt_bboxes.shape
+            # one gt_box may occur more than once in pos_gt_bboxes
             pos_bbox_targets = self.bbox_coder.encode(
                 sampling_result.pos_bboxes, sampling_result.pos_gt_bboxes)
+            # print(pos_bbox_targets.shape)  # same as pos_bboxes
             pos_dir_targets = get_direction_target(
                 sampling_result.pos_bboxes,
                 pos_bbox_targets,

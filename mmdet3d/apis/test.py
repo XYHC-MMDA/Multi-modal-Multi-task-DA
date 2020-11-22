@@ -9,8 +9,8 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
-    print()
-    print('batch_size:', data_loader.batch_size)
+    print('\nStart Test Loop')
+    # print('batch_size:', data_loader.batch_size)  # 1
     for idx, data in enumerate(data_loader):
         # print(type(data['img'][0]))  # DataContainter
         with torch.no_grad():
