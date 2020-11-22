@@ -39,7 +39,6 @@ class AnchorTrainMixin(object):
         """
         num_imgs = len(input_metas)
         assert len(anchor_list) == num_imgs
-        print('len anchor_list:', num_imgs)
 
         if isinstance(anchor_list[0][0], list):
             # sizes of anchors are different
@@ -59,6 +58,8 @@ class AnchorTrainMixin(object):
             # concat all level anchors and flags to a single tensor
             for i in range(num_imgs):
                 anchor_list[i] = torch.cat(anchor_list[i])
+        # print(anchor_list[0].shape)  # (210000, 9)
+        # print(anchor_list[0][::8][:10][:, :7])
 
         # compute targets for each image
         if gt_bboxes_ignore_list is None:
@@ -229,6 +230,7 @@ class AnchorTrainMixin(object):
                     total_bbox_weights, total_dir_targets, total_dir_weights,
                     total_pos_inds, total_neg_inds)
         else:
+            # this flow 
             return self.anchor_target_single_assigner(self.bbox_assigner,
                                                       anchors, gt_bboxes,
                                                       gt_bboxes_ignore,
@@ -259,6 +261,7 @@ class AnchorTrainMixin(object):
         Returns:
             tuple[torch.Tensor]: Anchor targets.
         """
+        # print(anchors.shape)  # (210000, 9)
         anchors = anchors.reshape(-1, anchors.size(-1))
         num_valid_anchors = anchors.shape[0]
         bbox_targets = torch.zeros_like(anchors)

@@ -141,8 +141,8 @@ class Anchor3DRangeGenerator(object):
                     anchor_size,
                     self.rotations,
                     device=device))
-        # print(mr_anchors[0].shape)  # (1,100, 200, 1, 2, 9)
-        mr_anchors = torch.cat(mr_anchors, dim=-3)
+        # print(mr_anchors[0].shape)  # (1, 100, 200, 1, 2, 9)
+        mr_anchors = torch.cat(mr_anchors, dim=-3)  # (1, 100, 200, 4, 2, 9)
         return mr_anchors
 
     def anchors_single_range(self,
