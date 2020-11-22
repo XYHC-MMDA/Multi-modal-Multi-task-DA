@@ -252,12 +252,12 @@ class NuscMultiModalDataset(Custom3DDataset):
         print('Start to convert detection format...')
         for sample_id, det in enumerate(mmcv.track_iter_progress(results)):
             annos = []
-            boxes = output_to_nusc_box(det) # list of NuScenesBox
+            boxes = output_to_nusc_box(det)  # list of NuScenesBox; lidar coordinate
             sample_token = self.data_infos[sample_id]['token']
             boxes = lidar_nusc_box_to_global(self.data_infos[sample_id], boxes,
                                              mapped_class_names,
                                              self.eval_detection_configs,
-                                             self.eval_version)
+                                             self.eval_version)  # list of NuScenesBox; global
             for i, box in enumerate(boxes):
                 name = mapped_class_names[box.label]
                 if np.sqrt(box.velocity[0]**2 + box.velocity[1]**2) > 0.2:
