@@ -182,6 +182,7 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
         # anchors for one time
         multi_level_anchors = self.anchor_generator.grid_anchors(
             featmap_sizes, device=device)
+        # print(multi_level_anchors[0].shape) # (160000, 9)
         anchor_list = [multi_level_anchors for _ in range(num_imgs)]
         return anchor_list
 
@@ -338,6 +339,8 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
         device = cls_scores[0].device
         anchor_list = self.get_anchors(
             featmap_sizes, input_metas, device=device)
+        # print('len:', len(anchor_list))  # 4
+        # print('llen:', len(anchor_list[0])) # 3; (160000, 9), (40000, 9); (10000, 9)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
         cls_reg_targets = self.anchor_target_3d(
             anchor_list,
