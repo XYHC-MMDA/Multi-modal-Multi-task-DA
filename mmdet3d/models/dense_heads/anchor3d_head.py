@@ -339,13 +339,9 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
         device = cls_scores[0].device
         anchor_list = self.get_anchors(
             featmap_sizes, input_metas, device=device)
-<<<<<<< HEAD
-        label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1  # self.use_sigmoid_cls=True
-=======
         # print('len:', len(anchor_list))  # 4
         # print('llen:', len(anchor_list[0])) # 3; (160000, 9), (40000, 9); (10000, 9)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
->>>>>>> 4eb51c506f6c9953f34ca5462d4488c78a4e98dd
         cls_reg_targets = self.anchor_target_3d(
             anchor_list,
             gt_bboxes,
