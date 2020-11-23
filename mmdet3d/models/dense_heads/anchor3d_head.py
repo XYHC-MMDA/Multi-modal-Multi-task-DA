@@ -476,7 +476,7 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
             bbox_pred = bbox_pred.permute(1, 2,
                                           0).reshape(-1, self.box_code_size)
 
-            nms_pre = cfg.get('nms_pre', -1)
+            nms_pre = cfg.get('nms_pre', -1)  # 1000
             if nms_pre > 0 and scores.shape[0] > nms_pre:
                 if self.use_sigmoid_cls:
                     max_scores, _ = scores.max(dim=1)
@@ -489,6 +489,7 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
                 dir_cls_score = dir_cls_score[topk_inds]
 
             bboxes = self.bbox_coder.decode(anchors, bbox_pred)
+            # print(bboxes.shape)  # (nms_pre, 9)
             mlvl_bboxes.append(bboxes)
             mlvl_scores.append(scores)
             mlvl_dir_scores.append(dir_cls_score)
@@ -509,11 +510,13 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
                                        mlvl_scores, score_thr, cfg.max_num,
                                        cfg, mlvl_dir_scores)
         bboxes, scores, labels, dir_scores = results
+        # print(bboxes.shape)  # (N, 9)
         if bboxes.shape[0] > 0:
             dir_rot = limit_period(bboxes[..., 6] - self.dir_offset,
                                    self.dir_limit_offset, np.pi)
             bboxes[..., 6] = (
                 dir_rot + self.dir_offset +
                 np.pi * dir_scores.to(bboxes.dtype))
+        # print(input_meta['box_type_3d'])  # LiDARInstance3DBoxes
         bboxes = input_meta['box_type_3d'](bboxes, box_dim=self.box_code_size)
         return bboxes, scores, labels

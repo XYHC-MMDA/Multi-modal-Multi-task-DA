@@ -326,6 +326,9 @@ class MMDA(Base3DDetector):
             bbox3d2result(bboxes, scores, labels)
             for bboxes, scores, labels in bbox_list
         ]
+        # bbox_results[0].keys=(boxes_3d, scores_3d, labels_3d)
+        # values on cpu
+        # print(len(bbox_results))  # batch_size
         return bbox_results
 
     def simple_test(self, points, img_metas, img=None, img_indices=None, rescale=False):

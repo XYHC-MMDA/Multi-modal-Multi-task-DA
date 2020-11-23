@@ -189,19 +189,22 @@ def add_center_dist(nusc: NuScenes,
         sd_record = nusc.get('sample_data', sample_rec['data']['LIDAR_TOP'])
         pose_record = nusc.get('ego_pose', sd_record['ego_pose_token'])
         cs_record = nusc.get('calibrated_sensor', sd_record['calibrated_sensor_token'])
+        lidar2ego_rotation = cs_record['rotation']
+        lidar2ego_translation = cs_record['translation']
+        ego2global_rotation = pose_record['rotation']
+        ego2global_translation = pose_record['translation']
 
         for box in eval_boxes[sample_token]:
             # Both boxes and ego pose are given in global coord system, so distance can be calculated directly.
             # Note that the z component of the ego pose is 0.
-            ego_translation = (box.translation[0] - pose_record['translation'][0],
-                               box.translation[1] - pose_record['translation'][1],
-                               box.translation[2] - pose_record['translation'][2])
-            lidar_translation = (ego_translation[0] - cs_record['translation'][0],
-                                 ego_translation[1] - cs_record['translation'][1],
-                                 ego_translation[2] - cs_record['translation'][2])
+            center_ego = np.array(box.translation) - np.array(ego2global_translation)
+            center_ego_tmp = np.dot(Quaternion(ego2global_rotation).inverse.rotation_matrix, center_ego)
+            center_lidar_tmp = center_ego_tmp - np.array(lidar2ego_translation)
+            center_lidar = np.dot(Quaternion(lidar2ego_rotation).inverse.rotation_matrix, center_lidar_tmp)
+            
             if isinstance(box, DetectionBox) or isinstance(box, TrackingBox):
-                box.ego_translation = ego_translation
-                box.lidar_translation = lidar_translation
+                box.ego_translation = tuple(center_ego)
+                box.lidar_translation = tuple(center_lidar) 
             else:
                 raise NotImplementedError
 
