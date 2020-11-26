@@ -123,7 +123,11 @@ mmcv/parallel/data_parallel.py: MMDataParallel
 
 #### dataset ####
 mmdet3d/datasets/custom_3d.py, nuscenes_dataset.py: Custom3DDataset, NuScenesDataset
-	self.data_infos=NuScenesDataset.load_annotations() ==> Custom3DDataset.__getitem__() ==> Custom3DDataset.prepare_train_data() ==> NuScenesDataset.get_data_info(), self.pipeline() ==> mmdet3d/datasets/pipelines/loading.py
+	self.data_infos=NuScenesDataset.load_annotations() ==>
+	Custom3DDataset.__getitem__() ==>
+	Custom3DDataset.prepare_train_data() ==>
+	NuScenesDataset.get_data_info(), self.pipeline() ==>
+	mmdet3d/datasets/pipelines
 
 
 

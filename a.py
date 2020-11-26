@@ -34,6 +34,8 @@ if print_dataset:
     print('getitem:')
     print(data.keys())
     print()
+    print(data['points_seg'].shape)
+    exit(0)
 
 dataloader = build_dataloader(
     dataset,

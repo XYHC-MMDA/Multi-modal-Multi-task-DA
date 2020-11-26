@@ -132,7 +132,7 @@ class NuscMultiModalDataset(Custom3DDataset):
 
     def load_annotations(self, ann_file):
         # init: self.data_infos = self.load_annotations()
-        data = mmcv.load(ann_file)
+        data = mmcv.load(ann_file)  # dict with keys=('infos', 'metadata')
         data_infos = list(sorted(data['infos'], key=lambda e: e['timestamp']))  # list of info dict
         data_infos = data_infos[::self.load_interval]
         self.metadata = data['metadata']
