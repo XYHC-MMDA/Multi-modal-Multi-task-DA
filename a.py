@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 cfg = Config.fromfile(args.config)
 print('cfg loaded')
-dataset = build_dataset(cfg.data.train)
+dataset = build_dataset(cfg.data.mini_train)
 print('dataset loaded')
 print()
 
@@ -35,6 +35,10 @@ if print_dataset:
     print('getitem:')
     print(data.keys())
     print()
+    gt_bboxes = data['gt_bboxes_3d'].data
+    print(gt_bboxes.center.shape)
+    print(gt_bboxes.center)
+    exit(0)
     # print(pts_seg.shape)
     # print(torch.min(pts_seg[:, 0]), torch.max(pts_seg[:, 0]))
     # print(torch.min(pts_seg[:, 1]), torch.max(pts_seg[:, 1]))
