@@ -46,6 +46,18 @@ class LoadFrontImage(object):
         results['img_indices'] = img_indices  # (N, 2): (row, column)
         results['points_seg'] = pts_seg  # pts inside front camera; lidar coordinate
         results['seg_label'] = seg_label
+
+        # handle lidar points
+        pts_lidar = results['points']
+        num_points = pts_lidar.shape[0]
+        pts_cam = np.concatenate([pts_lidar, np.ones((num_points, 1))], axis=1) @ rot.T
+        pts = pts_cam[:, :3]
+        pts[:, 0] /= pts[:, 2]
+        pts[:, 1] /= pts[:, 2]
+        mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < img_size)
+        mask = mask[:, 0] & mask[:, 1]
+        pts_lidar = pts_lidar[mask]
+        results['points'] = pts_lidar
         return results
 
 
