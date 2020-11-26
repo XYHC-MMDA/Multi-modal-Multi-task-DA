@@ -257,7 +257,7 @@ if __name__ == '__main__':
             root_path=args.root_path,
             info_prefix=args.extra_tag,
             version=train_version,
-            dataset_name='NuscMultiModalDataset', # 'NuScenesDataset',
+            dataset_name='NuscMultiModalDataset',  # 'NuScenesDataset',
             out_dir=args.out_dir,
             max_sweeps=args.max_sweeps)
         print('trainval finished')
@@ -268,7 +268,7 @@ if __name__ == '__main__':
             root_path=args.root_path,
             info_prefix=args.extra_tag,
             version=test_version,
-            dataset_name='NuscMultiModalDataset', # 'NuScenesDataset',
+            dataset_name='NuscMultiModalDataset',  # 'NuScenesDataset',
             out_dir=args.out_dir,
             max_sweeps=args.max_sweeps)
     elif args.dataset == 'nuscenes' and args.version == 'v1.0-mini':

@@ -158,8 +158,10 @@ class NuscMultiModalDataset(Custom3DDataset):
         if self.modality['use_camera']:
             image_paths = []
             lidar2img_rts = []
+            lidar2cam_rts = []
             for cam_type, cam_info in info['cams'].items():
                 image_paths.append(cam_info['data_path'])
+
                 # obtain lidar to image transformation matrix
                 lidar2cam_r = np.linalg.inv(cam_info['sensor2lidar_rotation'])
                 lidar2cam_t = cam_info[
@@ -167,6 +169,8 @@ class NuscMultiModalDataset(Custom3DDataset):
                 lidar2cam_rt = np.eye(4)
                 lidar2cam_rt[:3, :3] = lidar2cam_r.T
                 lidar2cam_rt[3, :3] = -lidar2cam_t
+                lidar2cam_rts.append(lidar2cam_rt)
+
                 intrinsic = cam_info['cam_intrinsic']
                 viewpad = np.eye(4)
                 viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
@@ -177,6 +181,7 @@ class NuscMultiModalDataset(Custom3DDataset):
                 dict(
                     img_filename=image_paths,
                     lidar2img=lidar2img_rts,
+                    lidar2cam=lidar2cam_rts,
                 ))
 
         if not self.test_mode:

@@ -173,11 +173,13 @@ def _fill_trainval_infos(nusc,
 
     for sample in mmcv.track_iter_progress(nusc.sample):
         lidar_token = sample['data']['LIDAR_TOP']
+        cam_token = sample['data']['CAM_FRONT']
         sd_rec = nusc.get('sample_data', sample['data']['LIDAR_TOP'])
         cs_record = nusc.get('calibrated_sensor',
                              sd_rec['calibrated_sensor_token'])
         pose_record = nusc.get('ego_pose', sd_rec['ego_pose_token'])
-        lidar_path, boxes, _ = nusc.get_sample_data(lidar_token)
+        lidar_path, boxes_lidar, _ = nusc.get_sample_data(lidar_token)
+        _, boxes_cam, _ = nusc.get_sample_data(cam_token)
         lidarseg = nusc.get('lidarseg', lidar_token)
         lidarseg_path = os.path.join(nusc.dataroot, lidarseg['filename'])
 
@@ -238,10 +240,13 @@ def _fill_trainval_infos(nusc,
                 nusc.get('sample_annotation', token)
                 for token in sample['anns']
             ]
-            locs = np.array([b.center for b in boxes]).reshape(-1, 3)
-            dims = np.array([b.wlh for b in boxes]).reshape(-1, 3)
+            valid_box_tokens = [box.token for box in boxes_cam]
+            boxes_lidar_filter = [box for box in boxes_lidar if box.token in valid_box_tokens]
+
+            locs = np.array([b.center for b in boxes_lidar_filter]).reshape(-1, 3)
+            dims = np.array([b.wlh for b in boxes_lidar_filter]).reshape(-1, 3)
             rots = np.array([b.orientation.yaw_pitch_roll[0]
-                             for b in boxes]).reshape(-1, 1)
+                             for b in boxes_lidar_filter]).reshape(-1, 1)
             velocity = np.array(
                 [nusc.box_velocity(token)[:2] for token in sample['anns']])
             valid_flag = np.array(
@@ -249,13 +254,13 @@ def _fill_trainval_infos(nusc,
                  for anno in annotations],
                 dtype=bool).reshape(-1)
             # convert velo from global to lidar
-            for i in range(len(boxes)):
+            for i in range(len(boxes_lidar_filter)):
                 velo = np.array([*velocity[i], 0.0])
                 velo = velo @ np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(
                     l2e_r_mat).T
                 velocity[i] = velo[:2]
 
-            names = [b.name for b in boxes]
+            names = [b.name for b in boxes_lidar_filter]
             for i in range(len(names)):
                 if names[i] in NuScenesDataset.NameMapping:
                     names[i] = NuScenesDataset.NameMapping[names[i]]

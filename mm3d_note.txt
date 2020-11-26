@@ -51,8 +51,7 @@ CUDA_VISIBLE_DEVICES=6 python tools/test.py configs/pointpillars/hv_pointpillars
 
 CUDA_VISIBLE_DEVICES=1 python tools/test.py configs/pointpillars/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d.py pretrained/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pth --out pretrained/hv_pointpillars_fpn_sbn-all_4x8_2x_nus-3d_20200620_230405-2fa62f3d.pkl --eval mAP
 
-
-python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../nuscenes_unzip --extra-tag nuscenes
+python tools/create_data.py nuscenes --root-path ../nuscenes_unzip --out-dir ../nuscenes_unzip --version "v1.0-trainval" --extra-tag nuscenes
 
 
 #### model dict ####
