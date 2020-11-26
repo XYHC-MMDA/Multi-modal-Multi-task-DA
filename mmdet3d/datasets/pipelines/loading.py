@@ -15,7 +15,7 @@ class LoadFrontImage(object):
     def __call__(self, results):
         filepath = results['img_filename'][0]  # front image
         rot = results['lidar2img'][0]
-        pts_seg = results['points_seg'] 
+        pts_seg = results['points_seg']  # (N, 3)
         seg_label = results['seg_label']
         img = Image.open(filepath)
         img_size = img.size  # (1600, 900)
@@ -50,7 +50,7 @@ class LoadFrontImage(object):
         # handle lidar points
         pts_lidar = results['points']
         num_points = pts_lidar.shape[0]
-        pts_cam = np.concatenate([pts_lidar, np.ones((num_points, 1))], axis=1) @ rot.T
+        pts_cam = np.concatenate([pts_lidar[:, :3], np.ones((num_points, 1))], axis=1) @ rot.T
         pts = pts_cam[:, :3]
         pts[:, 0] /= pts[:, 2]
         pts[:, 1] /= pts[:, 2]

@@ -4,6 +4,7 @@ from mmdet.datasets import build_dataloader
 from mmcv import Config, DictAction
 import argparse
 import numpy as np
+import torch
 from PIL import Image
 import os
 
@@ -13,12 +14,12 @@ args = parser.parse_args()
 
 cfg = Config.fromfile(args.config)
 print('cfg loaded')
-dataset = build_dataset(cfg.data.mini_train)
+dataset = build_dataset(cfg.data.train)
 print('dataset loaded')
 print()
 
 print_dataset = True 
-data_idx = 91
+data_idx = 1
 if print_dataset:
     data_info = dataset.get_data_info(data_idx)
     print('get_data_info:')
@@ -34,13 +35,12 @@ if print_dataset:
     print('getitem:')
     print(data.keys())
     print()
-    pts_seg = data['points_seg_cam']
-    print(np.min(pts_seg[:, 0]), np.max(pts_seg[:, 0]))
-    print(np.min(pts_seg[:, 1]), np.max(pts_seg[:, 1]))
-    print(np.min(pts_seg[:, 2]), np.max(pts_seg[:, 2]))
+    # print(pts_seg.shape)
+    # print(torch.min(pts_seg[:, 0]), torch.max(pts_seg[:, 0]))
+    # print(torch.min(pts_seg[:, 1]), torch.max(pts_seg[:, 1]))
+    # print(torch.min(pts_seg[:, 2]), torch.max(pts_seg[:, 2]))
     # degrees = np.arctan2(pts_seg[:, 2] , pts_seg[:, 0]) / np.pi * 180
     # print(np.max(degrees), np.min(degrees))
-    exit(0)
 
 dataloader = build_dataloader(
     dataset,
@@ -63,6 +63,22 @@ print('data_batch:', data_batch.keys())
 # print(data_batch['img']._data[0].shape)  #(B, 3, 225, 400)
 
 ###########################################
+import open3d as o3d
+pcd = o3d.geometry.PointCloud()
+v3d = o3d.utility.Vector3dVector
+
+pts_dataset = data['points'].data
+pcd.points = v3d(pts_dataset[:, :3].numpy())
+o3d.io.write_point_cloud(f'debug/train/{data_idx}_pts_det_cam.pcd', pcd)
+
+pcd.points = v3d(np.fromfile(pts_filepath, dtype=np.float32).reshape(-1, 5)[:, :3])
+o3d.io.write_point_cloud(f'debug/train/{data_idx}_pts_all.pcd', pcd)
+exit(0)
+
+img = Image.open(img_filepath)
+img.save(f'debug/mini_train/{data_idx}_front.png')
+
+###########################################
 from PIL import Image
 img = Image.open(img_filepath)
 img = np.array(img)
@@ -78,6 +94,7 @@ pts = pts[:, :3]
 pts[:, 0] /= pts[:, 2]
 pts[:, 1] /= pts[:, 2]
 corner_img_indices = pts.reshape(-1, 8, 3).astype(np.int64)
+exit(0)
 
 from tools.draw_utils import draw_box3d_image
 box_img = draw_box3d_image(img, corner_img_indices)
@@ -85,21 +102,6 @@ box_img = Image.fromarray(box_img)
 box_img.save(f'debug/mini_train/{data_idx}_front_box.png')
 exit(0)
 
-###########################################
-import open3d as o3d
-pcd = o3d.geometry.PointCloud()
-v3d = o3d.utility.Vector3dVector
-
-pts_dataset = data['points'].data
-pcd.points = v3d(pts_dataset[:, :3].numpy())
-o3d.io.write_point_cloud(f'debug/mini_train/{data_idx}_half.pcd', pcd)
-
-pcd.points = v3d(np.fromfile(pts_filepath, dtype=np.float32).reshape(-1, 5)[:, :3])
-o3d.io.write_point_cloud(f'debug/mini_train/{data_idx}_all.pcd', pcd)
-
-img = Image.open(img_filepath)
-img.save(f'debug/mini_train/{data_idx}_front.png')
-exit(0)
 
 ###########################################
 pts_lidar = np.fromfile(data['pts_filename'], dtype=np.float32).reshape(-1, 5)[:, :3]

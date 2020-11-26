@@ -210,8 +210,10 @@ class NuscMultiModalDataset(Custom3DDataset):
             mask = info['valid_flag']
         else:
             mask = info['num_lidar_pts'] > 0
-        gt_bboxes_3d = info['gt_boxes'][mask]
-        gt_names_3d = info['gt_names'][mask]
+        # gt_bboxes_3d = info['gt_boxes'][mask]
+        # gt_names_3d = info['gt_names'][mask]
+        gt_bboxes_3d = info['gt_boxes']  # to delete
+        gt_names_3d = info['gt_names']
         gt_labels_3d = []
         for cat in gt_names_3d:
             if cat in self.CLASSES:
@@ -220,6 +222,7 @@ class NuscMultiModalDataset(Custom3DDataset):
                 gt_labels_3d.append(-1)
         gt_labels_3d = np.array(gt_labels_3d)
 
+        self.with_velocity = False  # to delete 
         if self.with_velocity:
             gt_velocity = info['gt_velocity'][mask]
             nan_mask = np.isnan(gt_velocity[:, 0])
