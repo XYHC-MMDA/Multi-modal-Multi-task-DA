@@ -18,7 +18,7 @@ print('dataset loaded')
 print()
 
 print_dataset = True 
-data_idx = 0
+data_idx = 91
 if print_dataset:
     data_info = dataset.get_data_info(data_idx)
     print('get_data_info:')
@@ -34,7 +34,9 @@ if print_dataset:
     print('getitem:')
     print(data.keys())
     print()
-    print(data['points_seg'].shape)
+    pts_seg = data['points_seg']
+    degrees = np.arctan2(pts_seg[:, 1] , pts_seg[:, 0]) / np.pi * 180
+    print(np.max(degrees), np.min(degrees))
     exit(0)
 
 dataloader = build_dataloader(
