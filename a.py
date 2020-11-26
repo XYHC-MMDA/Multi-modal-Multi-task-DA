@@ -35,8 +35,11 @@ if print_dataset:
     print(data.keys())
     print()
     pts_seg = data['points_seg_cam']
-    degrees = np.arctan2(pts_seg[:, 2] , pts_seg[:, 0]) / np.pi * 180
-    print(np.max(degrees), np.min(degrees))
+    print(np.min(pts_seg[:, 0]), np.max(pts_seg[:, 0]))
+    print(np.min(pts_seg[:, 1]), np.max(pts_seg[:, 1]))
+    print(np.min(pts_seg[:, 2]), np.max(pts_seg[:, 2]))
+    # degrees = np.arctan2(pts_seg[:, 2] , pts_seg[:, 0]) / np.pi * 180
+    # print(np.max(degrees), np.min(degrees))
     exit(0)
 
 dataloader = build_dataloader(
