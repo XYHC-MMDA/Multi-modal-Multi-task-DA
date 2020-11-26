@@ -236,19 +236,28 @@ def _fill_trainval_infos(nusc,
         info['sweeps'] = sweeps
         # obtain annotation
         if not test:
-            annotations = [
-                nusc.get('sample_annotation', token)
-                for token in sample['anns']
-            ]
+            # full range
+            # annotations = [
+            #     nusc.get('sample_annotation', token)
+            #     for token in sample['anns']
+            # ]
+
+            # inside camera
             valid_box_tokens = [box.token for box in boxes_cam]
             boxes_lidar_filter = [box for box in boxes_lidar if box.token in valid_box_tokens]
+            annotations = [
+                nusc.get('sample_annotation', token)
+                for token in valid_box_tokens
+            ]
 
             locs = np.array([b.center for b in boxes_lidar_filter]).reshape(-1, 3)
             dims = np.array([b.wlh for b in boxes_lidar_filter]).reshape(-1, 3)
             rots = np.array([b.orientation.yaw_pitch_roll[0]
                              for b in boxes_lidar_filter]).reshape(-1, 1)
+            # velocity = np.array(
+            #    [nusc.box_velocity(token)[:2] for token in sample['anns']])
             velocity = np.array(
-                [nusc.box_velocity(token)[:2] for token in sample['anns']])
+                [nusc.box_velocity(token)[:2] for token in valid_box_tokens])
             valid_flag = np.array(
                 [(anno['num_lidar_pts'] + anno['num_radar_pts']) > 0
                  for anno in annotations],
@@ -267,8 +276,8 @@ def _fill_trainval_infos(nusc,
             names = np.array(names)
             # we need to convert rot to SECOND format.
             gt_boxes = np.concatenate([locs, dims, -rots - np.pi / 2], axis=1)
-            # assert len(gt_boxes) == len(
-            #     annotations), f'{len(gt_boxes)}, {len(annotations)}'
+            assert len(gt_boxes) == len(
+                annotations), f'{len(gt_boxes)}, {len(annotations)}'
             info['gt_boxes'] = gt_boxes
             info['gt_names'] = names
             info['gt_velocity'] = velocity.reshape(-1, 2)
