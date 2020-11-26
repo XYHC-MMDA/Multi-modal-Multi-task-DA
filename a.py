@@ -34,8 +34,8 @@ if print_dataset:
     print('getitem:')
     print(data.keys())
     print()
-    pts_seg = data['points_seg']
-    degrees = np.arctan2(pts_seg[:, 1] , pts_seg[:, 0]) / np.pi * 180
+    pts_seg = data['points_seg_cam']
+    degrees = np.arctan2(pts_seg[:, 2] , pts_seg[:, 0]) / np.pi * 180
     print(np.max(degrees), np.min(degrees))
     exit(0)
 
