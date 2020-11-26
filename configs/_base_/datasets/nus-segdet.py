@@ -61,7 +61,7 @@ train_pipeline = [
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
     dict(type='SegDetFormatBundle', class_names=class_names),
-    dict(type='Collect3D', keys=['img', 'img_indices', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d', 'points_seg'])  # TODO
+    dict(type='Collect3D', keys=['img', 'img_indices', 'seg_label', 'points', 'gt_bboxes_3d', 'gt_labels_3d', 'points_seg_cam'])  # TODO
 ]
 test_pipeline = [
     dict(
