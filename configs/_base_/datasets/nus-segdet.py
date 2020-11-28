@@ -79,12 +79,12 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            dict(
-                type='GlobalRotScaleTrans',
-                rot_range=[0, 0],
-                scale_ratio_range=[1., 1.],
-                translation_std=[0, 0, 0]),
-            dict(type='RandomFlip3D'),
+            # dict(
+            #     type='GlobalRotScaleTrans',
+            #     rot_range=[0, 0],
+            #     scale_ratio_range=[1., 1.],
+            #     translation_std=[0, 0, 0]),
+            # dict(type='RandomFlip3D'),
             dict(
                 type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
             dict(
