@@ -177,14 +177,6 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> 
 
 
 def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> EvalBoxes:
-    """
-    Loads ground truth boxes from DB.
-    :param nusc: A NuScenes instance.
-    :param eval_split: The evaluation split for which we load GT boxes.
-    :param box_cls: Type of box to load, e.g. DetectionBox or TrackingBox.
-    :param verbose: Whether to print messages to stdout.
-    :return: The GT boxes.
-    """
     # Init.
     if box_cls == DetectionBox:
         attribute_map = {a['token']: a['name'] for a in nusc.attribute}
@@ -220,6 +212,7 @@ def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = 
     for sample in nusc.sample:
         if sample['scene_token'] in splits.val:
             samples.append(sample)
+    print('val samples:', len(samples))
 
     all_annotations = EvalBoxes()
 
