@@ -191,13 +191,6 @@ def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = 
 
     if verbose:
         print('Loading annotations for {} split from nuScenes version: {}'.format(eval_split, nusc.version))
-    # Read out all sample_tokens in DB.
-    for sample in nusc.sample:
-        cam_token = sample['data']['CAM_FRONT']
-        _, boxes_cam, _ = nusc.get_sample_data(cam_token)
-        sample_tokens_all = [box.token for box in boxes_cam]
-
-    assert len(sample_tokens_all) > 0, "Error: Database has no samples!"
 
     # Only keep samples from this split.
     splits = create_splits_scenes()
@@ -222,21 +215,24 @@ def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = 
         assert len(nusc.sample_annotation) > 0, \
             'Error: You are trying to evaluate on the test set but you do not have the annotations!'
 
-    sample_tokens = []
-    for sample_token in sample_tokens_all:
-        scene_token = nusc.get('sample', sample_token)['scene_token']
-        scene_record = nusc.get('scene', scene_token)
-        if scene_record['name'] in splits[eval_split]:
-            sample_tokens.append(sample_token)
+    from nuscenes.utils import splits
+    samples = []
+    for sample in nusc.sample:
+        if sample['scene_token'] in splits.val:
+            samples.append(sample)
 
     all_annotations = EvalBoxes()
 
     # Load annotations and filter predictions and annotations.
     tracking_id_set = set()
-    for sample_token in tqdm.tqdm(sample_tokens, leave=verbose):
+    for sample in tqdm.tqdm(samples, leave=verbose):
+        sample_token = sample['token']
+        cam_token = sample['data']['CAM_FRONT']
+        _, boxes_cam, _ = nusc.get_sample_data(cam_token)
+        sample_annotation_tokens = [box.token for box in boxes_cam]
 
-        sample = nusc.get('sample', sample_token)
-        sample_annotation_tokens = sample['anns']
+        # sample = nusc.get('sample', sample_token)
+        # sample_annotation_tokens = sample['anns']
 
         sample_boxes = []
         for sample_annotation_token in sample_annotation_tokens:
