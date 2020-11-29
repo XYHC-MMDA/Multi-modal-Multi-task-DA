@@ -215,10 +215,10 @@ def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = 
         assert len(nusc.sample_annotation) > 0, \
             'Error: You are trying to evaluate on the test set but you do not have the annotations!'
 
-    from nuscenes.utils import splits
     samples = []
     for sample in nusc.sample:
-        if sample['scene_token'] in splits.val:
+        scene_record = nusc.get('scene', sample['scene_token'])
+        if scene_record['name'] in splits[eval_split]:
             samples.append(sample)
 
     all_annotations = EvalBoxes()
