@@ -77,25 +77,14 @@ class DetectionEval:
         # Load data.
         if verbose:
             print('Initializing nuScenes detection evaluation')
-        self.pred_boxes, self.meta = load_prediction(self.result_path, self.cfg.max_boxes_per_sample, DetectionBox, verbose=verbose)
-        self.pred_boxes = add_center_dist(nusc, self.pred_boxes)
-        print('DetectionEval: prediction loaded')
-        from collections import defaultdict
-        out_dict = defaultdict(list)
-        debug = False 
-        if debug:
-            for token in self.pred_boxes.sample_tokens:
-                out_dict[token].append(len(self.pred_boxes[token]))
 
-        self.pred_boxes = filter_eval_boxes(nusc, self.pred_boxes, self.cfg.class_range, verbose=verbose)
-        print('pred filter finished')
-        if debug:
-            for token in self.pred_boxes.sample_tokens:
-                out_dict[token].append(len(self.pred_boxes[token]))
-
+        # load gt
         self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         self.gt_boxes = add_center_dist(nusc, self.gt_boxes)
         print('DetectionEval: gt loaded')
+        from collections import defaultdict
+        out_dict = defaultdict(list)
+        debug = False
         if debug:
             for token in self.gt_boxes.sample_tokens:
                 out_dict[token].append(len(self.gt_boxes[token]))
@@ -105,6 +94,20 @@ class DetectionEval:
         if debug:
             for token in self.gt_boxes.sample_tokens:
                 out_dict[token].append(len(self.gt_boxes[token]))
+
+        # load pred
+        self.pred_boxes, self.meta = load_prediction(self.result_path, self.cfg.max_boxes_per_sample, DetectionBox, verbose=verbose)
+        self.pred_boxes = add_center_dist(nusc, self.pred_boxes)
+        print('DetectionEval: prediction loaded')
+        if debug:
+            for token in self.pred_boxes.sample_tokens:
+                out_dict[token].append(len(self.pred_boxes[token]))
+
+        self.pred_boxes = filter_eval_boxes(nusc, self.pred_boxes, self.cfg.class_range, verbose=verbose)
+        print('pred filter finished')
+        if debug:
+            for token in self.pred_boxes.sample_tokens:
+                out_dict[token].append(len(self.pred_boxes[token]))
 
         assert set(self.pred_boxes.sample_tokens) == set(self.gt_boxes.sample_tokens), \
             "Samples in split doesn't match samples in predictions."
