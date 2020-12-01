@@ -212,7 +212,6 @@ def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = 
         scene_record = nusc.get('scene', sample['scene_token'])
         if scene_record['name'] in splits[eval_split]:
             samples.append(sample)
-    print('val samples:', len(samples))
 
     all_annotations = EvalBoxes()
 

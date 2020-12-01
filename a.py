@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 cfg = Config.fromfile(args.config)
 print('cfg loaded')
-dataset = build_dataset(cfg.data.mini_train)
+dataset = build_dataset(cfg.data.train)
 print('dataset loaded')
 print()
 
@@ -38,6 +38,17 @@ if print_dataset:
     gt_bboxes = data['gt_bboxes_3d'].data
     print(gt_bboxes.center.shape)
     print(gt_bboxes.center)
+    minx, maxx = 0, 0
+    mind, maxd = 1000, -1000
+    for i in range(len(dataset)):
+        if i % 20 == 0:
+            print(f'[{i}]', minx, maxx)
+        pts = dataset[i]['points'].data.numpy()
+        # degrees = np.arctan2(pts[:, 1] , pts[:, 0]) / np.pi * 180
+        # mind = min(mind, np.min(degrees))
+        # maxd = max(maxd, np.max(degrees))
+        minx = min(minx, np.min(pts[:, 0]))
+        maxx = max(maxx, np.max(pts[:, 0]))
     exit(0)
     # print(pts_seg.shape)
     # print(torch.min(pts_seg[:, 0]), torch.max(pts_seg[:, 0]))
