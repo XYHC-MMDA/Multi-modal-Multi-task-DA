@@ -11,8 +11,7 @@ model = dict(
         strides=(1, 2, 2, 2),
         base_channels=64,
         stem_channels=64,
-        # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
-        norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
+        norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_eval=False,
         style='pytorch'),
     pts_neck=dict(in_channels=[64, 160, 384]))
