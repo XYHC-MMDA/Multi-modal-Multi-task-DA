@@ -133,6 +133,7 @@ train_pipeline = [
         sweeps_num=10,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
+    dict(type='PointsSensorFilter', img_size=(1600, 900)),
     dict(
         type='GlobalRotScaleTrans',
         rot_range=[-0.7854, 0.7854],
@@ -143,7 +144,6 @@ train_pipeline = [
         flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5),
     dict(type='PointsRangeFilter', point_cloud_range=point_cloud_range),
-    dict(type='PointsSensorFilter', img_size=(1600, 900)),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
