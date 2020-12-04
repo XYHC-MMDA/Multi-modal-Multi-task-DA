@@ -270,12 +270,6 @@ class MVXTwoStageDetector(Base3DDetector):
         Returns:
             dict: Losses of different branches.
         """
-        for i in range(len(points)):
-            print(min(points[i][0]), max(points[i][0]))
-            print(min(points[i][1]), max(points[i][1]))
-            print(min(points[i][2]), max(points[i][2]))
-            print()
-        exit(0)
         img_feats, pts_feats = self.extract_feat(
             points, img=img, img_metas=img_metas)
         losses = dict()
