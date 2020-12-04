@@ -1,4 +1,6 @@
-point_cloud_range = [-50, -50, -5, 50, 50, 3]
+point_cloud_range = [-50, 0, -5, 50, 50, 3]
+anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
+scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
 
 # hv_pointpillars_*.py
@@ -6,7 +8,7 @@ model = dict(
     type='MVXFasterRCNN',
     pts_voxel_layer=dict(
         max_num_points=64,
-        point_cloud_range=[-50, -50, -5, 50, 50, 3],
+        point_cloud_range=point_cloud_range,
         voxel_size=voxel_size,
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
@@ -17,11 +19,11 @@ model = dict(
         voxel_size=voxel_size,
         with_cluster_center=True,
         with_voxel_center=True,
-        point_cloud_range=[-50, -50, -5, 50, 50, 3],
+        point_cloud_range=point_cloud_range,
         # norm_cfg=dict(type='naiveSyncBN1d', eps=1e-3, momentum=0.01)),
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
-        type='PointPillarsScatter', in_channels=64, output_shape=[400, 400]),
+        type='PointPillarsScatter', in_channels=64, output_shape=scatter_shape),
     pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pts_backbone=dict(
         type='NoStemRegNet',
@@ -56,7 +58,7 @@ model = dict(
         alpha=0.5,
         anchor_generator=dict(
             type='AlignedAnchor3DRangeGenerator',
-            ranges=[[-50, -50, -1.8, 50, 50, -1.8]],
+            ranges=anchor_generator_ranges,
             scales=[1, 2, 4],
             sizes=[
                 [0.8660, 2.5981, 1.],  # 1.5/sqrt(3)
@@ -141,6 +143,7 @@ train_pipeline = [
         flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5),
     dict(type='PointsRangeFilter', point_cloud_range=point_cloud_range),
+    dict(type='PointsSensorFilter', img_size=(1600, 900)),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
