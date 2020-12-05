@@ -10,7 +10,7 @@ from .transforms_3d import (BackgroundPointsFilter, GlobalRotScaleTrans,
                             IndoorPointSample, ObjectNoise, ObjectRangeFilter,
                             ObjectSample, PointShuffle, PointsRangeFilter,
                             RandomFlip3D, VoxelBasedPointSampler,
-                            SegDetPointsRangeFilter)
+                            SegDetPointsRangeFilter, PointsSensorFilter)
 
 __all__ = [
     'ObjectSample', 'RandomFlip3D', 'ObjectNoise', 'GlobalRotScaleTrans',
@@ -21,5 +21,5 @@ __all__ = [
     'PointSegClassMapping', 'MultiScaleFlipAug3D', 'LoadPointsFromMultiSweeps',
     'BackgroundPointsFilter', 'VoxelBasedPointSampler',
     'LoadSegDetPointsFromFile', 'LoadFrontImage', 'SegDetPointsRangeFilter',
-    'SegDetFormatBundle'
+    'SegDetFormatBundle', 'PointsSensorFilter'
 ]
