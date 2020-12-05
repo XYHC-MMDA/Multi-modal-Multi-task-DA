@@ -21,7 +21,8 @@ train_cfg = dict(pts=dict(point_cloud_range=point_cloud_range))
 test_cfg = dict(pts=dict(pc_range=point_cloud_range[:2]))
 
 dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+# data_root = 'data/nuscenes/'
+data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 file_client_args = dict(backend='disk')
 
 db_sampler = dict(
@@ -132,7 +133,7 @@ data = dict(
         dataset=dict(
             type=dataset_type,
             data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_train.pkl',
+            ann_file=data_root + 'nuscenes_boxes_cam_infos_train.pkl',
             pipeline=train_pipeline,
             classes=class_names,
             test_mode=False,
