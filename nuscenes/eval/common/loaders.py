@@ -385,7 +385,7 @@ def filter_eval_boxes(nusc: NuScenes,
     return eval_boxes
 
 
-def filter_gt_boxes(nusc: NuScenes,
+def filter_half_boxes(nusc: NuScenes,
                       eval_boxes: EvalBoxes,
                       max_dist: Dict[str, float],
                       verbose: bool = False) -> EvalBoxes:

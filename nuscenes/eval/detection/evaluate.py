@@ -13,7 +13,7 @@ import numpy as np
 from nuscenes import NuScenes
 from nuscenes.eval.common.config import config_factory
 from nuscenes.eval.common.data_classes import EvalBoxes
-from nuscenes.eval.common.loaders import load_prediction, load_gt, load_gt_front_cam, add_center_dist, filter_eval_boxes, filter_gt_boxes
+from nuscenes.eval.common.loaders import load_prediction, load_gt, load_gt_front_cam, add_center_dist, filter_eval_boxes, filter_half_boxes
 from nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
 from nuscenes.eval.detection.constants import TP_METRICS
 from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
