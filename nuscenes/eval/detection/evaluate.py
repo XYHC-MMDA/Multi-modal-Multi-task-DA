@@ -13,7 +13,7 @@ import numpy as np
 from nuscenes import NuScenes
 from nuscenes.eval.common.config import config_factory
 from nuscenes.eval.common.data_classes import EvalBoxes
-from nuscenes.eval.common.loaders import load_prediction, load_gt_front_cam, add_center_dist, filter_eval_boxes, filter_gt_boxes
+from nuscenes.eval.common.loaders import load_prediction, load_gt, load_gt_front_cam, add_center_dist, filter_eval_boxes, filter_gt_boxes
 from nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
 from nuscenes.eval.detection.constants import TP_METRICS
 from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
@@ -79,7 +79,8 @@ class DetectionEval:
             print('Initializing nuScenes detection evaluation')
 
         # load gt
-        self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
+        #self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
+        self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         self.gt_boxes = add_center_dist(nusc, self.gt_boxes)
         print('DetectionEval: gt loaded')
         from collections import defaultdict
@@ -89,8 +90,8 @@ class DetectionEval:
             for token in self.gt_boxes.sample_tokens:
                 out_dict[token].append(len(self.gt_boxes[token]))
 
-        # self.gt_boxes = filter_gt_boxes(nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
-        # print('gt filter finished')
+        self.gt_boxes = filter_eval_boxes(nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
+        print('gt filter finished')
         if debug:
             for token in self.gt_boxes.sample_tokens:
                 out_dict[token].append(len(self.gt_boxes[token]))
