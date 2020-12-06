@@ -389,7 +389,7 @@ class NuScenesDataset(Custom3DDataset):
             result_path=result_path,
             eval_set=eval_set_map[self.version],
             output_dir=output_dir,
-            verbose=False)
+            verbose=True)
         nusc_eval.main(render_curves=False)
 
         # record metrics
