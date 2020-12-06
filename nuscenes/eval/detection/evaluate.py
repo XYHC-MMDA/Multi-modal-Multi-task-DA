@@ -79,8 +79,8 @@ class DetectionEval:
             print('Initializing nuScenes detection evaluation')
 
         # load gt
-        #self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
-        self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
+        self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
+        # self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         self.gt_boxes = add_center_dist(nusc, self.gt_boxes)
         print('DetectionEval: gt loaded')
         from collections import defaultdict
