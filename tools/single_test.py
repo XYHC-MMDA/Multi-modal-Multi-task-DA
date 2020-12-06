@@ -137,7 +137,8 @@ def main():
     print('model time:', model_time)
 
     model = MMDataParallel(model, device_ids=[0])
-    outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
+    # outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
+    outputs = single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
 
     if args.out:
         print(f'\nwriting results to {args.out}')

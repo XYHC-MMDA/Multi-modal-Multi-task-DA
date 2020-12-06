@@ -89,8 +89,8 @@ class DetectionEval:
             for token in self.gt_boxes.sample_tokens:
                 out_dict[token].append(len(self.gt_boxes[token]))
 
-        self.gt_boxes = filter_gt_boxes(nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
-        print('gt filter finished')
+        # self.gt_boxes = filter_gt_boxes(nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
+        # print('gt filter finished')
         if debug:
             for token in self.gt_boxes.sample_tokens:
                 out_dict[token].append(len(self.gt_boxes[token]))
