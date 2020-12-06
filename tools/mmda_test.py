@@ -7,7 +7,7 @@ from mmcv import Config, DictAction
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 
-from mmdet3d.apis import mmda_single_gpu_test
+from mmdet3d.apis import single_gpu_test, mmda_single_gpu_test
 from mmdet3d.datasets import build_dataloader, build_dataset
 from mmdet3d.models import build_detector
 from mmdet.apis import multi_gpu_test, set_random_seed
@@ -137,7 +137,8 @@ def main():
     print('model time:', model_time)
 
     model = MMDataParallel(model, device_ids=[0])
-    outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
+    # outputs = mmda_single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
+    outputs = single_gpu_test(model, data_loader, args.show, args.show_dir)  # len(outputs)=len(dataset)
 
     if args.out:
         print(f'\nwriting results to {args.out}')
