@@ -2,6 +2,8 @@ point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
+ann_train = 'nuscenes_boxes_cam_infos_train.pkl'
+ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
 
 # hv_pointpillars_*.py
 model = dict(
@@ -160,6 +162,7 @@ test_pipeline = [
         type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
+    dict(type='PointsSensorFilter', img_size=(1600, 900)),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -187,7 +190,7 @@ data = dict(
     train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_boxes_cam_infos_train.pkl',
+        ann_file=data_root + ann_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
@@ -198,7 +201,7 @@ data = dict(
     val=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_boxes_cam_infos_val.pkl',
+        ann_file=data_root + ann_val,
         pipeline=test_pipeline,
         classes=class_names,
         modality=input_modality,
@@ -207,7 +210,7 @@ data = dict(
     test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_boxes_cam_infos_val.pkl',
+        ann_file=data_root + ann_val,
         pipeline=test_pipeline,
         classes=class_names,
         modality=input_modality,
