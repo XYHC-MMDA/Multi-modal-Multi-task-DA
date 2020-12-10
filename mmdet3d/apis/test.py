@@ -20,13 +20,15 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
 
         # handle seg
         seg_label = data['seg_label'][0].data[0]  # list of tensor
-        img_indices = data['img_indices'][0].data[0]  # list of tensor
+        seg_pts_indices = data['seg_pts_indices'][0].data[0]  # list of tensor
         seg_pred = seg_res.argmax(1).cpu().numpy()
         pred_list = []
         gt_list = []
         left_idx = 0
         for i in range(len(seg_label)):
-            num_points = len(img_indices[i])
+            # num_points = len(seg_pts_indices[i])
+            assert len(seg_label[i]) == len(seg_pts_indices[i])
+            num_points = len(seg_label[i])
             right_idx = left_idx + num_points
             pred_list.append(seg_pred[left_idx: right_idx])
             gt_list.append(seg_label[i].numpy())
