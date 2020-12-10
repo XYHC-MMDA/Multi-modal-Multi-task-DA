@@ -266,7 +266,7 @@ class SegDetFormatBundle(object):
     def __call__(self, results):
         # stack=False
         for key in [
-            'points', 'img_indices', 'seg_label'
+            'points', 'pts_indices', 'seg_points', 'seg_pts_indices', 'seg_label'
         ]:
             assert key in results.keys(), f"key {key} does not exist."
             results[key] = DC(to_tensor(results[key]), stack=False)
@@ -277,7 +277,7 @@ class SegDetFormatBundle(object):
 
         # gt_labels_3d: list of int
         for key in [
-            'gt_labels_3d', 'pts_semantic_mask'
+            'gt_labels_3d'
         ]:
             if key not in results:
                 continue

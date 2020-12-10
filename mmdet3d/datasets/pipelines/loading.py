@@ -15,49 +15,38 @@ class LoadFrontImage(object):
     def __call__(self, results):
         filepath = results['img_filename'][0]  # front image
         rot = results['lidar2img'][0]
-        pts_seg = results['points_seg']  # (N, 3)
+        seg_pts = results['seg_points']  # (N, 4)
         seg_label = results['seg_label']
         img = Image.open(filepath)
         img_size = img.size  # (1600, 900)
 
         # img_indices
-        num_points = pts_seg.shape[0]
-        pts_cam = np.concatenate([pts_seg, np.ones((num_points, 1))], axis=1) @ rot.T
-        pts = pts_cam[:, :3]
+        num_points = seg_pts.shape[0]
+        pts_cam = np.concatenate([seg_pts, np.ones((num_points, 1))], axis=1) @ rot.T
+        pts_img = pts_cam[:, :3]
 
         # calc mask
-        pts[:, 0] /= pts[:, 2]
-        pts[:, 1] /= pts[:, 2]
-        mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < img_size)
+        pts_img[:, 0] /= pts_img[:, 2]
+        pts_img[:, 1] /= pts_img[:, 2]
+        mask = ((0, 0) < pts_img[:, :2]) & (pts_img[:, :2] < img_size)
         mask = mask[:, 0] & mask[:, 1]
 
         # filter
-        img_indices = pts[mask][:, :2]
-        pts_seg = pts_seg[mask]
+        seg_pts_indices = pts_img[mask][:, :2]
+        seg_pts = seg_pts[mask]
         seg_label = seg_label[mask]
 
         if self.resize:
             img = img.resize(self.resize, Image.BILINEAR)
-            img_indices = img_indices * self.resize / img_size
+            seg_pts_indices = seg_pts_indices * self.resize / img_size
 
         img = np.array(img, dtype=np.float32) / 255.  # shape=(225, 400, 3)
-        img_indices = np.fliplr(img_indices).astype(np.int64)
+        seg_pts_indices = np.fliplr(seg_pts_indices).astype(np.int64)
         results['img'] = img  # TODO: moveaxis or not
-        results['img_indices'] = img_indices  # (N, 2): (row, column)
-        results['points_seg'] = pts_seg  # pts inside front camera; lidar coordinate
+        results['seg_pts_indices'] = seg_pts_indices  # (N, 2): (row, column)
+        results['seg_points'] = seg_pts  # pts inside front camera; lidar coordinate
         results['seg_label'] = seg_label
 
-        # handle lidar points
-        pts_lidar = results['points']
-        num_points = pts_lidar.shape[0]
-        pts_cam = np.concatenate([pts_lidar[:, :3], np.ones((num_points, 1))], axis=1) @ rot.T
-        pts = pts_cam[:, :3]
-        pts[:, 0] /= pts[:, 2]
-        pts[:, 1] /= pts[:, 2]
-        mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < img_size)
-        mask = mask[:, 0] & mask[:, 1]
-        pts_lidar = pts_lidar[mask]
-        results['points'] = pts_lidar
         return results
 
 
@@ -437,6 +426,12 @@ class LoadSegDetPointsFromFile(object):
         self.load_dim = load_dim
         self.use_dim = use_dim
 
+        self.classmap = [10] * 32
+        idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
+                  [22, 3], [23, 1]]
+        for k, v in idxmap:
+            self.classmap[k] = v
+
     def __call__(self, results):
         pts_filename = results['pts_filename']
         points = np.fromfile(pts_filename, dtype=np.float32)
@@ -445,17 +440,12 @@ class LoadSegDetPointsFromFile(object):
 
         seglabel_filename = results['seglabel_filename']
         seg_label = np.fromfile(seglabel_filename, dtype=np.uint8).astype(np.int64)
-        classmap = [10] * 32
-        idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
-                  [22, 3], [23, 1]]
-        for k, v in idxmap:
-            classmap[k] = v
         for i in range(len(seg_label)):
-            seg_label[i] = classmap[seg_label[i]]
+            seg_label[i] = self.classmap[seg_label[i]]
 
         results['points'] = points  # full range pts; lidar coordinate; later mixed with sweeps
-        results['points_seg'] = points[:, :3].copy()  # points of the key frame; used only for projection
-        results['seg_label'] = seg_label  # seg labels of 'points_seg'
+        results['seg_points'] = points[:, :4].copy()  # points of the key frame; (x, y, z, reflectance)
+        results['seg_label'] = seg_label  # seg labels of 'seg_points'
         return results
 
 

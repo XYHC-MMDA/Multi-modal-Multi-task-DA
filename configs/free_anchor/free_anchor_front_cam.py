@@ -1,8 +1,3 @@
-# variation:
-# seg_points: xyz coordinate; w/o reflectance
-# 2d augmentation
-# test augmentation
-
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
@@ -12,16 +7,7 @@ ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
 
 # hv_pointpillars_*.py
 model = dict(
-    type='MultiSensorMultiTask',
-    img_backbone=dict(
-        type='UNetResNet34',
-        out_channels=64,
-        pretrained=True),
-    img_seg_head=dict(
-        type='ImageSegHead',
-        in_channels=64,
-        seg_pts_dim=4,
-        num_classes=11),
+    type='MVXFasterRCNN',
     pts_voxel_layer=dict(
         max_num_points=64,
         point_cloud_range=point_cloud_range,
@@ -29,7 +15,7 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=4 + 64,
+        in_channels=4,
         feat_channels=[64, 64],
         with_distance=False,
         voxel_size=voxel_size,
@@ -140,16 +126,16 @@ file_client_args = dict(backend='disk')
 
 train_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',
+        type='LoadPointsFromFile',
         load_dim=5,
-        use_dim=5),
+        use_dim=5,
+        file_client_args=file_client_args),
     dict(
         type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
-    dict(type='LoadFrontImage'),  # 'seg_pts_indices'
-    dict(type='PointsSensorFilter'),  # 'pts_indices'
+    dict(type='PointsSensorFilter', img_size=(1600, 900)),
     dict(
         type='GlobalRotScaleTrans',
         rot_range=[-0.7854, 0.7854],
@@ -159,25 +145,24 @@ train_pipeline = [
         type='RandomFlip3D',
         flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5),
-    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    dict(type='PointsRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='PointShuffle'),
-    dict(type='SegDetFormatBundle', class_names=class_names),
-    dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
-                                 'points', 'pts_indices', 'gt_bboxes_3d', 'gt_labels_3d'])
+    dict(type='DefaultFormatBundle3D', class_names=class_names),
+    dict(type='Collect3D', keys=['points', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
 test_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',
+        type='LoadPointsFromFile',
         load_dim=5,
-        use_dim=5),
+        use_dim=5,
+        file_client_args=file_client_args),
     dict(
         type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
-    dict(type='LoadFrontImage'),  # 'seg_pts_indices'
-    dict(type='PointsSensorFilter'),  # 'pts_indices'
+    dict(type='PointsSensorFilter', img_size=(1600, 900)),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -190,10 +175,13 @@ test_pipeline = [
                 scale_ratio_range=[1., 1.],
                 translation_std=[0, 0, 0]),
             dict(type='RandomFlip3D'),
-            dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
-            dict(type='SegDetFormatBundle', class_names=class_names),
-            dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
-                                         'points', 'pts_indices'])
+            dict(
+                type='PointsRangeFilter', point_cloud_range=point_cloud_range),
+            dict(
+                type='DefaultFormatBundle3D',
+                class_names=class_names,
+                with_label=False),
+            dict(type='Collect3D', keys=['points'])
         ])
 ]
 data = dict(
@@ -228,7 +216,7 @@ data = dict(
         modality=input_modality,
         test_mode=True,
         box_type_3d='LiDAR'))
-evaluation = dict(interval=100)
+evaluation = dict(interval=36)
 
 # shedule_2x.py
 optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)

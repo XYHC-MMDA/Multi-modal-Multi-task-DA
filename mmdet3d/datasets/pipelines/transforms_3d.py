@@ -529,8 +529,9 @@ class PointsSensorFilter(object):
     """Currently only implement front camera.
     """
 
-    def __init__(self, img_size):
+    def __init__(self, img_size=(1600, 900), resize=(400, 225)):
         self.img_size = img_size
+        self.resize = resize
 
     def __call__(self, results):
         """
@@ -546,14 +547,22 @@ class PointsSensorFilter(object):
         rot = results['lidar2img'][0]
         pts_lidar = results['points']
         num_points = pts_lidar.shape[0]
+
         pts_cam = np.concatenate([pts_lidar[:, :3], np.ones((num_points, 1))], axis=1) @ rot.T
-        pts = pts_cam[:, :3]
-        pts[:, 0] /= pts[:, 2]
-        pts[:, 1] /= pts[:, 2]
-        mask = ((0, 0) < pts[:, :2]) & (pts[:, :2] < self.img_size)
+        pts_img = pts_cam[:, :3]
+        pts_img[:, 0] /= pts_img[:, 2]
+        pts_img[:, 1] /= pts_img[:, 2]
+        mask = ((0, 0) < pts_img[:, :2]) & (pts_img[:, :2] < self.img_size)
         mask = mask[:, 0] & mask[:, 1]
+
         pts_lidar = pts_lidar[mask]
+        pts_indices = pts_img[:, :2][mask]
+        if self.resize:
+            pts_indices = pts_indices * self.resize / self.img_size
+        pts_indices = np.fliplr(pts_indices).astype(np.int64)
+
         results['points'] = pts_lidar
+        results['pts_indices'] = pts_indices
         return results
 
     def __repr__(self):
@@ -561,6 +570,7 @@ class PointsSensorFilter(object):
         repr_str = self.__class__.__name__
         repr_str += '(point_cloud_range={})'.format(self.pcd_range.tolist())
         return repr_str
+
 
 @PIPELINES.register_module()
 class SegDetPointsRangeFilter(object):
@@ -579,14 +589,16 @@ class SegDetPointsRangeFilter(object):
         points_mask = ((points[:, :3] >= self.pcd_range[:, :3])
                        & (points[:, :3] < self.pcd_range[:, 3:]))
         points_mask = points_mask[:, 0] & points_mask[:, 1] & points_mask[:, 2]
-        clean_points = points[points_mask, :]
-        input_dict['points'] = clean_points
+        for key in ['points', 'pts_indices']:
+            if key not in input_dict.keys():
+                continue
+            input_dict[key] = input_dict[key][points_mask]
 
-        pts_seg = input_dict['points_seg']
-        pts_mask = ((pts_seg[:, :3] >= self.pcd_range[:, :3])
-                    & (pts_seg[:, :3] < self.pcd_range[:, 3:]))
+        seg_pts = input_dict['seg_points']
+        pts_mask = ((seg_pts[:, :3] >= self.pcd_range[:, :3])
+                    & (seg_pts[:, :3] < self.pcd_range[:, 3:]))
         pts_mask = pts_mask[:, 0] & pts_mask[:, 1] & pts_mask[:, 2]
-        for key in ['points_seg', 'seg_label', 'img_indices']:
+        for key in ['seg_points', 'seg_label', 'seg_pts_indices']:
             if key not in input_dict.keys():
                 continue
             input_dict[key] = input_dict[key][pts_mask]
@@ -598,6 +610,7 @@ class SegDetPointsRangeFilter(object):
         repr_str = self.__class__.__name__
         repr_str += '(point_cloud_range={})'.format(self.pcd_range.tolist())
         return repr_str
+
 
 @PIPELINES.register_module()
 class ObjectNameFilter(object):
