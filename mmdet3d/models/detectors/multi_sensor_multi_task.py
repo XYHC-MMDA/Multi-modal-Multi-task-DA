@@ -240,7 +240,7 @@ class MultiSensorMultiTask(Base3DDetector):
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
-        super(MVXTwoStageDetector, self).init_weights(pretrained)
+        super(MultiSensorMultiTask, self).init_weights(pretrained)
         if pretrained is None:
             img_pretrained = None
             pts_pretrained = None
