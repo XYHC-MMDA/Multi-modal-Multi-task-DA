@@ -91,32 +91,10 @@ class MultiSensorMultiTask(Base3DDetector):
             x = self.pts_neck(x)
         return x
 
-    @torch.no_grad()
-    @force_fp32()
-    def voxelize(self, points):
-        """Apply dynamic voxelization to points.
-
-        Args:
-            points (list[torch.Tensor]): Points of each sample.
-
-        Returns:
-            tuple[torch.Tensor]: Concatenated points, number of points
-                per voxel, and coordinates.
-        """
-        voxels, coors, num_points = [], [], []
-        for res in points:
-            res_voxels, res_coors, res_num_points = self.pts_voxel_layer(res)
-            voxels.append(res_voxels)
-            coors.append(res_coors)
-            num_points.append(res_num_points)
-        voxels = torch.cat(voxels, dim=0)
-        num_points = torch.cat(num_points, dim=0)
-        coors_batch = []
-        for i, coor in enumerate(coors):
-            coor_pad = F.pad(coor, (1, 0), mode='constant', value=i)
-            coors_batch.append(coor_pad)
-        coors_batch = torch.cat(coors_batch, dim=0)
-        return voxels, num_points, coors_batch
+    def extract_feat(self, points, pts_indices, img, img_metas):
+        img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
+        pts_feats = self.extract_pts_feat(pts=points, img_feats=img_feats, pts_indices=pts_indices, img_metas=img_metas)
+        return img_feats, pts_feats
 
     def forward_train(self,
                       img=None,
@@ -131,13 +109,13 @@ class MultiSensorMultiTask(Base3DDetector):
                       gt_bboxes_ignore=None):
         # points: list of tensor; len(points)=batch_size; points[0].shape=(num_points, 4)
         # print('len:', len(gt_bboxes_3d))  # batch_size
+        img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
+
         losses = dict()
-        img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
         losses_img = self.img_seg_head.loss(seg_logits, seg_label)
         losses.update(losses_img)
 
-        pts_feats = self.extract_pts_feat(pts=points, img_feats=img_feats, pts_indices=pts_indices, img_metas=img_metas)
         # pts_feats: tuple
         losses_pts = self.forward_pts_train(pts_feats, gt_bboxes_3d,
                                             gt_labels_3d, img_metas,
@@ -168,11 +146,9 @@ class MultiSensorMultiTask(Base3DDetector):
         ]
         return bbox_results
 
-    def simple_test(self, points, pts_indices, img_metas, img, seg_points, seg_pts_indices, rescale=False):
+    def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):
         """Test function without augmentaiton."""
-        img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
-        pts_feats = self.extract_pts_feat(pts=points, img_feats=img_feats, pts_indices=pts_indices, img_metas=img_metas)
-
+        img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
 
         bbox_list = [dict() for i in range(len(img_metas))]  # len(bbox_list)=batch_size
@@ -181,6 +157,37 @@ class MultiSensorMultiTask(Base3DDetector):
             result_dict['pts_bbox'] = pts_bbox
 
         return seg_logits, bbox_list
+
+    @torch.no_grad()
+    @force_fp32()
+    def voxelize(self, points):
+        """Apply dynamic voxelization to points.
+
+        Args:
+            points (list[torch.Tensor]): Points of each sample.
+
+        Returns:
+            tuple[torch.Tensor]: Concatenated points, number of points
+                per voxel, and coordinates.
+        """
+        voxels, coors, num_points = [], [], []
+        for res in points:
+            res_voxels, res_coors, res_num_points = self.pts_voxel_layer(res)
+            voxels.append(res_voxels)
+            coors.append(res_coors)
+            num_points.append(res_num_points)
+        voxels = torch.cat(voxels, dim=0)
+        num_points = torch.cat(num_points, dim=0)
+        coors_batch = []
+        for i, coor in enumerate(coors):
+            coor_pad = F.pad(coor, (1, 0), mode='constant', value=i)
+            coors_batch.append(coor_pad)
+        coors_batch = torch.cat(coors_batch, dim=0)
+        return voxels, num_points, coors_batch
+
+    def aug_test(self, imgs, img_metas, **kwargs):
+        """Test function with test time augmentation."""
+        pass
 
     def show_results(self, data, result, out_dir):
         """Results visualization.

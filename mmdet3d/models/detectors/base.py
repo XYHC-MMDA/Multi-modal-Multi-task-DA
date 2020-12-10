@@ -12,6 +12,7 @@ from mmdet.models.detectors import BaseDetector
 class Base3DDetector(BaseDetector):
     """Base class for detectors."""
 
+    '''
     def forward_test(self, points, img_metas, img=None, **kwargs):
         """
         Args:
@@ -42,9 +43,17 @@ class Base3DDetector(BaseDetector):
             return self.simple_test(points[0], img_metas[0], img[0], **kwargs)
         else:
             return self.aug_test(points, img_metas, img, **kwargs)
-
     '''
-    def forward_test(self, points, img_metas, img=None, img_indices=None, seg_label=None, **kwargs):
+
+    def forward_test(self,
+                     img=None,
+                     seg_points=None,
+                     seg_pts_indices=None,
+                     points=None,
+                     pts_indices=None,
+                     img_metas=None,
+                     seg_label=None,
+                     **kwargs):
         for var, name in [(points, 'points'), (img_metas, 'img_metas')]:
             if not isinstance(var, list):
                 raise TypeError('{} must be a list, but got {}'.format(
@@ -57,12 +66,18 @@ class Base3DDetector(BaseDetector):
                     len(points), len(img_metas)))
 
         if num_augs == 1:
-            img = [img] if img is None else img
-            img_indices = [img_indices] if img_indices is None else img_indices
-            return self.simple_test(points[0], img_metas[0], img[0], img_indices[0], **kwargs)
+            # img = [img] if img is None else img
+            # seg_pts_indices = [seg_pts_indices] if seg_pts_indices is None else seg_pts_indices
+            return self.simple_test(img=img[0],
+                                    seg_points=seg_points[0],
+                                    seg_pts_indices=seg_pts_indices[0],
+                                    points=points[0],
+                                    pts_indices=pts_indices[0],
+                                    img_metas=img_metas[0],
+                                    **kwargs)
         else:
-            return self.aug_test(points, img_metas, img, **kwargs)
-    '''
+            assert False, 'aug test error'
+            # return self.aug_test(points, img_metas, img, **kwargs)
 
     @auto_fp16(apply_to=('img', 'points'))
     def forward(self, return_loss=True, **kwargs):
