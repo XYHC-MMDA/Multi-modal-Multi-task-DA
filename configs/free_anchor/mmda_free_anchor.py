@@ -12,15 +12,16 @@ ann_train = 'nuscenes_boxes_cam_infos_train.pkl'
 ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
 
 # hv_pointpillars_*.py
+img_feat_channels = 64
 model = dict(
     type='MultiSensorMultiTask',
     img_backbone=dict(
         type='UNetResNet34',
-        out_channels=64,
+        out_channels=img_feat_channels,
         pretrained=True),
     img_seg_head=dict(
         type='ImageSegHead',
-        in_channels=64,
+        in_channels=img_feat_channels,
         seg_pts_dim=4,
         num_classes=11),
     pts_voxel_layer=dict(
@@ -30,7 +31,7 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=4 + 64,
+        in_channels=4 + img_feat_channels,
         feat_channels=[64, 64],
         with_distance=False,
         voxel_size=voxel_size,
