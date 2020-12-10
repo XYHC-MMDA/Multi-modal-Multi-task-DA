@@ -22,7 +22,7 @@ class LoadFrontImage(object):
 
         # img_indices
         num_points = seg_pts.shape[0]
-        pts_cam = np.concatenate([seg_pts, np.ones((num_points, 1))], axis=1) @ rot.T
+        pts_cam = np.concatenate([seg_pts[:, :3], np.ones((num_points, 1))], axis=1) @ rot.T
         pts_img = pts_cam[:, :3]
 
         # calc mask
