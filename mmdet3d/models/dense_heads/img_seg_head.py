@@ -18,8 +18,8 @@ class ImageSegHead(nn.Module):
         for i in range(x.shape[0]):
             sample_feats.append(x[i][seg_pts_indices[i][:, 0], seg_pts_indices[i][:, 1]])
         # sample_feats[i].shape=(img_indices[i].shape[0], 64)
-        sample_feats = torch.cat(sample_feats, 0)  # shape=(M, 64)
-        seg_pts_batch = torch.cat(seg_pts, 0)  # (M, pts_dim=4)
+        sample_feats = torch.cat(sample_feats)  # shape=(M, 64)
+        seg_pts_batch = torch.cat(seg_pts)  # (M, pts_dim=4)
         concat_feats = torch.cat([sample_feats, seg_pts_batch], 1)
         seg_logits = self.linear(concat_feats)  # shape=(M, num_classes)
         return seg_logits

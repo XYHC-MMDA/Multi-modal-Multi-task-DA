@@ -1,4 +1,5 @@
 # variation:
+# λ: seg det loss balance parameter
 # seg_points: xyz coordinate; w/o reflectance
 # 2d augmentation
 # test augmentation
