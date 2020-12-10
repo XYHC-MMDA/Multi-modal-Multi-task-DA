@@ -127,10 +127,19 @@ test_cfg = dict(
 
 # nus-3d.py
 class_names = [
-    'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+    "car",  # 0
+    "truck",  # 1
+    "bus",  # 2
+    "trailer",  # 3
+    "construction_vehicle",  # 4
+    "pedestrian",  # 5
+    "motorcycle",  # 6
+    "bicycle",  # 7
+    "traffic_cone",  # 8
+    "barrier",  # 9
+    # "background"
 ]
-dataset_type = 'NuScenesDataset'
+dataset_type = 'NuscMultiModalDataset'
 data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 input_modality = dict(
     use_lidar=True,
@@ -142,7 +151,7 @@ file_client_args = dict(backend='disk')
 
 train_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',
+        type='LoadSegDetPointsFromFile',  # NuscMultiModalDataset
         load_dim=5,
         use_dim=5),
     dict(
