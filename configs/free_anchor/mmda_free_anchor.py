@@ -32,7 +32,7 @@ model = dict(
     pts_voxel_encoder=dict(
         type='HardVFE',
         in_channels=4 + img_feat_channels,
-        feat_channels=[64, 64],
+        feat_channels=[128, 128],
         with_distance=False,
         voxel_size=voxel_size,
         with_cluster_center=True,
@@ -41,7 +41,7 @@ model = dict(
         # norm_cfg=dict(type='naiveSyncBN1d', eps=1e-3, momentum=0.01)),
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
-        type='PointPillarsScatter', in_channels=64, output_shape=scatter_shape),
+        type='PointPillarsScatter', in_channels=128, output_shape=scatter_shape),
     pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pts_backbone=dict(
         type='NoStemRegNet',
