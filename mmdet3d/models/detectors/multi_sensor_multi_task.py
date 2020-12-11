@@ -22,7 +22,8 @@ class MultiSensorMultiTask(Base3DDetector):
 
     def __init__(self,
                  pts_voxel_layer=None,
-                 pts_voxel_encoder=None,
+                 pts_voxel_encoder1=None,
+                 pts_voxel_encoder2=None,
                  pts_middle_encoder=None,
                  img_backbone=None,
                  img_seg_head=None,
@@ -41,12 +42,12 @@ class MultiSensorMultiTask(Base3DDetector):
 
         if pts_voxel_layer:
             self.pts_voxel_layer = Voxelization(**pts_voxel_layer)
-        if pts_voxel_encoder:
-            self.pts_voxel_encoder = builder.build_voxel_encoder(
-                pts_voxel_encoder)
+        if pts_voxel_encoder1:
+            self.pts_voxel_encoder1 = builder.build_voxel_encoder(pts_voxel_encoder1)
+        if pts_voxel_encoder2:
+            self.pts_voxel_encoder2 = builder.build_voxel_encoder(pts_voxel_encoder2)
         if pts_middle_encoder:
-            self.pts_middle_encoder = builder.build_middle_encoder(
-                pts_middle_encoder)
+            self.pts_middle_encoder = builder.build_middle_encoder(pts_middle_encoder)
         if pts_backbone:
             self.pts_backbone = builder.build_backbone(pts_backbone)
         if pts_neck is not None:
@@ -82,10 +83,14 @@ class MultiSensorMultiTask(Base3DDetector):
             concat_pts.append(torch.cat([pts[i], sample_feats[i]], 1))
 
         voxels, num_points, coors = self.voxelize(concat_pts) # voxels=(M, T=64, ndim=4+64); coors=(M, 4), (batch_idx, z, y, x)
-        voxel_features = self.pts_voxel_encoder(voxels, num_points, coors,
-                                                img_feats, img_metas)  # (M, C=128); M=num of non-empty voxels
+        voxel_features1 = self.pts_voxel_encoder1(voxels[:, :, :4], num_points, coors,
+                                                img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
+        voxel_features2 = self.pts_voxel_encoder2(voxels[:, :, 4:], num_points, coors,
+                                                 img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
         batch_size = coors[-1, 0] + 1
-        x = self.pts_middle_encoder(voxel_features, coors, batch_size)
+        x1 = self.pts_middle_encoder(voxel_features1, coors, batch_size)  # (N, C, H, W) = (4, 64, 200, 400)
+        x2 = self.pts_middle_encoder(voxel_features2, coors, batch_size)  # (N, C, H, W) = (4, 64, 200, 400)
+        x = torch.cat([x1, x2], dim=1)  # (N, C, H, W) = (4, 128, 200, 400)
         x = self.pts_backbone(x)
         if self.with_pts_neck:
             x = self.pts_neck(x)
