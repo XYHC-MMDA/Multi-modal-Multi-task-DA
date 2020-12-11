@@ -52,7 +52,7 @@ model = dict(
         # norm_cfg=dict(type='naiveSyncBN1d', eps=1e-3, momentum=0.01)),
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
-        type='PointPillarsScatter', in_channels=128, output_shape=scatter_shape),
+        type='PointPillarsScatter', in_channels=64, output_shape=scatter_shape),
     pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pts_backbone=dict(
         type='NoStemRegNet',
@@ -61,7 +61,7 @@ model = dict(
         frozen_stages=-1,
         strides=(1, 2, 2, 2),
         base_channels=128,
-        stem_channels=64,
+        stem_channels=128,
         # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
         norm_eval=False,
