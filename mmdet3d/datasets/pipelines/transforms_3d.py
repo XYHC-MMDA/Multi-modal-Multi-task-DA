@@ -434,7 +434,13 @@ class PointShuffle(object):
             dict: Results after filtering, 'points' keys are updated \
                 in the result dict.
         """
-        np.random.shuffle(input_dict['points'])
+        idx = np.arange(input_dict['points'].shape[0])
+        np.random.shuffle(idx)
+        for key in ['points', 'pts_indices']:
+            if key not in input_dict.keys():
+                continue
+            input_dict[key] = input_dict[key][idx]
+        # np.random.shuffle(input_dict['points'])
         return input_dict
 
     def __repr__(self):

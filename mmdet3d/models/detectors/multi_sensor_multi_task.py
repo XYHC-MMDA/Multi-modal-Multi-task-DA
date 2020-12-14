@@ -82,7 +82,7 @@ class MultiSensorMultiTask(Base3DDetector):
         for i in range(len(pts)):
             concat_pts.append(torch.cat([pts[i], sample_feats[i]], 1))
 
-        voxels, num_points, coors = self.voxelize(concat_pts) # voxels=(M, T=64, ndim=4+64); coors=(M, 4), (batch_idx, z, y, x)
+        voxels, num_points, coors = self.voxelize(concat_pts)  # voxels=(M, T=64, ndim=4+64); coors=(M, 4), (batch_idx, z, y, x)
         voxel_features1 = self.pts_voxel_encoder1(voxels[:, :, :4], num_points, coors,
                                                 img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
         voxel_features2 = self.pts_voxel_encoder2(voxels[:, :, 4:], num_points, coors,
