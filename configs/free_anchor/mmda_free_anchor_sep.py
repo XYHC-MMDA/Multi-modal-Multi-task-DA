@@ -14,7 +14,7 @@ ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
 # hv_pointpillars_*.py
 img_feat_channels = 64
 model = dict(
-    type='MultiSensorMultiTask',
+    type='MultiSensorMultiTaskSep',
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,

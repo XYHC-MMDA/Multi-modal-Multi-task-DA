@@ -17,7 +17,7 @@ from .base import Base3DDetector
 
 
 @DETECTORS.register_module()
-class MultiSensorMultiTask(Base3DDetector):
+class MultiSensorMultiTaskSep(Base3DDetector):
     """Base class of Multi-modality VoxelNet."""
 
     def __init__(self,

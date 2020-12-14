@@ -9,10 +9,11 @@ from .ssd3dnet import SSD3DNet
 from .votenet import VoteNet
 from .voxelnet import VoxelNet
 from .mmda import MMDA
-from .multi_sensor_multi_task import MultiSensorMultiTask
+from .multi_sepvoxelization import MultiSensorMultiTaskSep
+from .multi_univoxelization import MultiSensorMultiTaskUni
 
 __all__ = [
     'Base3DDetector', 'VoxelNet', 'DynamicVoxelNet', 'MVXTwoStageDetector',
     'DynamicMVXFasterRCNN', 'MVXFasterRCNN', 'PartA2', 'VoteNet', 'H3DNet',
-    'CenterPoint', 'SSD3DNet', 'MMDA', 'MultiSensorMultiTask'
+    'CenterPoint', 'SSD3DNet', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni'
 ]
