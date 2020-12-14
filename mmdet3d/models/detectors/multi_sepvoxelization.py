@@ -33,7 +33,7 @@ class MultiSensorMultiTaskSep(Base3DDetector):
                  train_cfg=None,
                  test_cfg=None,
                  pretrained=None):
-        super(MultiSensorMultiTask, self).__init__()
+        super(MultiSensorMultiTaskSep, self).__init__()
 
         if img_backbone:
             self.img_backbone = builder.build_backbone(img_backbone)
@@ -245,7 +245,7 @@ class MultiSensorMultiTaskSep(Base3DDetector):
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
-        super(MultiSensorMultiTask, self).init_weights(pretrained)
+        super(MultiSensorMultiTaskSep, self).init_weights(pretrained)
         if pretrained is None:
             img_pretrained = None
             pts_pretrained = None
