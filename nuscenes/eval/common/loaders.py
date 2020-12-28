@@ -176,6 +176,105 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> 
     return all_annotations
 
 
+def load_pkl_front_cam(nusc: NuScenes, pkl_path: str, box_cls, verbose: bool = False) -> EvalBoxes:
+    # Init.
+    if box_cls == DetectionBox:
+        attribute_map = {a['token']: a['name'] for a in nusc.attribute}
+
+    if verbose:
+        print('Loading annotations for {} split from nuScenes version: {}'.format(pkl_path, nusc.version))
+
+    import mmcv
+    infos = mmcv.load(pkl_path)['infos']
+    samples = []
+    for info in infos:
+        samples.append(nusc.get('sample', info['token']))
+    # samples = []
+    # for sample in nusc.sample:
+    #     scene_record = nusc.get('scene', sample['scene_token'])
+    #     if scene_record['name'] in splits[eval_split]:
+    #         samples.append(sample)
+
+    all_annotations = EvalBoxes()
+
+    # Load annotations and filter predictions and annotations.
+    tracking_id_set = set()
+    for sample in tqdm.tqdm(samples, leave=verbose):
+        sample_token = sample['token']
+        cam_token = sample['data']['CAM_FRONT']
+        _, boxes_cam, _ = nusc.get_sample_data(cam_token)
+        sample_annotation_tokens = [box.token for box in boxes_cam]
+
+        # sample = nusc.get('sample', sample_token)
+        # sample_annotation_tokens = sample['anns']
+
+        sample_boxes = []
+        for sample_annotation_token in sample_annotation_tokens:
+
+            sample_annotation = nusc.get('sample_annotation', sample_annotation_token)
+            if box_cls == DetectionBox:
+                # Get label name in detection task and filter unused labels.
+                detection_name = category_to_detection_name(sample_annotation['category_name'])
+                if detection_name is None:
+                    continue
+
+                # Get attribute_name.
+                attr_tokens = sample_annotation['attribute_tokens']
+                attr_count = len(attr_tokens)
+                if attr_count == 0:
+                    attribute_name = ''
+                elif attr_count == 1:
+                    attribute_name = attribute_map[attr_tokens[0]]
+                else:
+                    raise Exception('Error: GT annotations must not have more than one attribute!')
+
+                sample_boxes.append(
+                    box_cls(
+                        sample_token=sample_token,
+                        translation=sample_annotation['translation'],
+                        size=sample_annotation['size'],
+                        rotation=sample_annotation['rotation'],
+                        velocity=nusc.box_velocity(sample_annotation['token'])[:2],
+                        num_pts=sample_annotation['num_lidar_pts'] + sample_annotation['num_radar_pts'],
+                        detection_name=detection_name,
+                        detection_score=-1.0,  # GT samples do not have a score.
+                        attribute_name=attribute_name
+                    )
+                )
+            elif box_cls == TrackingBox:
+                # Use nuScenes token as tracking id.
+                tracking_id = sample_annotation['instance_token']
+                tracking_id_set.add(tracking_id)
+
+                # Get label name in detection task and filter unused labels.
+                tracking_name = category_to_tracking_name(sample_annotation['category_name'])
+                if tracking_name is None:
+                    continue
+
+                sample_boxes.append(
+                    box_cls(
+                        sample_token=sample_token,
+                        translation=sample_annotation['translation'],
+                        size=sample_annotation['size'],
+                        rotation=sample_annotation['rotation'],
+                        velocity=nusc.box_velocity(sample_annotation['token'])[:2],
+                        num_pts=sample_annotation['num_lidar_pts'] + sample_annotation['num_radar_pts'],
+                        tracking_id=tracking_id,
+                        tracking_name=tracking_name,
+                        tracking_score=-1.0  # GT samples do not have a score.
+                    )
+                )
+            else:
+                raise NotImplementedError('Error: Invalid box_cls %s!' % box_cls)
+
+        all_annotations.add_boxes(sample_token, sample_boxes)
+
+    if verbose:
+        print("Loaded ground truth annotations for {} samples.".format(len(all_annotations.sample_tokens)))
+
+    return all_annotations
+
+
 def load_gt_front_cam(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> EvalBoxes:
     # Init.
     if box_cls == DetectionBox:
@@ -441,6 +540,7 @@ def filter_half_boxes(nusc: NuScenes,
         print("=> After bike rack filtering: %d" % bike_rack_filter)
 
     return eval_boxes
+
 
 def _get_box_class_field(eval_boxes: EvalBoxes) -> str:
     """
