@@ -8,8 +8,8 @@ point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
-ann_train = 'mmda_xmuda_pkl/train_usa.pkl'
-ann_val = 'mmda_xmuda_pkl/val_usa.pkl'
+ann_train = 'mmda_xmuda_split/train_usa.pkl'
+ann_val = 'mmda_xmuda_split/test_usa.pkl'
 
 # hv_pointpillars_*.py
 img_feat_channels = 64
