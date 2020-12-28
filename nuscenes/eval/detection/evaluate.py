@@ -82,7 +82,7 @@ class DetectionEval:
         # load gt
         # self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         # TODO: pkl_path
-        self.gt_boxes = load_pkl_front_cam(self.nusc, '', DetectionBox, verbose=verbose)
+        self.gt_boxes = load_pkl_front_cam(self.nusc, '../nuscenes_unzip/nuscenes_boxes_cam_infos_val.pkl', DetectionBox, verbose=verbose)
         # self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         self.gt_boxes = add_center_dist(nusc, self.gt_boxes)
         print('DetectionEval: gt loaded')

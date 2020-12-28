@@ -14,7 +14,7 @@ class ImageSegHead(nn.Module):
         # self.xyz_linear2 = nn.Linear(img_feat_dim, img_feat_dim)
         # self.concat_linear1 = nn.Linear(img_feat_dim * 2, img_feat_dim * 2)
         # self.concat_linear2 = nn.Linear(img_feat_dim * 2, num_classes)
-        self.concat_linear1 = nn.Linear(img_feat_dim + seg_pts_dim, 34)
+        # self.concat_linear1 = nn.Linear(img_feat_dim + seg_pts_dim, 34)
         self.concat_linear2 = nn.Linear(34, num_classes)
 
     def forward(self, img_feats, seg_pts, seg_pts_indices, img_metas=None):
@@ -30,7 +30,6 @@ class ImageSegHead(nn.Module):
         # local_feat = self.xyz_linear2(local_feat)  # (M, 64)
 
         concat_feats = torch.cat([sample_feats, local_feat], 1)  # (M, 64 + 4)
-        concat_feats = self.concat_linear1(concat_feats)  # (M, 34)
         seg_logits = self.concat_linear2(concat_feats)  # (M, num_classes)
         return seg_logits
 
