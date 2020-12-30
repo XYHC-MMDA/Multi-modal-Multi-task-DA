@@ -23,8 +23,6 @@ class ImageSegHead(nn.Module):
         self.after_fusion = []
         for i, (in_dim, out_dim) in enumerate(zip(self.concat_fc[:-1], self.concat_fc[1:])):
             self.after_fusion.append(nn.Linear(in_dim, out_dim))
-            if i == len(concat_fc) - 1:  # do not add activation in the last layer
-                break
             self.after_fusion.append(nn.ReLU(inplace=True))
 
         self.head = nn.Linear(self.concat_fc[-1], num_classes)
