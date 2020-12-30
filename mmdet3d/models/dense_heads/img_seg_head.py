@@ -6,15 +6,28 @@ from mmdet.models import HEADS
 
 @HEADS.register_module()
 class ImageSegHead(nn.Module):
-    def __init__(self, img_feat_dim, seg_pts_dim, num_classes):
+    def __init__(self, img_feat_dim, seg_pts_dim, num_classes, lidar_fc=[], concat_fc=[]):
         super(ImageSegHead, self).__init__()
         # self.in_channels = in_channels  # feat_channels
         self.num_classes = num_classes
-        # self.xyz_linear1 = nn.Linear(seg_pts_dim, img_feat_dim)
-        # self.xyz_linear2 = nn.Linear(img_feat_dim, img_feat_dim)
-        # self.concat_linear1 = nn.Linear(img_feat_dim + seg_pts_dim, 34)
-        # self.concat_linear2 = nn.Linear(34, num_classes)
-        self.concat_linear = nn.Linear(img_feat_dim + seg_pts_dim, num_classes)
+        self.lidar_fc = [seg_pts_dim] + lidar_fc
+        self.concat_fc = [self.lidar_fc[-1] + img_feat_dim] + concat_fc
+
+        self.before_fusion = []
+        for i, (in_dim, out_dim) in enumerate(zip(self.lidar_fc[:-1], self.lidar_fc[1:])):
+            self.before_fusion.append(nn.Linear(in_dim, out_dim))
+            if i == len(lidar_fc) - 1:  # do not add activation in the last layer
+                break
+            self.before_fusion.append(nn.ReLU(inplace=True))
+
+        self.after_fusion = []
+        for i, (in_dim, out_dim) in enumerate(zip(self.concat_fc[:-1], self.concat_fc[1:])):
+            self.after_fusion.append(nn.Linear(in_dim, out_dim))
+            if i == len(concat_fc) - 1:  # do not add activation in the last layer
+                break
+            self.after_fusion.append(nn.ReLU(inplace=True))
+
+        self.head = nn.Linear(self.concat_fc[-1], num_classes)
 
     def forward(self, img_feats, seg_pts, seg_pts_indices, img_metas=None):
         x = img_feats.permute(0, 2, 3, 1)
@@ -24,12 +37,15 @@ class ImageSegHead(nn.Module):
         # sample_feats[i].shape=(img_indices[i].shape[0], 64)
         sample_feats = torch.cat(sample_feats)  # shape=(M, 64)
 
-        local_feat = torch.cat(seg_pts)  # (M, pts_dim=4)
-        # local_feat = self.xyz_linear1(local_feat)  # (M, 64)
-        # local_feat = self.xyz_linear2(local_feat)  # (M, 64)
+        lidar_feat = torch.cat(seg_pts)  # (M, pts_dim=4)
+        for layer in self.before_fusion:
+            lidar_feat = layer(lidar_feat)
 
-        concat_feats = torch.cat([sample_feats, local_feat], 1)  # (M, 64 + 4)
-        seg_logits = self.concat_linear(concat_feats)  # (M, num_classes)
+        concat_feats = torch.cat([sample_feats, lidar_feat], 1)  # (M, 64 + C)
+        for layer in self.after_fusion:
+            concat_feats = layer(concat_feats)
+
+        seg_logits = self.head(concat_feats)  # (M, num_classes)
         return seg_logits
 
     def loss(self, seg_logits, seg_label):
