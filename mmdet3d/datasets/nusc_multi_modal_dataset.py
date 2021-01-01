@@ -311,6 +311,7 @@ class NuscMultiModalDataset(Custom3DDataset):
 
     def _evaluate_single(self,
                          result_path,
+                         pkl_path=None,
                          logger=None,
                          metric='bbox',
                          result_name='pts_bbox'):
@@ -342,6 +343,7 @@ class NuscMultiModalDataset(Custom3DDataset):
             config=self.eval_detection_configs,
             result_path=result_path,
             eval_set=eval_set_map[self.version],
+            pkl_path=pkl_path,
             output_dir=output_dir,
             verbose=True)
         nusc_eval.main(render_curves=False)
@@ -403,6 +405,7 @@ class NuscMultiModalDataset(Custom3DDataset):
     def evaluate(self,
                  results,
                  metric='bbox',
+                 pkl_path=None,
                  logger=None,
                  jsonfile_prefix=None,
                  result_names=['pts_bbox'],
@@ -433,10 +436,10 @@ class NuscMultiModalDataset(Custom3DDataset):
             results_dict = dict()
             for name in result_names:
                 print('Evaluating bboxes of {}'.format(name))
-                ret_dict = self._evaluate_single(result_files[name])
+                ret_dict = self._evaluate_single(result_files[name], pkl_path=pkl_path)
             results_dict.update(ret_dict)
         elif isinstance(result_files, str):
-            results_dict = self._evaluate_single(result_files)
+            results_dict = self._evaluate_single(result_files, pkl_path=pkl_path)
 
         # if tmp_dir is not None:
         #     tmp_dir.cleanup()

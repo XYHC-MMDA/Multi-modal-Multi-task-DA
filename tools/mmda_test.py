@@ -146,7 +146,7 @@ def main():
     if args.format_only:
         dataset.format_results(outputs, **kwargs)
     if args.eval:
-        dataset.evaluate(outputs, args.eval, jsonfile_prefix=args.json, **kwargs)
+        dataset.evaluate(outputs, args.eval, pkl_path=cfg.data.test.ann_file, jsonfile_prefix=args.json, **kwargs)
 
 
 if __name__ == '__main__':
