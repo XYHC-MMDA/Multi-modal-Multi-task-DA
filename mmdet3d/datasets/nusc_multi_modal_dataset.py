@@ -411,24 +411,6 @@ class NuscMultiModalDataset(Custom3DDataset):
                  result_names=['pts_bbox'],
                  show=False,
                  out_dir=None):
-        """Evaluation in nuScenes protocol.
-
-        Args:
-            results (list[dict]): Testing results of the dataset.
-            metric (str | list[str]): Metrics to be evaluated.
-            logger (logging.Logger | str | None): Logger used for printing
-                related information during evaluation. Default: None.
-            jsonfile_prefix (str | None): The prefix of json files. It includes
-                the file path and the prefix of filename, e.g., "a/b/prefix".
-                If not specified, a temp file will be created. Default: None.
-            show (bool): Whether to visualize.
-                Default: False.
-            out_dir (str): Path to save the visualization results.
-                Default: None.
-
-        Returns:
-            dict[str, float]: Results of each evaluation metric.
-        """
         result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
         # result_files = dict(pts_bbox=osp.join(jsonfile_prefix, 'pts_bbox/results_nusc.json'))
 
