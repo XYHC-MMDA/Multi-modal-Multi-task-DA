@@ -331,7 +331,7 @@ class DetectionBox(EvalBox):
         super().__init__(sample_token, translation, size, rotation, velocity, ego_translation, lidar_translation, num_pts)
 
         assert detection_name is not None, 'Error: detection_name cannot be empty!'
-        assert detection_name in DETECTION_NAMES, 'Error: Unknown detection_name %s' % detection_name
+        # assert detection_name in DETECTION_NAMES, 'Error: Unknown detection_name %s' % detection_name  # modify
 
         assert attribute_name in ATTRIBUTE_NAMES or attribute_name == '', \
             'Error: Unknown attribute_name %s' % attribute_name
