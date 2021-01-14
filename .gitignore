@@ -4,8 +4,7 @@ __pycache__/
 *$py.class
 *.ipynb
 *.swp
-a.txt
-a.tmp
+tmp/
 
 # C extensions
 *.so
