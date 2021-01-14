@@ -35,12 +35,7 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
             left_idx = right_idx
         evaluator.batch_update(pred_list, gt_list)
 
-        # handle box
-        if show:
-            model.module.show_results(data, box_res, out_dir)
-
         box_preds.extend(box_res)
-
         # progress bar
         batch_size = len(box_res)
         for _ in range(batch_size):

@@ -24,7 +24,7 @@ class DetectionConfig:
                  max_boxes_per_sample: float,
                  mean_ap_weight: int):
 
-        assert set(class_range.keys()) == set(DETECTION_NAMES), "Class count mismatch."
+        # assert set(class_range.keys()) == set(DETECTION_NAMES), "Class count mismatch."
         assert dist_th_tp in dist_ths, "dist_th_tp must be in set of dist_ths."
 
         self.class_range = class_range

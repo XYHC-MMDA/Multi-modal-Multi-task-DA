@@ -14,7 +14,7 @@ from nuscenes import NuScenes
 from nuscenes.eval.common.config import config_factory
 from nuscenes.eval.common.data_classes import EvalBoxes
 from nuscenes.eval.common.loaders import load_prediction, load_gt, load_pkl_front_cam, \
-    load_gt_front_cam, add_center_dist, filter_eval_boxes
+    load_gt_front_cam, add_center_dist, filter_eval_boxes, load_merge_from_pkl
 from nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
 from nuscenes.eval.detection.constants import TP_METRICS
 from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
@@ -84,63 +84,31 @@ class DetectionEval:
         # self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         # TODO: pkl_path
         if pkl_path:
-            self.gt_boxes = load_pkl_front_cam(self.nusc, pkl_path, DetectionBox, verbose=verbose)
+            # self.gt_boxes = load_pkl_front_cam(self.nusc, pkl_path, DetectionBox, verbose=verbose)
+            self.gt_boxes = load_merge_from_pkl(self.nusc, pkl_path, DetectionBox, verbose=verbose)
         else:
             self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         # self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         self.gt_boxes = add_center_dist(nusc, self.gt_boxes)
         print('DetectionEval: gt loaded')
-        from collections import defaultdict
-        out_dict = defaultdict(list)
-        debug = False
-        if debug:
-            for token in self.gt_boxes.sample_tokens:
-                out_dict[token].append(len(self.gt_boxes[token]))
 
         self.gt_boxes = filter_eval_boxes(nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
         print('gt filter finished')
-        if debug:
-            for token in self.gt_boxes.sample_tokens:
-                out_dict[token].append(len(self.gt_boxes[token]))
 
         # load pred
         self.pred_boxes, self.meta = load_prediction(self.result_path, self.cfg.max_boxes_per_sample, DetectionBox, verbose=verbose)
         self.pred_boxes = add_center_dist(nusc, self.pred_boxes)
         print('DetectionEval: prediction loaded')
-        if debug:
-            for token in self.pred_boxes.sample_tokens:
-                out_dict[token].append(len(self.pred_boxes[token]))
 
         self.pred_boxes = filter_eval_boxes(nusc, self.pred_boxes, self.cfg.class_range, verbose=verbose)
         print('pred filter finished')
-        if debug:
-            for token in self.pred_boxes.sample_tokens:
-                out_dict[token].append(len(self.pred_boxes[token]))
 
         assert set(self.pred_boxes.sample_tokens) == set(self.gt_boxes.sample_tokens), \
             "Samples in split doesn't match samples in predictions."
         # pred_boxes, gt_boxes: key=sample_token, value=list of DectectionBox
 
         self.sample_tokens = self.gt_boxes.sample_tokens
-        if debug:
-            for i, token in enumerate(self.sample_tokens):
-                if i == 100:
-                    break
-                print(f'[{i}]')
-                print(token)
-                print(*out_dict[token][:2])
-                print(*out_dict[token][2:])
-                for box in self.pred_boxes[token]:
-                    print('pred:')
-                    print(box.lidar_translation)
-                    print(box.ego_translation)
-                print()
-                for box in self.gt_boxes[token]:
-                    print('gt:')
-                    print(box.lidar_translation)
-                    print(box.ego_translation)
-            exit(0)
-            
+
     def evaluate(self) -> Tuple[DetectionMetrics, DetectionMetricDataList]:
         """
         Performs the actual evaluation.

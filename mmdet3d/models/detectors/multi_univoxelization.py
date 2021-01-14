@@ -1,16 +1,12 @@
 import copy
 import mmcv
 import torch
-from mmcv.parallel import DataContainer as DC
 from mmcv.runner import force_fp32
-from os import path as osp
 from torch import nn as nn
 from torch.nn import functional as F
 
-from mmdet3d.core import (Box3DMode, bbox3d2result, merge_aug_bboxes_3d,
-                          show_result)
+from mmdet3d.core import bbox3d2result
 from mmdet3d.ops import Voxelization
-from mmdet.core import multi_apply
 from mmdet.models import DETECTORS
 from .. import builder
 from .base import Base3DDetector
@@ -18,8 +14,6 @@ from .base import Base3DDetector
 
 @DETECTORS.register_module()
 class MultiSensorMultiTaskUni(Base3DDetector):
-    """Base class of Multi-modality VoxelNet."""
-
     def __init__(self,
                  pts_voxel_layer=None,
                  pts_voxel_encoder=None,
@@ -159,15 +153,6 @@ class MultiSensorMultiTaskUni(Base3DDetector):
     @torch.no_grad()
     @force_fp32()
     def voxelize(self, points):
-        """Apply dynamic voxelization to points.
-
-        Args:
-            points (list[torch.Tensor]): Points of each sample.
-
-        Returns:
-            tuple[torch.Tensor]: Concatenated points, number of points
-                per voxel, and coordinates.
-        """
         voxels, coors, num_points = [], [], []
         for res in points:
             res_voxels, res_coors, res_num_points = self.pts_voxel_layer(res)
@@ -186,55 +171,6 @@ class MultiSensorMultiTaskUni(Base3DDetector):
     def aug_test(self, imgs, img_metas, **kwargs):
         """Test function with test time augmentation."""
         pass
-
-    def show_results(self, data, result, out_dir):
-        """Results visualization.
-
-        Args:
-            data (dict): Input points and the information of the sample.
-            result (dict): Prediction results.
-            out_dir (str): Output directory of visualization result.
-        """
-        for batch_id in range(len(result)):
-            if isinstance(data['points'][0], DC):
-                points = data['points'][0]._data[0][batch_id].numpy()
-            elif mmcv.is_list_of(data['points'][0], torch.Tensor):
-                points = data['points'][0][batch_id]
-            else:
-                ValueError(f"Unsupported data type {type(data['points'][0])} "
-                           f'for visualization!')
-            if isinstance(data['img_metas'][0], DC):
-                pts_filename = data['img_metas'][0]._data[0][batch_id][
-                    'pts_filename']
-                box_mode_3d = data['img_metas'][0]._data[0][batch_id][
-                    'box_mode_3d']
-            elif mmcv.is_list_of(data['img_metas'][0], dict):
-                pts_filename = data['img_metas'][0][batch_id]['pts_filename']
-                box_mode_3d = data['img_metas'][0][batch_id]['box_mode_3d']
-            else:
-                ValueError(
-                    f"Unsupported data type {type(data['img_metas'][0])} "
-                    f'for visualization!')
-            file_name = osp.split(pts_filename)[-1].split('.')[0]
-
-            assert out_dir is not None, 'Expect out_dir, got none.'
-            inds = result[batch_id]['pts_bbox']['scores_3d'] > 0.1
-            pred_bboxes = copy.deepcopy(
-                result[batch_id]['pts_bbox']['boxes_3d'][inds].tensor.numpy())
-            # for now we convert points into depth mode
-            if box_mode_3d == Box3DMode.DEPTH:
-                pred_bboxes[..., 2] += pred_bboxes[..., 5] / 2
-            elif (box_mode_3d == Box3DMode.CAM) or (box_mode_3d
-                                                    == Box3DMode.LIDAR):
-                points = points[..., [1, 0, 2]]
-                points[..., 0] *= -1
-                pred_bboxes = Box3DMode.convert(pred_bboxes, box_mode_3d,
-                                                Box3DMode.DEPTH)
-                pred_bboxes[..., 2] += pred_bboxes[..., 5] / 2
-            else:
-                ValueError(
-                    f'Unsupported box_mode_3d {box_mode_3d} for convertion!')
-            show_result(points, None, pred_bboxes, out_dir, file_name)
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
@@ -259,75 +195,25 @@ class MultiSensorMultiTaskUni(Base3DDetector):
             else:
                 self.img_neck.init_weights()
 
-        if self.with_img_roi_head:
-            self.img_roi_head.init_weights(img_pretrained)
-        if self.with_img_rpn:
-            self.img_rpn_head.init_weights()
         if self.with_pts_bbox:
             self.pts_bbox_head.init_weights()
 
     @property
-    def with_img_shared_head(self):
-        """bool: Whether the detector has a shared head in image branch."""
-        return hasattr(self,
-                       'img_shared_head') and self.img_shared_head is not None
-
-    @property
     def with_pts_bbox(self):
-        """bool: Whether the detector has a 3D box head."""
-        return hasattr(self,
-                       'pts_bbox_head') and self.pts_bbox_head is not None
-
-    @property
-    def with_img_bbox(self):
-        """bool: Whether the detector has a 2D image box head."""
-        return hasattr(self,
-                       'img_bbox_head') and self.img_bbox_head is not None
+        return hasattr(self, 'pts_bbox_head') and self.pts_bbox_head is not None
 
     @property
     def with_img_backbone(self):
-        """bool: Whether the detector has a 2D image backbone."""
         return hasattr(self, 'img_backbone') and self.img_backbone is not None
 
     @property
     def with_pts_backbone(self):
-        """bool: Whether the detector has a 3D backbone."""
         return hasattr(self, 'pts_backbone') and self.pts_backbone is not None
 
     @property
-    def with_fusion(self):
-        """bool: Whether the detector has a fusion layer."""
-        return hasattr(self,
-                       'pts_fusion_layer') and self.fusion_layer is not None
-
-    @property
     def with_img_neck(self):
-        """bool: Whether the detector has a neck in image branch."""
         return hasattr(self, 'img_neck') and self.img_neck is not None
 
     @property
     def with_pts_neck(self):
-        """bool: Whether the detector has a neck in 3D detector branch."""
         return hasattr(self, 'pts_neck') and self.pts_neck is not None
-
-    @property
-    def with_img_rpn(self):
-        """bool: Whether the detector has a 2D RPN in image detector branch."""
-        return hasattr(self, 'img_rpn_head') and self.img_rpn_head is not None
-
-    @property
-    def with_img_roi_head(self):
-        """bool: Whether the detector has a RoI Head in image branch."""
-        return hasattr(self, 'img_roi_head') and self.img_roi_head is not None
-
-    @property
-    def with_voxel_encoder(self):
-        """bool: Whether the detector has a voxel encoder."""
-        return hasattr(self,
-                       'voxel_encoder') and self.voxel_encoder is not None
-
-    @property
-    def with_middle_encoder(self):
-        """bool: Whether the detector has a middle encoder."""
-        return hasattr(self,
-                       'middle_encoder') and self.middle_encoder is not None

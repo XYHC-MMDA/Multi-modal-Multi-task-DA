@@ -57,7 +57,7 @@ class MMDAMergeCatDataset(Custom3DDataset):
                  box_type_3d='LiDAR',
                  filter_empty_gt=True,
                  test_mode=False,
-                 eval_version='detection_cvpr_2019',
+                 eval_version='mmda_merge',
                  use_valid_flag=False):
         self.load_interval = load_interval
         self.use_valid_flag = use_valid_flag
@@ -195,9 +195,9 @@ class MMDAMergeCatDataset(Custom3DDataset):
             for i, box in enumerate(boxes):
                 name = mapped_class_names[box.label]
                 if np.sqrt(box.velocity[0]**2 + box.velocity[1]**2) > 0.2:
-                    if name in ['car', 'truck', 'bus', 'trailer', 'construction_vehicle']:
+                    if name in ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'vehicle']:
                         attr = 'vehicle.moving'
-                    elif name in ['bicycle', 'motorcycle']:
+                    elif name in ['bicycle', 'motorcycle', 'bike']:
                         attr = 'cycle.with_rider'
                     else:
                         attr = MMDAMergeCatDataset.DefaultAttribute[name]
@@ -231,6 +231,26 @@ class MMDAMergeCatDataset(Custom3DDataset):
         mmcv.dump(nusc_submissions, res_path)
         return res_path
 
+    def format_results(self, results, jsonfile_prefix=None):
+        assert isinstance(results, list)
+        assert len(results) == len(self), (
+            'The length of results is not equal to the dataset len: {} != {}'.
+            format(len(results), len(self)))
+
+        if jsonfile_prefix is None:
+            tmp_dir = tempfile.TemporaryDirectory()
+            jsonfile_prefix = osp.join(tmp_dir.name, 'results')
+        else:
+            tmp_dir = None
+
+        result_files = dict()
+        for name in results[0]:
+            print(f'\nFormating bboxes of {name}')
+            results_ = [out[name] for out in results]
+            tmp_file_ = osp.join(jsonfile_prefix, name)
+            result_files.update({name: self._format_bbox(results_, tmp_file_)})
+        return result_files, tmp_dir
+
     def _evaluate_single(self,
                          result_path,
                          pkl_path=None,
@@ -241,8 +261,7 @@ class MMDAMergeCatDataset(Custom3DDataset):
         from nuscenes.eval.detection.evaluate import NuScenesEval
 
         output_dir = osp.join(*osp.split(result_path)[:-1])
-        nusc = NuScenes(
-            version=self.version, dataroot=self.data_root, verbose=False)
+        nusc = NuScenes(version=self.version, dataroot=self.data_root, verbose=False)
         eval_set_map = {
             'v1.0-mini': 'mini_val',
             'v1.0-trainval': 'val',
@@ -273,30 +292,6 @@ class MMDAMergeCatDataset(Custom3DDataset):
         detail['{}/mAP'.format(metric_prefix)] = metrics['mean_ap']
         return detail
 
-    def format_results(self, results, jsonfile_prefix=None):
-        assert isinstance(results, list), 'results must be a list'
-        assert len(results) == len(self), (
-            'The length of results is not equal to the dataset len: {} != {}'.
-            format(len(results), len(self)))
-
-        if jsonfile_prefix is None:
-            tmp_dir = tempfile.TemporaryDirectory()
-            jsonfile_prefix = osp.join(tmp_dir.name, 'results')
-        else:
-            tmp_dir = None
-
-        if not isinstance(results[0], dict):
-            result_files = self._format_bbox(results, jsonfile_prefix)
-        else:
-            result_files = dict()
-            for name in results[0]:
-                print(f'\nFormating bboxes of {name}')
-                results_ = [out[name] for out in results]
-                tmp_file_ = osp.join(jsonfile_prefix, name)
-                result_files.update(
-                    {name: self._format_bbox(results_, tmp_file_)})
-        return result_files, tmp_dir
-
     def evaluate(self,
                  results,
                  metric='bbox',
@@ -309,16 +304,12 @@ class MMDAMergeCatDataset(Custom3DDataset):
         result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
         # result_files = dict(pts_bbox=osp.join(jsonfile_prefix, 'pts_bbox/results_nusc.json'))
 
-        if isinstance(result_files, dict):
-            results_dict = dict()
-            for name in result_names:
-                print('Evaluating bboxes of {}'.format(name))
-                ret_dict = self._evaluate_single(result_files[name], pkl_path=pkl_path)
-            results_dict.update(ret_dict)
-        elif isinstance(result_files, str):
-            results_dict = self._evaluate_single(result_files, pkl_path=pkl_path)
+        results_dict = dict()
+        for name in result_names:
+            print('Evaluating bboxes of {}'.format(name))
+            ret_dict = self._evaluate_single(result_files[name], pkl_path=pkl_path)
+        results_dict.update(ret_dict)
         return results_dict
-
 
 
 def output_to_nusc_box(detection):
