@@ -199,14 +199,16 @@ class MMDAMergeCatDataset(Custom3DDataset):
                     elif name in ['bicycle', 'motorcycle', 'bike']:
                         attr = 'cycle.with_rider'
                     else:
-                        attr = MMDAMergeCatDataset.DefaultAttribute[name]
+                        attr = ''
+                        # attr = MMDAMergeCatDataset.DefaultAttribute[name]
                 else:
                     if name in ['pedestrian']:
                         attr = 'pedestrian.standing'
                     elif name in ['bus']:
                         attr = 'vehicle.stopped'
                     else:
-                        attr = MMDAMergeCatDataset.DefaultAttribute[name]
+                        attr = ''
+                        # attr = MMDAMergeCatDataset.DefaultAttribute[name]
 
                 nusc_anno = dict(
                     sample_token=sample_token,
