@@ -222,6 +222,7 @@ test_pipeline = [
                 translation_std=[0, 0, 0]),
             dict(type='RandomFlip3D'),
             dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+            dict(type='MergeCat'),
             dict(type='SegDetFormatBundle'),
             dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                          'points', 'pts_indices'])

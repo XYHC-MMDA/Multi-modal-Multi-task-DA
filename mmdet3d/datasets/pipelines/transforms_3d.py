@@ -638,11 +638,12 @@ class MergeCat(object):
 
     def __call__(self, input_dict):
         seg_label = input_dict['seg_label']
-        det_label = input_dict['gt_labels_3d']
         seg_label = np.array(list(map(lambda x: self.merge_map[x], seg_label)))
-        det_label = np.array(list(map(lambda x: self.merge_map[x], det_label)))
         input_dict['seg_label'] = seg_label
-        input_dict['gt_labels_3d'] = det_label
+        if 'gt_labels_3d' in input_dict:
+            det_label = input_dict['gt_labels_3d']
+            det_label = np.array(list(map(lambda x: self.merge_map[x], det_label)))
+            input_dict['gt_labels_3d'] = det_label
         return input_dict
 
 
