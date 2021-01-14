@@ -158,7 +158,6 @@ class_names = [
     # background
 ]
 
-dataset_type = 'MMDAMergeCatDataset'
 data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 input_modality = dict(
     use_lidar=True,
@@ -230,6 +229,7 @@ test_pipeline = [
 ]
 
 # dataset
+dataset_type = 'MMDAMergeCatDataset'
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,

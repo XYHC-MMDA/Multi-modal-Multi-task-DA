@@ -43,8 +43,7 @@ class MMDAMergeCatDataset(Custom3DDataset):
     }
     TEN_CLASSES = ('car', 'truck', 'bus', 'trailer', 'construction_vehicle',
                    'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone', 'barrier')
-    SEG_CLASSES = ('car', 'truck', 'bus', 'trailer', 'construction_vehicle',
-                   'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone', 'barrier', 'background')
+    SEG_CLASSES = ('vehicle', 'pedestrian', 'bike', 'traffic_boundary', 'background')
 
     def __init__(self,
                  ann_file,
