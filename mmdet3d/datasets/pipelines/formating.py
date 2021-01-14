@@ -260,9 +260,6 @@ class DefaultFormatBundle3D(DefaultFormatBundle):
 
 @PIPELINES.register_module()
 class SegDetFormatBundle(object):
-    def __init__(self, class_names):
-        self.class_names = class_names
-
     def __call__(self, results):
         # stack=False
         for key in [

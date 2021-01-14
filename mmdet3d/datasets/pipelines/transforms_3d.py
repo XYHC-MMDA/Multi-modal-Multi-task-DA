@@ -619,6 +619,45 @@ class SegDetPointsRangeFilter(object):
 
 
 @PIPELINES.register_module()
+class MergeCat(object):
+    def __init__(self):
+        # order according to config.class_names
+        # vehicle(0): car, truck, bus, trailer, construction vehicle
+        # pedestrian(1): pedestrian
+        # bike(2): motorcycle, bicycle
+        # traffic_boundary(3): traffic cone, barrier
+        # background(4)
+        merge_map = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0],
+                     [5, 1],
+                     [6, 2], [7, 2],
+                     [8, 3], [9, 3],
+                     [10, 4]]
+        self.merge_map = dict()
+        for x, y in merge_map:
+            self.merge_map[x] = y
+
+    def __call__(self, input_dict):
+        seg_label = input_dict['seg_label']
+        det_label = input_dict['gt_labels_3d']
+        seg_label = np.array(list(map(lambda x: self.merge_map[x], seg_label)))
+        det_label = np.array(list(map(lambda x: self.merge_map[x], det_label)))
+        input_dict['seg_label'] = seg_label
+        input_dict['gt_labels_3d'] = det_label
+        return input_dict
+
+
+@PIPELINES.register_module()
+class DetLabelFilter(object):
+    def __call__(self, input_dict):
+        gt_labels_3d = input_dict['gt_labels_3d']
+        mask = gt_labels_3d >= 0  # get_anno_info
+        input_dict['gt_bboxes_3d'] = input_dict['gt_bboxes_3d'][mask]
+        input_dict['gt_labels_3d'] = input_dict['gt_labels_3d'][mask]
+
+        return input_dict
+
+
+@PIPELINES.register_module()
 class ObjectNameFilter(object):
     """Filter GT objects by their names.
 

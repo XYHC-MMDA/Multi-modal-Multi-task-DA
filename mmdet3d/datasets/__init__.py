@@ -5,6 +5,8 @@ from .kitti_dataset import KittiDataset
 from .lyft_dataset import LyftDataset
 from .nuscenes_dataset import NuScenesDataset
 from .nusc_multi_modal_dataset import NuscMultiModalDataset
+from .mmda_merge_cat_dataset import MMDAMergeCatDataset
+
 from .pipelines import (BackgroundPointsFilter, GlobalRotScaleTrans,
                         IndoorPointSample, LoadAnnotations3D,
                         LoadPointsFromFile, LoadPointsFromMultiSweeps,
@@ -27,6 +29,7 @@ __all__ = [
     'LoadAnnotations3D', 'SUNRGBDDataset', 'ScanNetDataset', 'Custom3DDataset',
     'LoadPointsFromMultiSweeps', 'WaymoDataset', 'BackgroundPointsFilter',
     'VoxelBasedPointSampler',
+    # added
     'LoadSegDetPointsFromFile', 'LoadFrontImage', 'SegDetPointsRangeFilter',
-    'SegDetFormatBundle'
+    'SegDetFormatBundle', 'NuscMultiModalDataset', 'MMDAMergeCatDataset'
 ]

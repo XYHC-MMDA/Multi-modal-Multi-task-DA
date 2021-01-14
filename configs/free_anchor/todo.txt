@@ -1,0 +1,3 @@
+modified:
+SegDetFormatBundle: no params
+ObjectNameFilter: switch to DetLabelFilter
