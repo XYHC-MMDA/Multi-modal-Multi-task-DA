@@ -151,7 +151,7 @@ class_names = [
     # background
 ]
 
-dataset_type = 'MMDA5CatDataset'
+dataset_type = 'MMDAMergeCatDataset'
 data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 input_modality = dict(
     use_lidar=True,

@@ -18,23 +18,47 @@ dataset = build_dataset(cfg.data.train)
 print('dataset loaded')
 print()
 
+maxp=0
+minp=1000000
+print(len(dataset))
+f = open('a.txt','w')
+for idx in range(len(dataset)):
+    data = dataset[idx]
+    tmp = len(data['seg_points'].data)
+    # print(data['seg_points'].data.shape) # torch.Size([2xxx, 4])
+    maxp=max(maxp, tmp)
+    minp=min(minp, tmp)
+    f.write(f'{idx} {tmp}\n')
+    if idx % 100 == 0:
+        print(idx, minp, maxp)
+        f.flush()
+print('result')
+print(minp, maxp)
+f.write('result\n')
+f.write(f'{minp} {maxp}\n')
+exit(0)
+    
 print_dataset = True 
 data_idx = 1
 if print_dataset:
     data_info = dataset.get_data_info(data_idx)
     print('get_data_info:')
     print(data_info.keys())
+    # 'pts_filename', 'img_filename', 'seglabel_filename'
     img_filepath = data_info['img_filename'][0]
     pts_filepath = data_info['pts_filename']
+    # num_points is multiple of 32(34720, 34688, 34752..)
     print(img_filepath)
     print(pts_filepath)
     print()
+exit(0)
 
 if print_dataset:
     data = dataset[data_idx]
     print('getitem:')
     print(data.keys())
     print()
+    exit(0)
     gt_bboxes = data['gt_bboxes_3d'].data
     print(gt_bboxes.center.shape)
     print(gt_bboxes.center)
