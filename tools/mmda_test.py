@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('--out', help='output result file in pickle format')
+    parser.add_argument('--merge', action='store_true', help='4 classes or 10 classes')
     parser.add_argument(
         '--fuse-conv-bn',
         action='store_true',
@@ -146,7 +147,11 @@ def main():
     if args.format_only:
         dataset.format_results(outputs, **kwargs)
     if args.eval:
-        dataset.evaluate(outputs, args.eval, pkl_path=cfg.data.test.ann_file, jsonfile_prefix=args.json, **kwargs)
+        dataset.evaluate(outputs,
+                         args.eval,
+                         pkl_path=cfg.data.test.ann_file,
+                         jsonfile_prefix=args.json,
+                         **kwargs)
 
 
 if __name__ == '__main__':

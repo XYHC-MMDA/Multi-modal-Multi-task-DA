@@ -9,7 +9,7 @@
 #  - mmdet3d/datasets/mmda_merge_cat_dataset.py
 # Switch between merge and 10 classes:
 #  - train: specify config file
-#  _ train: modify nuscenes/eval/detection/evaluate.py, line 88
+#  - train: modify nuscenes/eval/detection/evaluate.py, line 88
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]

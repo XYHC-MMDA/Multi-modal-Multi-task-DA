@@ -272,6 +272,7 @@ class MMDAMergeCatDataset(Custom3DDataset):
             config=self.eval_detection_configs,
             result_path=result_path,
             eval_set=eval_set_map[self.version],
+            merge=True,
             pkl_path=pkl_path,
             output_dir=output_dir,
             verbose=True)

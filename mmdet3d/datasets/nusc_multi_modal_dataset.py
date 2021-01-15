@@ -343,6 +343,7 @@ class NuscMultiModalDataset(Custom3DDataset):
             config=self.eval_detection_configs,
             result_path=result_path,
             eval_set=eval_set_map[self.version],
+            merge=False,
             pkl_path=pkl_path,
             output_dir=output_dir,
             verbose=True)
@@ -422,41 +423,7 @@ class NuscMultiModalDataset(Custom3DDataset):
             results_dict.update(ret_dict)
         elif isinstance(result_files, str):
             results_dict = self._evaluate_single(result_files, pkl_path=pkl_path)
-
-        # if tmp_dir is not None:
-        #     tmp_dir.cleanup()
-
-        if show:
-            self.show(results, out_dir)
         return results_dict
-
-    def show(self, results, out_dir):
-        """Results visualization.
-
-        Args:
-            results (list[dict]): List of bounding boxes results.
-            out_dir (str): Output directory of visualization result.
-        """
-        for i, result in enumerate(results):
-            example = self.prepare_test_data(i)
-            points = example['points'][0]._data.numpy()
-            data_info = self.data_infos[i]
-            pts_path = data_info['lidar_path']
-            file_name = osp.split(pts_path)[-1].split('.')[0]
-            # for now we convert points into depth mode
-            points = points[..., [1, 0, 2]]
-            points[..., 0] *= -1
-            inds = result['pts_bbox']['scores_3d'] > 0.1
-            gt_bboxes = self.get_ann_info(i)['gt_bboxes_3d'].tensor
-            gt_bboxes = Box3DMode.convert(gt_bboxes, Box3DMode.LIDAR,
-                                          Box3DMode.DEPTH)
-            gt_bboxes[..., 2] += gt_bboxes[..., 5] / 2
-            pred_bboxes = result['pts_bbox']['boxes_3d'][inds].tensor.numpy()
-            pred_bboxes = Box3DMode.convert(pred_bboxes, Box3DMode.LIDAR,
-                                            Box3DMode.DEPTH)
-            pred_bboxes[..., 2] += pred_bboxes[..., 5] / 2
-            show_result(points, gt_bboxes, pred_bboxes, out_dir, file_name)
-
 
 def output_to_nusc_box(detection):
     """Convert the output to the box class in the nuScenes.

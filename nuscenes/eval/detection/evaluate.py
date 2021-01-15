@@ -47,6 +47,7 @@ class DetectionEval:
                  config: DetectionConfig,
                  result_path: str,
                  eval_set: str,
+                 merge=True,
                  pkl_path: str = None,
                  output_dir: str = None,
                  verbose: bool = True):
@@ -84,8 +85,10 @@ class DetectionEval:
         # self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         # TODO: pkl_path
         if pkl_path:
-            # self.gt_boxes = load_pkl_front_cam(self.nusc, pkl_path, DetectionBox, verbose=verbose)
-            self.gt_boxes = load_merge_from_pkl(self.nusc, pkl_path, DetectionBox, verbose=verbose)
+            if merge:
+                self.gt_boxes = load_merge_from_pkl(self.nusc, pkl_path, DetectionBox, verbose=verbose)
+            else:
+                self.gt_boxes = load_pkl_front_cam(self.nusc, pkl_path, DetectionBox, verbose=verbose)
         else:
             self.gt_boxes = load_gt_front_cam(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
         # self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox, verbose=verbose)
