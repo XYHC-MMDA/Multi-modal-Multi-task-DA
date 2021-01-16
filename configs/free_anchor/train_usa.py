@@ -174,9 +174,9 @@ train_pipeline = [
         flip_ratio_bev_vertical=0.5),
     dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    dict(type='ObjectNameFilter', classes=class_names),
+    dict(type='ObjectNameFilter'),
     dict(type='PointShuffle'),
-    dict(type='SegDetFormatBundle', class_names=class_names),
+    dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                  'points', 'pts_indices', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
@@ -204,7 +204,7 @@ test_pipeline = [
                 translation_std=[0, 0, 0]),
             dict(type='RandomFlip3D'),
             dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
-            dict(type='SegDetFormatBundle', class_names=class_names),
+            dict(type='SegDetFormatBundle'),
             dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                          'points', 'pts_indices'])
         ])

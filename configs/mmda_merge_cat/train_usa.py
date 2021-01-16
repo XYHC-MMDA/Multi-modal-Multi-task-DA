@@ -4,15 +4,23 @@
 # 2d augmentation
 # test augmentation
 
+# Merge related files:
+#  - nuscenes/detection/configs/mmda_merge.json
+#  - mmdet3d/datasets/mmda_merge_cat_dataset.py
+# Switch between merge and 10 classes:
+#  - train: specify config file
+#  - train: modify nuscenes/eval/detection/evaluate.py, line 88
+
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
-ann_train = 'nuscenes_boxes_cam_infos_train.pkl'
-ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
+ann_train = 'mmda_xmuda_split/train_usa.pkl'
+ann_val = 'mmda_xmuda_split/test_usa.pkl'
 
 # hv_pointpillars_*.py
 img_feat_channels = 64
+# modify seg,det num_classes(from 11,10 to 5,4)
 model = dict(
     type='MultiSensorMultiTaskUni',
     img_backbone=dict(
@@ -23,7 +31,7 @@ model = dict(
         type='ImageSegHead',
         img_feat_dim=img_feat_channels,
         seg_pts_dim=4,
-        num_classes=11,
+        num_classes=5,
         lidar_fc=[64, 64],
         concat_fc=[128, 64]),
     pts_voxel_layer=dict(
@@ -68,7 +76,7 @@ model = dict(
         num_outs=3),
     pts_bbox_head=dict(
         type='FreeAnchor3DHead',
-        num_classes=10,
+        num_classes=4,
         in_channels=256,
         feat_channels=256,
         use_direction_classifier=True,
@@ -128,20 +136,28 @@ test_cfg = dict(
         max_num=500))
 
 # nus-3d.py
+# TODO: look at wherever class_names is
+# class_names = [
+#     "car",  # 0
+#     "truck",  # 1
+#     "bus",  # 2
+#     "trailer",  # 3
+#     "construction_vehicle",  # 4
+#     "pedestrian",  # 5
+#     "motorcycle",  # 6
+#     "bicycle",  # 7
+#     "traffic_cone",  # 8
+#     "barrier",  # 9
+#     # "background"
+# ]
 class_names = [
-    "car",  # 0
-    "truck",  # 1
-    "bus",  # 2
-    "trailer",  # 3
-    "construction_vehicle",  # 4
-    "pedestrian",  # 5
-    "motorcycle",  # 6
-    "bicycle",  # 7
-    "traffic_cone",  # 8
-    "barrier",  # 9
-    # "background"
+    'vehicle',  # car, truck, bus, trailer, cv
+    'pedestrian',  # pedestrian
+    'bike',  # motorcycle, bicycle
+    'traffic_boundary'  # traffic_cone, barrier
+    # background
 ]
-dataset_type = 'NuscMultiModalDataset'
+
 data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 input_modality = dict(
     use_lidar=True,
@@ -174,8 +190,10 @@ train_pipeline = [
         flip_ratio_bev_vertical=0.5),
     dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    dict(type='ObjectNameFilter'),
+    # dict(type='ObjectNameFilter', classes=class_names),
+    dict(type='DetLabelFilter'),
     dict(type='PointShuffle'),
+    dict(type='MergeCat'),
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                  'points', 'pts_indices', 'gt_bboxes_3d', 'gt_labels_3d'])
@@ -204,11 +222,15 @@ test_pipeline = [
                 translation_std=[0, 0, 0]),
             dict(type='RandomFlip3D'),
             dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+            dict(type='MergeCat'),
             dict(type='SegDetFormatBundle'),
             dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                          'points', 'pts_indices'])
         ])
 ]
+
+# dataset
+dataset_type = 'MMDAMergeCatDataset'
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
@@ -220,8 +242,6 @@ data = dict(
         classes=class_names,
         modality=input_modality,
         test_mode=False,
-        # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
-        # and box_type_3d='Depth' in sunrgbd and scannet dataset.
         box_type_3d='LiDAR'),
     val=dict(
         type=dataset_type,
