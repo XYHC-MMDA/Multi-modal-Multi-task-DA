@@ -29,7 +29,7 @@ class ImageSegHead(nn.Module):
 
         self.head = nn.Linear(self.concat_fc[-1], num_classes)
 
-    def forward(self, img_feats, seg_pts, seg_pts_indices, img_metas=None):
+    def forward(self, img_feats, seg_pts, seg_pts_indices):
         x = img_feats.permute(0, 2, 3, 1)
         sample_feats = []
         for i in range(x.shape[0]):
@@ -54,3 +54,26 @@ class ImageSegHead(nn.Module):
         seg_loss = F.cross_entropy(seg_logits, y, weight=None)
         return dict(seg_loss=seg_loss)
 
+
+@HEADS.register_module()
+class ImageSegHeadWoFusion(nn.Module):
+    def __init__(self, img_feat_dim, num_classes):
+        super(ImageSegHeadWoFusion, self).__init__()
+        self.num_classes = num_classes
+        self.head = nn.Linear(img_feat_dim, num_classes)
+
+    def forward(self, img_feats, seg_pts_indices):
+        x = img_feats.permute(0, 2, 3, 1)
+        sample_feats = []
+        for i in range(x.shape[0]):
+            sample_feats.append(x[i][seg_pts_indices[i][:, 0], seg_pts_indices[i][:, 1]])
+        # sample_feats[i].shape=(img_indices[i].shape[0], 64)
+        sample_feats = torch.cat(sample_feats)  # shape=(M, 64)
+
+        seg_logits = self.head(sample_feats)  # (M, num_classes)
+        return seg_logits
+
+    def loss(self, seg_logits, seg_label):
+        y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
+        seg_loss = F.cross_entropy(seg_logits, y, weight=None)
+        return dict(seg_loss=seg_loss)
