@@ -1,12 +1,5 @@
-# variation:
-# λ: seg det loss balance parameter
-# seg_points: xyz coordinate; w/o reflectance
-# 2d augmentation
-# test augmentation
-
-# Merge related files:
-#  - nuscenes/detection/configs/mmda_merge.json
-#  - mmdet3d/datasets/mmda_merge_cat_dataset.py
+# model type == 'SepSegDet'
+# img_seg_head: the same as xmuda(nn.Linear(64, num_classes))
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
@@ -129,21 +122,6 @@ test_cfg = dict(
         min_bbox_size=0,
         max_num=500))
 
-# nus-3d.py
-# TODO: look at wherever class_names is
-# class_names = [
-#     "car",  # 0
-#     "truck",  # 1
-#     "bus",  # 2
-#     "trailer",  # 3
-#     "construction_vehicle",  # 4
-#     "pedestrian",  # 5
-#     "motorcycle",  # 6
-#     "bicycle",  # 7
-#     "traffic_cone",  # 8
-#     "barrier",  # 9
-#     # "background"
-# ]
 class_names = [
     'vehicle',  # car, truck, bus, trailer, cv
     'pedestrian',  # pedestrian
