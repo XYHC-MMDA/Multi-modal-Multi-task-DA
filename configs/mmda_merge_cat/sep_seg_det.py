@@ -1,5 +1,6 @@
 # model type == 'SepSegDet'
 # img_seg_head: the same as xmuda(nn.Linear(64, num_classes))
+# pts_voxel_encoder, pts_middle_encoder, pts_backbone: channels
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
@@ -28,8 +29,8 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=4 + img_feat_channels,
-        feat_channels=[128, 128],
+        in_channels=4,
+        feat_channels=[64, 64],
         with_distance=False,
         voxel_size=voxel_size,
         with_cluster_center=True,
@@ -38,7 +39,7 @@ model = dict(
         # norm_cfg=dict(type='naiveSyncBN1d', eps=1e-3, momentum=0.01)),
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
-        type='PointPillarsScatter', in_channels=128, output_shape=scatter_shape),
+        type='PointPillarsScatter', in_channels=64, output_shape=scatter_shape),
     pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pts_backbone=dict(
         type='NoStemRegNet',
@@ -46,8 +47,8 @@ model = dict(
         out_indices=(1, 2, 3),
         frozen_stages=-1,
         strides=(1, 2, 2, 2),
-        base_channels=128,
-        stem_channels=128,
+        base_channels=64,
+        stem_channels=64,
         # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
         norm_eval=False,

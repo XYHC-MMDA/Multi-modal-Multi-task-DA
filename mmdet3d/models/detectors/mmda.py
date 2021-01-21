@@ -230,21 +230,6 @@ class MMDA(Base3DDetector):
                           gt_labels_3d,
                           img_metas,
                           gt_bboxes_ignore=None):
-        """Forward function for point cloud branch.
-
-        Args:
-            pts_feats (list[torch.Tensor]): Features of point cloud branch
-            gt_bboxes_3d (list[:obj:`BaseInstance3DBoxes`]): Ground truth
-                boxes for each sample.
-            gt_labels_3d (list[torch.Tensor]): Ground truth labels for
-                boxes of each sampole
-            img_metas (list[dict]): Meta information of samples.
-            gt_bboxes_ignore (list[torch.Tensor], optional): Ground truth
-                boxes to be ignored. Defaults to None.
-
-        Returns:
-            dict: Losses of each branch.
-        """
         outs = self.pts_bbox_head(pts_feats)
         # Hs, Ws = [(100, 200), (50, 100), (25, 50)]
         # outs[0]: list of cls_pred; shapes=(B, 80, Hs, Ws)
@@ -322,14 +307,7 @@ class MMDA(Base3DDetector):
         return seg_logits, bbox_list
 
     def aug_test(self, points, img_metas, imgs=None, rescale=False):
-        """Test function with augmentaiton."""
-        img_feats, pts_feats = self.extract_feats(points, img_metas, imgs)
-
-        bbox_list = dict()
-        if pts_feats and self.with_pts_bbox:
-            bbox_pts = self.aug_test_pts(pts_feats, img_metas, rescale)
-            bbox_list.update(pts_bbox=bbox_pts)
-        return [bbox_list]
+        pass
 
     def extract_feats(self, points, img_metas, imgs=None):
         """Extract point and image features of multiple samples."""
@@ -339,70 +317,3 @@ class MMDA(Base3DDetector):
                                            img_metas)
         return img_feats, pts_feats
 
-    def aug_test_pts(self, feats, img_metas, rescale=False):
-        """Test function of point cloud branch with augmentaiton."""
-        # only support aug_test for one sample
-        aug_bboxes = []
-        for x, img_meta in zip(feats, img_metas):
-            outs = self.pts_bbox_head(x)
-            bbox_list = self.pts_bbox_head.get_bboxes(
-                *outs, img_meta, rescale=rescale)
-            bbox_list = [
-                dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels)
-                for bboxes, scores, labels in bbox_list
-            ]
-            aug_bboxes.append(bbox_list[0])
-
-        # after merging, bboxes will be rescaled to the original image size
-        merged_bboxes = merge_aug_bboxes_3d(aug_bboxes, img_metas,
-                                            self.pts_bbox_head.test_cfg)
-        return merged_bboxes
-
-    def show_results(self, data, result, out_dir):
-        """Results visualization.
-
-        Args:
-            data (dict): Input points and the information of the sample.
-            result (dict): Prediction results.
-            out_dir (str): Output directory of visualization result.
-        """
-        for batch_id in range(len(result)):
-            if isinstance(data['points'][0], DC):
-                points = data['points'][0]._data[0][batch_id].numpy()
-            elif mmcv.is_list_of(data['points'][0], torch.Tensor):
-                points = data['points'][0][batch_id]
-            else:
-                ValueError(f"Unsupported data type {type(data['points'][0])} "
-                           f'for visualization!')
-            if isinstance(data['img_metas'][0], DC):
-                pts_filename = data['img_metas'][0]._data[0][batch_id][
-                    'pts_filename']
-                box_mode_3d = data['img_metas'][0]._data[0][batch_id][
-                    'box_mode_3d']
-            elif mmcv.is_list_of(data['img_metas'][0], dict):
-                pts_filename = data['img_metas'][0][batch_id]['pts_filename']
-                box_mode_3d = data['img_metas'][0][batch_id]['box_mode_3d']
-            else:
-                ValueError(
-                    f"Unsupported data type {type(data['img_metas'][0])} "
-                    f'for visualization!')
-            file_name = osp.split(pts_filename)[-1].split('.')[0]
-
-            assert out_dir is not None, 'Expect out_dir, got none.'
-            inds = result[batch_id]['pts_bbox']['scores_3d'] > 0.1
-            pred_bboxes = copy.deepcopy(
-                result[batch_id]['pts_bbox']['boxes_3d'][inds].tensor.numpy())
-            # for now we convert points into depth mode
-            if box_mode_3d == Box3DMode.DEPTH:
-                pred_bboxes[..., 2] += pred_bboxes[..., 5] / 2
-            elif (box_mode_3d == Box3DMode.CAM) or (box_mode_3d
-                                                    == Box3DMode.LIDAR):
-                points = points[..., [1, 0, 2]]
-                points[..., 0] *= -1
-                pred_bboxes = Box3DMode.convert(pred_bboxes, box_mode_3d,
-                                                Box3DMode.DEPTH)
-                pred_bboxes[..., 2] += pred_bboxes[..., 5] / 2
-            else:
-                ValueError(
-                    f'Unsupported box_mode_3d {box_mode_3d} for convertion!')
-            show_result(points, None, pred_bboxes, out_dir, file_name)
