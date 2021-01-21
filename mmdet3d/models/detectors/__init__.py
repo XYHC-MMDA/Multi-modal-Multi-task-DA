@@ -11,9 +11,11 @@ from .voxelnet import VoxelNet
 from .mmda import MMDA
 from .multi_sepvoxelization import MultiSensorMultiTaskSep
 from .multi_univoxelization import MultiSensorMultiTaskUni
+from .sep_seg_det import SepSegDet
 
 __all__ = [
     'Base3DDetector', 'VoxelNet', 'DynamicVoxelNet', 'MVXTwoStageDetector',
     'DynamicMVXFasterRCNN', 'MVXFasterRCNN', 'PartA2', 'VoteNet', 'H3DNet',
-    'CenterPoint', 'SSD3DNet', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni'
+    'CenterPoint', 'SSD3DNet', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni',
+    'SepSegDet'
 ]
