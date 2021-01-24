@@ -426,6 +426,19 @@ class LoadSegDetPointsFromFile(object):
         self.load_dim = load_dim
         self.use_dim = use_dim
 
+        # class_names = [
+        #     "car",  # 0
+        #     "truck",  # 1
+        #     "bus",  # 2
+        #     "trailer",  # 3
+        #     "construction_vehicle",  # 4
+        #     "pedestrian",  # 5
+        #     "motorcycle",  # 6
+        #     "bicycle",  # 7
+        #     "traffic_cone",  # 8
+        #     "barrier",  # 9
+        #     # "background"
+        # ]
         self.classmap = [10] * 32
         idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
                   [22, 3], [23, 1]]

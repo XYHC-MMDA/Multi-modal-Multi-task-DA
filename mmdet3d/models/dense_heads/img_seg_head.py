@@ -57,9 +57,13 @@ class ImageSegHead(nn.Module):
 
 @HEADS.register_module()
 class ImageSegHeadWoFusion(nn.Module):
-    def __init__(self, img_feat_dim, num_classes):
+    def __init__(self, img_feat_dim, num_classes, class_weights=None):
         super(ImageSegHeadWoFusion, self).__init__()
         self.num_classes = num_classes
+        if class_weights:
+            self.class_weights = torch.tensor(class_weights)
+        else:
+            self.class_weights = None
         self.head = nn.Linear(img_feat_dim, num_classes)
 
     def forward(self, img_feats, seg_pts_indices):
@@ -75,5 +79,5 @@ class ImageSegHeadWoFusion(nn.Module):
 
     def loss(self, seg_logits, seg_label):
         y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
-        seg_loss = F.cross_entropy(seg_logits, y, weight=None)
+        seg_loss = F.cross_entropy(seg_logits, y, weight=self.class_weights)
         return dict(seg_loss=seg_loss)
