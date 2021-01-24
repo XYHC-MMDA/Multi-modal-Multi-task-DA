@@ -648,6 +648,35 @@ class MergeCat(object):
 
 
 @PIPELINES.register_module()
+class Aug2D(object):
+    def __init__(self, fliplr=0.0, color_jitter=None):
+        self.fliplr = fliplr
+        from torchvision import transforms as T
+        self.color_jitter = T.ColorJitter(*color_jitter) if color_jitter else None
+
+    def __call__(self, input_dict):
+        # 2D augmentation
+        image = input_dict['img']  # PIL.Image
+        seg_pts_indices = input_dict['seg_pts_indices']
+        pts_indices = input_dict['pts_indices']
+
+        if self.color_jitter is not None:
+            image = self.color_jitter(image)
+
+        image = np.array(image, dtype=np.float32) / 255.  # shape=(225, 400, 3)
+
+        if np.random.rand() < self.fliplr:
+            image = np.ascontiguousarray(np.fliplr(image))
+            seg_pts_indices[:, 1] = image.shape[1] - 1 - seg_pts_indices[:, 1]
+            pts_indices[:, 1] = image.shape[1] - 1 - pts_indices[:, 1]
+
+        input_dict['img'] = image
+        input_dict['seg_pts_indices'] = seg_pts_indices
+        input_dict['pts_indices'] = pts_indices
+        return input_dict
+
+
+@PIPELINES.register_module()
 class DetLabelFilter(object):
     def __call__(self, input_dict):
         gt_labels_3d = input_dict['gt_labels_3d']

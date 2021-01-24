@@ -6,6 +6,7 @@ point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
+img_size = (400, 225)
 ann_train = 'mmda_xmuda_split/train_usa.pkl'
 ann_val = 'mmda_xmuda_split/test_usa.pkl'
 
@@ -151,8 +152,9 @@ train_pipeline = [
         sweeps_num=10,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
-    dict(type='LoadFrontImage'),  # 'seg_pts_indices'
-    dict(type='PointsSensorFilter'),  # 'pts_indices'
+    dict(type='FrontImageFilter', resize=img_size),  # 'seg_pts_indices'
+    dict(type='PointsSensorFilter', resize=img_size),  # 'pts_indices'
+    dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),  # fliplr & color jitter; PIL.Image to np.array
     dict(
         type='GlobalRotScaleTrans',
         rot_range=[-0.7854, 0.7854],
@@ -160,9 +162,9 @@ train_pipeline = [
         translation_std=[0.2, 0.2, 0.2]),
     dict(
         type='RandomFlip3D',
-        flip_ratio_bev_horizontal=0.5,
+        # flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5),
-    # dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='DetLabelFilter'),
     dict(type='PointShuffle'),
