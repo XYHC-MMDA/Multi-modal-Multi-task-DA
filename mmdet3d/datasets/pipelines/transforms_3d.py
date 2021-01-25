@@ -1,6 +1,7 @@
 import numpy as np
 from mmcv import is_tuple_of
 from mmcv.utils import build_from_cfg
+from PIL import Image
 
 from mmdet3d.core import VoxelGenerator
 from mmdet3d.core.bbox import box_np_ops
@@ -531,6 +532,50 @@ class PointsRangeFilter(object):
 
 
 @PIPELINES.register_module()
+class FrontImageFilter(object):
+    def __init__(self, resize=(400, 225)):
+        self.resize = resize
+
+    def __call__(self, results):
+        filepath = results['img_filename'][0]  # front image
+        rot = results['lidar2img'][0]
+        seg_pts = results['seg_points']  # (N, 4)
+        seg_label = results['seg_label']
+        img = Image.open(filepath)
+        img_size = img.size  # (1600, 900)
+
+        # img_indices
+        num_points = seg_pts.shape[0]
+        pts_cam = np.concatenate([seg_pts[:, :3], np.ones((num_points, 1))], axis=1) @ rot.T
+        pts_img = pts_cam[:, :3]
+
+        # calc mask
+        pts_img[:, 0] /= pts_img[:, 2]
+        pts_img[:, 1] /= pts_img[:, 2]
+        mask = ((0, 0) < pts_img[:, :2]) & (pts_img[:, :2] < img_size)
+        # mask = mask[:, 0] & mask[:, 1]
+        mask = mask[:, 0] & mask[:, 1] & (pts_img[:, 2] > 0)
+
+        # filter
+        seg_pts_indices = pts_img[mask][:, :2]  # (col, row)
+        seg_pts = seg_pts[mask]
+        seg_label = seg_label[mask]
+
+        if self.resize:
+            img = img.resize(self.resize, Image.BILINEAR)
+            seg_pts_indices = seg_pts_indices * self.resize / img_size
+
+        # img = np.array(img, dtype=np.float32) / 255.  # shape=(225, 400, 3)
+        seg_pts_indices = np.fliplr(seg_pts_indices).astype(np.int64)  # (row, col)
+        results['img'] = img
+        results['seg_pts_indices'] = seg_pts_indices  # (N, 2): (row, column)
+        results['seg_points'] = seg_pts  # pts inside front camera; lidar coordinate
+        results['seg_label'] = seg_label
+
+        return results
+
+
+@PIPELINES.register_module()
 class PointsSensorFilter(object):
     """Currently only implement front camera.
     """
@@ -540,16 +585,6 @@ class PointsSensorFilter(object):
         self.resize = resize
 
     def __call__(self, results):
-        """
-
-        Args:
-            results (dict): Result dict from loading pipeline.
-
-        Returns:
-            dict: Results after filtering, 'points' keys are updated \
-                in the result dict.
-        """
-
         rot = results['lidar2img'][0]
         pts_lidar = results['points']
         num_points = pts_lidar.shape[0]
@@ -559,7 +594,8 @@ class PointsSensorFilter(object):
         pts_img[:, 0] /= pts_img[:, 2]
         pts_img[:, 1] /= pts_img[:, 2]
         mask = ((0, 0) < pts_img[:, :2]) & (pts_img[:, :2] < self.img_size)
-        mask = mask[:, 0] & mask[:, 1]
+        # mask = mask[:, 0] & mask[:, 1]
+        mask = mask[:, 0] & mask[:, 1] & (pts_img[:, 2] > 0)
 
         pts_lidar = pts_lidar[mask]
         pts_indices = pts_img[:, :2][mask]
