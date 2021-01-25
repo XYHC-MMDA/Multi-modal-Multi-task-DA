@@ -165,7 +165,7 @@ train_pipeline = [
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(type='FrontImageFilter', resize=img_size),  # 'seg_pts_indices'
     dict(type='PointsSensorFilter', resize=img_size),  # 'pts_indices'
-    dict(type='Aug2D')
+    dict(type='Aug2D'),
     #dict(
     #    type='GlobalRotScaleTrans',
     #    rot_range=[-0.7854, 0.7854],
@@ -175,7 +175,7 @@ train_pipeline = [
     #    type='RandomFlip3D',
     #    flip_ratio_bev_horizontal=0.5,
     #    flip_ratio_bev_vertical=0.5),
-    #dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     #dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     #dict(type='DetLabelFilter'),
     #dict(type='PointShuffle'),

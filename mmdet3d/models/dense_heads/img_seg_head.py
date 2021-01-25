@@ -80,6 +80,4 @@ class ImageSegHeadWoFusion(nn.Module):
     def loss(self, seg_logits, seg_label):
         y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
         seg_loss = F.cross_entropy(seg_logits, y, weight=self.class_weights)
-        print(seg_loss)
-        exit(0)
         return dict(seg_loss=seg_loss)
