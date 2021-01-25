@@ -135,21 +135,6 @@ test_cfg = dict(
         min_bbox_size=0,
         max_num=500))
 
-# nus-3d.py
-# TODO: look at wherever class_names is
-# class_names = [
-#     "car",  # 0
-#     "truck",  # 1
-#     "bus",  # 2
-#     "trailer",  # 3
-#     "construction_vehicle",  # 4
-#     "pedestrian",  # 5
-#     "motorcycle",  # 6
-#     "bicycle",  # 7
-#     "traffic_cone",  # 8
-#     "barrier",  # 9
-#     # "background"
-# ]
 class_names = [
     'vehicle',  # car, truck, bus, trailer, cv
     'pedestrian',  # pedestrian
@@ -167,6 +152,7 @@ input_modality = dict(
     use_external=False)
 file_client_args = dict(backend='disk')
 
+img_size = (400, 225)
 train_pipeline = [
     dict(
         type='LoadSegDetPointsFromFile',  # NuscMultiModalDataset
@@ -177,23 +163,23 @@ train_pipeline = [
         sweeps_num=10,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
-    dict(type='LoadFrontImage'),  # 'seg_pts_indices'
-    dict(type='PointsSensorFilter'),  # 'pts_indices'
-    dict(
-        type='GlobalRotScaleTrans',
-        rot_range=[-0.7854, 0.7854],
-        scale_ratio_range=[0.9, 1.1],
-        translation_std=[0.2, 0.2, 0.2]),
-    dict(
-        type='RandomFlip3D',
-        flip_ratio_bev_horizontal=0.5,
-        flip_ratio_bev_vertical=0.5),
-    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
-    dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    # dict(type='ObjectNameFilter', classes=class_names),
-    dict(type='DetLabelFilter'),
-    dict(type='PointShuffle'),
-    dict(type='MergeCat'),
+    dict(type='FrontImageFilter', resize=img_size),  # 'seg_pts_indices'
+    dict(type='PointsSensorFilter', resize=img_size),  # 'pts_indices'
+    dict(type='Aug2D')
+    #dict(
+    #    type='GlobalRotScaleTrans',
+    #    rot_range=[-0.7854, 0.7854],
+    #    scale_ratio_range=[0.9, 1.1],
+    #    translation_std=[0.2, 0.2, 0.2]),
+    #dict(
+    #    type='RandomFlip3D',
+    #    flip_ratio_bev_horizontal=0.5,
+    #    flip_ratio_bev_vertical=0.5),
+    #dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    #dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
+    #dict(type='DetLabelFilter'),
+    #dict(type='PointShuffle'),
+    #dict(type='MergeCat'),
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                  'points', 'pts_indices', 'gt_bboxes_3d', 'gt_labels_3d'])
