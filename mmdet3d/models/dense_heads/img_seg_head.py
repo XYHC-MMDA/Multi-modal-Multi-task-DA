@@ -6,12 +6,16 @@ from mmdet.models import HEADS
 
 @HEADS.register_module()
 class ImageSegHead(nn.Module):
-    def __init__(self, img_feat_dim, seg_pts_dim, num_classes, lidar_fc=[], concat_fc=[]):
+    def __init__(self, img_feat_dim, seg_pts_dim, num_classes, lidar_fc=[], concat_fc=[], class_weights=None):
         super(ImageSegHead, self).__init__()
         # self.in_channels = in_channels  # feat_channels
         self.num_classes = num_classes
         self.lidar_fc = [seg_pts_dim] + lidar_fc
         self.concat_fc = [self.lidar_fc[-1] + img_feat_dim] + concat_fc
+        if class_weights:
+            self.class_weights = torch.tensor(class_weights).cuda()
+        else:
+            self.class_weights = None
 
         before_fusion = []
         for i, (in_dim, out_dim) in enumerate(zip(self.lidar_fc[:-1], self.lidar_fc[1:])):
@@ -51,7 +55,7 @@ class ImageSegHead(nn.Module):
         # seg_label[0].device: cuda:0
         y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
         # y = y.type(torch.LongTensor).cuda()
-        seg_loss = F.cross_entropy(seg_logits, y, weight=None)
+        seg_loss = F.cross_entropy(seg_logits, y, weight=self.class_weights)
         return dict(seg_loss=seg_loss)
 
 
@@ -61,7 +65,7 @@ class ImageSegHeadWoFusion(nn.Module):
         super(ImageSegHeadWoFusion, self).__init__()
         self.num_classes = num_classes
         if class_weights:
-            self.class_weights = torch.tensor(class_weights)
+            self.class_weights = torch.tensor(class_weights).cuda()
         else:
             self.class_weights = None
         self.head = nn.Linear(img_feat_dim, num_classes)
