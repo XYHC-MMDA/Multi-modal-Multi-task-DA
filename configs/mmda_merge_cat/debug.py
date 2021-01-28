@@ -175,7 +175,7 @@ train_pipeline = [
     #    type='RandomFlip3D',
     #    flip_ratio_bev_horizontal=0.5,
     #    flip_ratio_bev_vertical=0.5),
-    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    #dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     #dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     #dict(type='DetLabelFilter'),
     #dict(type='PointShuffle'),
