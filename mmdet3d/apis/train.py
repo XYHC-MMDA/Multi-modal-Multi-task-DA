@@ -43,7 +43,8 @@ def train_detector(model, dataset, cfg,
     ]
 
     # put model on gpus
-    model = MyDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+    # model = MyDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+    model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # discriminators
     seg_discriminator = build_discriminator(cfg.seg_discriminator)

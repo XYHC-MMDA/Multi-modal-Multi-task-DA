@@ -40,6 +40,10 @@ class MyDataParallel(DataParallel):
         else:
             return super().forward(*inputs, **kwargs)
 
+    def forward_fusion(self, *inputs, **kwargs):
+        inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
+        return self.module.forward_fusion(*inputs[0], **kwargs[0])
+
     def scatter(self, inputs, kwargs, device_ids):
         return scatter_kwargs(inputs, kwargs, device_ids, dim=self.dim)
 
