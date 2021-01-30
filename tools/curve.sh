@@ -16,5 +16,5 @@ CUDA_VISIBLE_DEVICES=5 python tools/mmda_test.py configs/merge_aug_weights/fusio
 CUDA_VISIBLE_DEVICES=5 python tools/mmda_test.py configs/merge_aug_weights/fusion_train_day.py checkpoints/merge_aug_weights/fusion_train_day/epoch_22.pth --eval mAP --json checkpoints/merge_aug_weights/fusion_train_day/22_test_night
 CUDA_VISIBLE_DEVICES=5 python tools/mmda_test.py configs/merge_aug_weights/fusion_train_day.py checkpoints/merge_aug_weights/fusion_train_day/epoch_21.pth --eval mAP --json checkpoints/merge_aug_weights/fusion_train_day/21_test_night
 CUDA_VISIBLE_DEVICES=5 python tools/mmda_test.py configs/merge_aug_weights/fusion_train_day.py checkpoints/merge_aug_weights/fusion_train_day/epoch_20.pth --eval mAP --json checkpoints/merge_aug_weights/fusion_train_day/20_test_night
-CUDA_VISIBLE_DEVICES=5 python tools/mmda_test.py configs/merge_aug_weights/fusion_train_day.py checkpoints/merge_aug_weights/fusion_train_day/epoch_19.pth --eval mAP --json checkpoints/merge_aug_weights/fusion_train_day/18_test_night
+CUDA_VISIBLE_DEVICES=5 python tools/mmda_test.py configs/merge_aug_weights/fusion_train_day.py checkpoints/merge_aug_weights/fusion_train_day/epoch_19.pth --eval mAP --json checkpoints/merge_aug_weights/fusion_train_day/19_test_night
 
