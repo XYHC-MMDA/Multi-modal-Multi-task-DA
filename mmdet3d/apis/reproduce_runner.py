@@ -182,12 +182,3 @@ class RepRunner(BaseRunner):
             else:
                 shutil.copy(filename, dst_file)
 
-
-@RUNNERS.register_module()
-class Runner(EpochBasedRunner):
-    """Deprecated name of EpochBasedRunner."""
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            'Runner was deprecated, please use EpochBasedRunner instead')
-        super().__init__(*args, **kwargs)
