@@ -1,6 +1,6 @@
 from mmdet.models.builder import (BACKBONES, DETECTORS, HEADS, LOSSES, NECKS,
                                   ROI_EXTRACTORS, SHARED_HEADS, build)
-from .registry import FUSION_LAYERS, MIDDLE_ENCODERS, VOXEL_ENCODERS
+from .registry import FUSION_LAYERS, MIDDLE_ENCODERS, VOXEL_ENCODERS, DISCRIMINATORS
 
 
 def build_backbone(cfg):
@@ -51,3 +51,7 @@ def build_middle_encoder(cfg):
 def build_fusion_layer(cfg):
     """Build fusion layer."""
     return build(cfg, FUSION_LAYERS)
+
+
+def build_discriminator(cfg):
+    return build(cfg, DISCRIMINATORS)
