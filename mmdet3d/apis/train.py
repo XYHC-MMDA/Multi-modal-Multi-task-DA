@@ -12,6 +12,7 @@ from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.utils import get_root_logger
 from mmdet3d.models import build_discriminator
 from mmdet3d.runners import DiscRunner, RepRunner
+from mmdet3d.parallel import MyDataParallel
 
 
 def set_random_seed(seed, deterministic=False):
@@ -42,7 +43,7 @@ def train_detector(model, dataset, cfg,
     ]
 
     # put model on gpus
-    model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+    model = MyDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # discriminators
     seg_discriminator = build_discriminator(cfg.seg_discriminator)
