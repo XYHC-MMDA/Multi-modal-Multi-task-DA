@@ -102,7 +102,7 @@ def train_detector(model, dataset, cfg,
     #     optimizer_config = cfg.optimizer_config
 
     # register hooks; no opimizer_config & momentum_config
-    runner.register_training_hooks(cfg.lr_config, cfg.checkpoint_config, cfg.log_config)
+    runner.register_training_hooks(cfg.lr_config, checkpoints_config=cfg.checkpoint_config, log_config=cfg.log_config)
 
     # if distributed:
     #     runner.register_hook(DistSamplerSeedHook())
@@ -181,7 +181,7 @@ def rep_train_detector(model, dataset, cfg,
     #     optimizer_config = cfg.optimizer_config
 
     # register hooks; no opimizer_config & momentum_config
-    runner.register_training_hooks(cfg.lr_config, cfg.checkpoint_config, cfg.log_config)
+    runner.register_training_hooks(cfg.lr_config, checkpoints_config=cfg.checkpoint_config, log_config=cfg.log_config)
 
     # if distributed:
     #     runner.register_hook(DistSamplerSeedHook())
