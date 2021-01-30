@@ -242,8 +242,8 @@ data = dict(
 evaluation = dict(interval=100)
 
 # discriminators
-seg_discriminator = dict(type='SegDiscriminator')
-det_discriminator = dict(type='DetDiscriminator')
+seg_discriminator = dict(type='SegDiscriminator', in_dim=128)
+det_discriminator = dict(type='DetDiscriminator', in_channels=128)
 seg_optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)
 det_optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)
 
