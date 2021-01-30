@@ -102,8 +102,7 @@ class DiscRunner(BaseRunner):
             loss, log_vars = self.model.parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
             self.log_buffer.update(log_vars, num_samples)
-            # self.outputs = dict(loss=loss)
-            # self.call_hook('after_train_iter')  # optimizer hook && logger hook
+
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -133,6 +132,7 @@ class DiscRunner(BaseRunner):
             domain_loss.backward()
             self.optimizer.step()
 
+            self.call_hook('after_train_iter')  # optimizer hook && logger hook
             self._iter += 1
 
         self.call_hook('after_train_epoch')

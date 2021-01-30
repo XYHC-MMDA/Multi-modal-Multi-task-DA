@@ -33,28 +33,21 @@ class ImageSegHead(nn.Module):
 
         self.head = nn.Linear(self.concat_fc[-1], num_classes)
 
-    def forward_fusion(self, img_feats, seg_pts, seg_pts_indices):
+    def forward(self, img_feats, seg_pts, seg_pts_indices):
         x = img_feats.permute(0, 2, 3, 1)
         sample_feats = []
         for i in range(x.shape[0]):
             sample_feats.append(x[i][seg_pts_indices[i][:, 0], seg_pts_indices[i][:, 1]])
         # sample_feats[i].shape=(img_indices[i].shape[0], 64)
-        sample_feats = torch.cat(sample_feats)  # shape=(M, 64); M=total points in a batch
+        sample_feats = torch.cat(sample_feats)  # shape=(M, 64)
 
         lidar_feat = torch.cat(seg_pts)  # (M, pts_dim=4)
         lidar_feat = self.before_fusion(lidar_feat)
 
-        fusion_feats = torch.cat([sample_feats, lidar_feat], 1)  # (M, 64 + C)
-        return fusion_feats
+        concat_feats = torch.cat([sample_feats, lidar_feat], 1)  # (M, 64 + C)
+        concat_feats = self.after_fusion(concat_feats)
 
-    def forward_logits(self, fusion_feats):
-        fusion_feats = self.after_fusion(fusion_feats)
-        seg_logits = self.head(fusion_feats)  # (M, num_classes)
-        return seg_logits
-
-    def forward(self, img_feats, seg_pts, seg_pts_indices):
-        fusion_feats = self.forward_fusion(img_feats, seg_pts, seg_pts_indices)
-        seg_logits = self.forward_logits(fusion_feats)
+        seg_logits = self.head(concat_feats)  # (M, num_classes)
         return seg_logits
 
     def loss(self, seg_logits, seg_label):
