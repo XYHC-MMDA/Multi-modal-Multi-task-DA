@@ -16,7 +16,7 @@ from mmdet3d.datasets import build_dataset
 from mmdet3d.models import build_detector
 from mmdet3d.utils import collect_env, get_root_logger
 # from mmdet.apis import set_random_seed, train_detector
-from mmdet3d.apis import set_random_seed, train_detector
+from mmdet3d.apis import set_random_seed, rep_train_detector
 
 
 def parse_args():
@@ -139,11 +139,11 @@ def main():
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
     logger.info(f'Model:\n{model}')
-    datasets = [build_dataset(cfg.data.source_train), build_dataset(cfg.data.target_train)]
-    # if len(cfg.workflow) == 2:
-    #     val_dataset = copy.deepcopy(cfg.data.val)
-    #     val_dataset.pipeline = cfg.data.train.pipeline
-    #     datasets.append(build_dataset(val_dataset))
+    datasets = [build_dataset(cfg.data.train)]
+    if len(cfg.workflow) == 2:
+        val_dataset = copy.deepcopy(cfg.data.val)
+        val_dataset.pipeline = cfg.data.train.pipeline
+        datasets.append(build_dataset(val_dataset))
     if cfg.checkpoint_config is not None:
         # save mmdet version, config file content and class names in
         # checkpoints as meta data
@@ -153,8 +153,9 @@ def main():
             CLASSES=datasets[0].CLASSES)
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
-    train_detector(model, datasets, cfg,
-                   distributed=distributed, timestamp=timestamp, meta=meta)
+    # reproduce; without disc
+    rep_train_detector(model, datasets, cfg,
+                       distributed=distributed, timestamp=timestamp, meta=meta)
 
 
 if __name__ == '__main__':
