@@ -13,6 +13,7 @@ from mmcv.runner import BaseRunner, RUNNERS, save_checkpoint, get_host_info
 # from .builder import RUNNERS
 # from .checkpoint import save_checkpoint
 # from .utils import get_host_info
+from mmdet3d.apis import parse_losses
 
 
 @RUNNERS.register_module()
@@ -99,7 +100,7 @@ class DiscRunner(BaseRunner):
             losses['seg_domain_loss'] = self.seg_disc.loss(seg_fusion_feats, src=False)
             losses['det_domain_loss'] = self.det_disc.loss(det_fusion_feats, src=False)
 
-            loss, log_vars = self.model.parse_losses(losses)
+            loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
             self.log_buffer.update(log_vars, num_samples)
 

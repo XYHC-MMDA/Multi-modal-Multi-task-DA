@@ -220,7 +220,7 @@ class FusionDisc(nn.Module):
         else:
             return self.forward_test(**kwargs)
 
-    def parse_losses(self, losses):
+    def _parse_losses(self, losses):
         """Parse the raw outputs (losses) of the network.
 
         Args:
@@ -257,7 +257,7 @@ class FusionDisc(nn.Module):
 
     def train_step(self, data, optimizer):
         losses = self(**data)
-        loss, log_vars = self.parse_losses(losses)
+        loss, log_vars = self._parse_losses(losses)
 
         outputs = dict(
             loss=loss, log_vars=log_vars, num_samples=len(data['img_metas']))
