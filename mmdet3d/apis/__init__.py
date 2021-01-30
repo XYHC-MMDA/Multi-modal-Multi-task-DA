@@ -1,8 +1,8 @@
 from .inference import inference_detector, init_detector, show_result_meshlab
 from .test import single_gpu_test, mmda_single_gpu_test
-from .train import set_random_seed, train_detector, rep_train_detector
 from .disc_runner import DiscRunner
 from .reproduce_runner import RepRunner
+from .train import set_random_seed, train_detector, rep_train_detector
 
 
 __all__ = [
