@@ -1,4 +1,3 @@
-# Copyright (c) Open-MMLab. All rights reserved.
 import os.path as osp
 import platform
 import shutil
@@ -18,11 +17,6 @@ from mmdet3d.apis import parse_losses
 
 @RUNNERS.register_module()
 class RepRunner(BaseRunner):
-    """Epoch-based Runner.
-
-    This runner train models epoch by epoch.
-    """
-
     def run_iter(self, data_batch, train_mode, **kwargs):
         if self.batch_processor is not None:
             outputs = self.batch_processor(
