@@ -90,7 +90,7 @@ class DiscRunner(BaseRunner):
 
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
-            disc_loss.backward()
+            disc_loss.backward(retain_graph=True)
             self.seg_opt.step()
             self.det_opt.step()
 
@@ -119,7 +119,7 @@ class DiscRunner(BaseRunner):
 
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
-            disc_loss.backward()
+            disc_loss.backward(retain_graph=True)
             self.seg_opt.step()
             self.det_opt.step()
 
