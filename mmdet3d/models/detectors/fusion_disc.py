@@ -184,7 +184,8 @@ class FusionDisc(nn.Module):
 
     def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):
         """Test function without augmentaiton."""
-        img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
+        img_feats, voxel_fusion_feats = self.extract_feat(points, pts_indices, img, img_metas)
+        pts_feats = self.det_forward(voxel_fusion_feats)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
 
         bbox_list = [dict() for i in range(len(img_metas))]  # len(bbox_list)=batch_size
