@@ -7,7 +7,7 @@ scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
 src_train = 'mmda_xmuda_split/train_usa.pkl'
 tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
-ann_val = 'mmda_xmuda_split/test_usa.pkl'
+ann_val = 'mmda_xmuda_split/test_singapore.pkl'
 
 # hv_pointpillars_*.py
 img_feat_channels = 64
