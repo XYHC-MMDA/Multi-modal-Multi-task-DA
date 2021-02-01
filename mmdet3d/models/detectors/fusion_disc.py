@@ -78,13 +78,13 @@ class FusionDisc(nn.Module):
 
         voxels, num_points, coors = self.voxelize(concat_pts)  # voxels=(M, T=64, ndim=4+64); coors=(M, 4), (batch_idx, z, y, x)
         voxel_features = self.pts_voxel_encoder(voxels, num_points, coors,
-                                                img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
+                                                img_feats, img_metas)  # (M, C=128); M=num of non-empty voxels
         batch_size = coors[-1, 0] + 1
-        x = self.pts_middle_encoder(voxel_features, coors, batch_size)  # (N, C, H, W) = (4, 64, 200, 400)
+        x = self.pts_middle_encoder(voxel_features, coors, batch_size)  # (N, C, H, W) = (4, 128, 200, 400)
         # x = self.pts_backbone(x)
         # if self.with_pts_neck:
         #     x = self.pts_neck(x)
-        return x
+        return voxel_features, x
 
     def det_forward(self, x):
         x = self.pts_backbone(x)
@@ -93,11 +93,11 @@ class FusionDisc(nn.Module):
 
     def extract_feat(self, points, pts_indices, img, img_metas):
         img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
-        voxel_fusion_feats = self.extract_pts_feat(pts=points,
+        voxel_feats, x = self.extract_pts_feat(pts=points,
                                                    img_feats=img_feats,
                                                    pts_indices=pts_indices,
                                                    img_metas=img_metas)
-        return img_feats, voxel_fusion_feats
+        return img_feats, voxel_feats, x
 
     def forward_train(self,
                       img=None,
@@ -112,8 +112,8 @@ class FusionDisc(nn.Module):
                       gt_bboxes_ignore=None):
         # points: list of tensor; len(points)=batch_size; points[0].shape=(num_points, 4)
         # print('len:', len(gt_bboxes_3d))  # batch_size
-        img_feats, voxel_fusion_feats = self.extract_feat(points, pts_indices, img, img_metas)
-        pts_feats = self.det_forward(voxel_fusion_feats)
+        img_feats, voxel_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
+        pts_feats = self.det_forward(x)
 
         losses = dict()
         # seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
@@ -127,7 +127,7 @@ class FusionDisc(nn.Module):
                                             gt_labels_3d, img_metas,
                                             gt_bboxes_ignore)
         losses.update(losses_pts)
-        return losses, seg_fusion_feats, voxel_fusion_feats
+        return losses, seg_fusion_feats, voxel_feats
 
     def forward_fusion(self,
                        img=None,
@@ -137,9 +137,9 @@ class FusionDisc(nn.Module):
                        pts_indices=None,
                        img_metas=None,
                        **kwargs):
-        img_feats, voxel_fusion_feats = self.extract_feat(points, pts_indices, img, img_metas)
+        img_feats, voxel_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
         seg_fusion_feats = self.img_seg_head.forward_fusion(img_feats, seg_points, seg_pts_indices)
-        return seg_fusion_feats, voxel_fusion_feats
+        return seg_fusion_feats, voxel_feats
 
     def forward_pts_train(self,
                           pts_feats,
@@ -184,8 +184,8 @@ class FusionDisc(nn.Module):
 
     def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):
         """Test function without augmentaiton."""
-        img_feats, voxel_fusion_feats = self.extract_feat(points, pts_indices, img, img_metas)
-        pts_feats = self.det_forward(voxel_fusion_feats)
+        img_feats, voxel_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
+        pts_feats = self.det_forward(voxel_feats)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
 
         bbox_list = [dict() for i in range(len(img_metas))]  # len(bbox_list)=batch_size
