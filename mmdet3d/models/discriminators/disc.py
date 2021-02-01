@@ -5,9 +5,9 @@ from ..registry import DISCRIMINATORS
 
 
 @DISCRIMINATORS.register_module()
-class SegDiscriminator(nn.Module):
+class FCDiscriminator(nn.Module):
     def __init__(self, in_dim=128):
-        super(SegDiscriminator, self).__init__()
+        super(FCDiscriminator, self).__init__()
         self.fc = nn.Sequential(nn.Linear(in_dim, 16), nn.Linear(16, 2))
         self.nllloss = nn.NLLLoss()
 
@@ -25,9 +25,9 @@ class SegDiscriminator(nn.Module):
 
 
 @DISCRIMINATORS.register_module()
-class DetDiscriminator(nn.Module):
+class Conv2dDiscriminator(nn.Module):
     def __init__(self, in_channels=128):
-        super(DetDiscriminator, self).__init__()
+        super(Conv2dDiscriminator, self).__init__()
         dim1, dim2 = 16, 2
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, dim1, kernel_size=3, stride=2),
