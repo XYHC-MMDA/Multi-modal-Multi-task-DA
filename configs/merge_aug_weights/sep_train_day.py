@@ -8,7 +8,7 @@ scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
 img_size = (400, 225)
 ann_train = 'mmda_xmuda_split/train_day.pkl'
-ann_val = 'mmda_xmuda_split/test_day.pkl'
+ann_val = 'mmda_xmuda_split/test_night.pkl'
 
 # hv_pointpillars_*.py
 img_feat_channels = 64
