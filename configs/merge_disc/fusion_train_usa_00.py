@@ -253,7 +253,7 @@ evaluation = dict(interval=100)
 
 # discriminators
 seg_discriminator = dict(type='FCDiscriminator', in_dim=128)
-det_discriminator = dict(type='FCDiscriminator', in_dim=128)
+det_discriminator = dict(type='Conv2dDiscriminator', in_channels=128)
 seg_optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0005)
 det_optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0005)
 

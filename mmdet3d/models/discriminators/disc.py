@@ -8,7 +8,13 @@ from ..registry import DISCRIMINATORS
 class FCDiscriminator(nn.Module):
     def __init__(self, in_dim=128):
         super(FCDiscriminator, self).__init__()
-        self.fc = nn.Sequential(nn.Linear(in_dim, 16), nn.Linear(16, 2))
+        self.fc = nn.Sequential(
+            nn.Linear(in_dim, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, 2),
+        )
         self.nllloss = nn.NLLLoss()
 
     def forward(self, x):
