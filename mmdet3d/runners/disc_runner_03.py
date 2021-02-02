@@ -116,8 +116,8 @@ class DiscRunner03(BaseRunner):
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
-            log_vars['seg_src_acc'] = seg_acc
-            log_vars['det_src_acc'] = det_acc
+            log_vars['seg_src_acc'] = seg_acc.item()
+            log_vars['det_src_acc'] = det_acc.item()
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -159,8 +159,8 @@ class DiscRunner03(BaseRunner):
             if det_acc > 0.6:
                 det_tgt_loss = self.det_disc.loss(det_disc_prob, src=True)
                 det_tgt_loss.backward()  # accumulate grad
-            log_vars['seg_tgt_acc'] = seg_acc
-            log_vars['det_tgt_acc'] = det_acc
+            log_vars['seg_tgt_acc'] = seg_acc.item()
+            log_vars['det_tgt_acc'] = det_acc.item()
 
             self.optimizer.step()
 
