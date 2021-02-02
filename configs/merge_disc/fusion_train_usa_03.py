@@ -1,4 +1,4 @@
-# no acc for discriminators
+# acc threshold; loss = disc loss + task loss(in one backward)
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
@@ -251,13 +251,13 @@ data = dict(
 evaluation = dict(interval=100)
 
 # discriminators
-seg_discriminator = dict(type='FCDiscriminator', in_dim=128)
-det_discriminator = dict(type='FCDiscriminator', in_dim=128)
+seg_discriminator = dict(type='FCDiscriminatorNew', in_dim=128)
+det_discriminator = dict(type='FCDiscriminatorNew', in_dim=128)
 seg_optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0005)
 det_optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0005)
 
 # shedule_2x.py
-runner = 'DiscRunner02'
+runner = 'DiscRunner03'
 optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 lr_config = dict(

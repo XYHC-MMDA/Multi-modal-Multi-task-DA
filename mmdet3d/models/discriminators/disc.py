@@ -5,6 +5,36 @@ from ..registry import DISCRIMINATORS
 
 
 @DISCRIMINATORS.register_module()
+class FCDiscriminatorNew(nn.Module):
+    def __init__(self, in_dim=128):
+        super(FCDiscriminatorNew, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(in_dim, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, 2),
+        )
+        self.nllloss = nn.NLLLoss()
+
+    def forward(self, x, return_logits=False):
+        # x.shape=(N, in_dim=128)
+        logits = self.fc(x)
+        prob = F.log_softmax(logits, dim=1)
+        if return_logits:
+            return logits, prob
+        else:
+            return prob
+
+    def loss(self, prob, src=True):
+        if src:
+            labels = torch.ones(prob.size(0), dtype=torch.long).cuda()
+        else:
+            labels = torch.zeros(prob.size(0), dtype=torch.long).cuda()
+        return self.nllloss(prob, labels)
+
+
+@DISCRIMINATORS.register_module()
 class FCDiscriminator(nn.Module):
     def __init__(self, in_dim=128):
         super(FCDiscriminator, self).__init__()
