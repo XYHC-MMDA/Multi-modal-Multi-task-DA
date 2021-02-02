@@ -85,9 +85,11 @@ class DiscRunner02(BaseRunner):
 
             # train Discriminators
             # if acc(disc) > max: don't train disc
-            losses, seg_fusion_feats, det_fusion_feats = self.model(**src_data_batch)  # losses: {'seg_loss'=}
-            seg_disc_loss = self.seg_disc.loss(seg_fusion_feats, src=True)
-            det_disc_loss = self.det_disc.loss(det_fusion_feats, src=True)
+            losses, seg_fusion_feats, det_fusion_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
+            seg_disc_logits = self.seg_disc(seg_fusion_feats)
+            det_disc_logits = self.det_disc(det_fusion_feats)
+            seg_disc_loss = self.seg_disc.loss(seg_disc_logits, src=True)
+            det_disc_loss = self.det_disc.loss(det_disc_logits, src=True)
             disc_loss = seg_disc_loss + det_disc_loss
 
             self.seg_opt.zero_grad()
@@ -98,8 +100,10 @@ class DiscRunner02(BaseRunner):
 
             # train network
             # if acc(disc) > min: add GAN Loss
-            losses['seg_domain_loss'] = self.seg_disc.loss(seg_fusion_feats, src=False)
-            losses['det_domain_loss'] = self.det_disc.loss(det_fusion_feats, src=False)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats)
+            det_disc_logits = self.det_disc(det_fusion_feats)
+            losses['seg_domain_loss'] = self.seg_disc.loss(seg_disc_logits, src=False)
+            losses['det_domain_loss'] = self.det_disc.loss(det_disc_logits, src=False)
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
@@ -115,8 +119,10 @@ class DiscRunner02(BaseRunner):
 
             # train Discriminators
             seg_fusion_feats, det_fusion_feats = self.model.forward_fusion(**tgt_data_batch)
-            seg_disc_loss = self.seg_disc.loss(seg_fusion_feats, src=False)
-            det_disc_loss = self.det_disc.loss(det_fusion_feats, src=False)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats)
+            det_disc_logits = self.det_disc(det_fusion_feats)
+            seg_disc_loss = self.seg_disc.loss(seg_disc_logits, src=False)
+            det_disc_loss = self.det_disc.loss(det_disc_logits, src=False)
             disc_loss = seg_disc_loss + det_disc_loss
 
             self.seg_opt.zero_grad()
@@ -126,8 +132,10 @@ class DiscRunner02(BaseRunner):
             self.det_opt.step()
 
             # train network without task loss
-            seg_domain_loss = self.seg_disc.loss(seg_fusion_feats, src=True)
-            det_domain_loss = self.det_disc.loss(det_fusion_feats, src=True)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats)
+            det_disc_logits = self.det_disc(det_fusion_feats)
+            seg_domain_loss = self.seg_disc.loss(seg_disc_logits, src=True)
+            det_domain_loss = self.det_disc.loss(det_disc_logits, src=True)
             domain_loss = seg_domain_loss + det_domain_loss
 
             self.optimizer.zero_grad()
