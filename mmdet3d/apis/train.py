@@ -3,7 +3,7 @@ import random
 import numpy as np
 import torch
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
-from mmcv.runner import (HOOKS, DistSamplerSeedHook, EpochBasedRunner,
+from mmcv.runner import (HOOKS, DistSamplerSeedHook, EpochBasedRunner, RUNNERS,
                          Fp16OptimizerHook, OptimizerHook, build_optimizer)
 from mmcv.utils import build_from_cfg
 
@@ -54,7 +54,8 @@ def train_detector(model, dataset, cfg,
 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
-    runner = DiscRunner(model, seg_discriminator, det_discriminator, seg_optimizer, det_optimizer,
+    PRunner = RUNNERS.get(cfg.runner)
+    runner = PRunner(model, seg_discriminator, det_discriminator, seg_optimizer, det_optimizer,
                         optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     runner.timestamp = timestamp
 
