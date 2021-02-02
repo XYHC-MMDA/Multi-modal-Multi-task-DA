@@ -145,7 +145,7 @@ class DiscRunner03(BaseRunner):
 
             seg_disc_prob = self.seg_disc(seg_fusion_feats)  # (N, 2)
             seg_disc_pred = seg_disc_prob.max(1)[1]  # (N, ); cuda
-            seg_label = torch.ones(len(seg_disc_pred), dtype=torch.long).cuda()
+            seg_label = torch.zeros(len(seg_disc_pred), dtype=torch.long).cuda()
             seg_acc = (seg_disc_pred == seg_label).float().mean()
             if seg_acc > 0.6:
                 seg_tgt_loss = self.seg_disc.loss(seg_disc_prob, src=True)
@@ -153,7 +153,7 @@ class DiscRunner03(BaseRunner):
 
             det_disc_prob = self.det_disc(det_fusion_feats)  # (M, 2)
             det_disc_pred = det_disc_prob.max(1)[1]  # (M, ); cuda
-            det_label = torch.ones(len(det_disc_pred), dtype=torch.long).cuda()
+            det_label = torch.zeros(len(det_disc_pred), dtype=torch.long).cuda()
             det_acc = (det_disc_pred == det_label).float().mean()
             if det_acc > 0.6:
                 det_tgt_loss = self.det_disc.loss(det_disc_prob, src=True)
