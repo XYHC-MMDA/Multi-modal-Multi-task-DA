@@ -272,7 +272,7 @@ total_epochs = 36
 # default_runtime.py
 checkpoint_config = dict(interval=1)
 log_config = dict(
-    interval=50,
+    interval=10,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')
