@@ -12,11 +12,11 @@ from mmcv.runner import BaseRunner, RUNNERS, save_checkpoint, get_host_info
 # from .builder import RUNNERS
 # from .checkpoint import save_checkpoint
 # from .utils import get_host_info
-from mmdet3d.apis import parse_losses
+from mmdet3d.apis import parse_losses, set_requires_grad
 
 
 @RUNNERS.register_module()
-class DiscRunner03(BaseRunner):
+class DiscRunner04(BaseRunner):
     def __init__(self,
                  model,
                  seg_discriminator,
@@ -30,7 +30,7 @@ class DiscRunner03(BaseRunner):
                  meta=None,
                  max_iters=None,
                  max_epochs=None):
-        super(DiscRunner03, self).__init__(model,
+        super(DiscRunner04, self).__init__(model,
                                            batch_processor,
                                            optimizer,
                                            work_dir,
@@ -86,33 +86,35 @@ class DiscRunner03(BaseRunner):
             # train Discriminators
             # if acc(disc) > max: don't train disc
             losses, seg_fusion_feats, det_fusion_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
-            seg_disc_logprob = self.seg_disc(seg_fusion_feats)
-            det_disc_logprob = self.det_disc(det_fusion_feats)
-            seg_disc_loss = self.seg_disc.loss(seg_disc_logprob, src=True)
-            det_disc_loss = self.det_disc.loss(det_disc_logprob, src=True)
+            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=True)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats.detach())
+            det_disc_logits = self.det_disc(det_fusion_feats.detach())
+            seg_disc_loss = self.seg_disc.loss(seg_disc_logits, src=True)
+            det_disc_loss = self.det_disc.loss(det_disc_logits, src=True)
             disc_loss = seg_disc_loss + det_disc_loss
 
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
-            disc_loss.backward(retain_graph=True)
+            disc_loss.backward()
             self.seg_opt.step()
             self.det_opt.step()
 
             # train network
             # if acc(disc) > min: add GAN Loss
-            seg_disc_logprob = self.seg_disc(seg_fusion_feats)  # (N, 2)
-            seg_disc_pred = seg_disc_logprob.max(1)[1]  # (N, ); cuda
+            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=False)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats)  # (N, 2)
+            seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
             seg_label = torch.ones(len(seg_disc_pred), dtype=torch.long).cuda()
             seg_acc = (seg_disc_pred == seg_label).float().mean()
             if seg_acc > 0.6:
-                losses['seg_src_loss'] = self.seg_disc.loss(seg_disc_logprob, src=False)
+                losses['seg_src_loss'] = self.seg_disc.loss(seg_disc_logits, src=False)
 
-            det_disc_logprob = self.det_disc(det_fusion_feats)  # (M, 2)
-            det_disc_pred = det_disc_logprob.max(1)[1]  # (M, ); cuda
+            det_disc_logits = self.det_disc(det_fusion_feats)  # (M, 2)
+            det_disc_pred = det_disc_logits.max(1)[1]  # (M, ); cuda
             det_label = torch.ones(len(det_disc_pred), dtype=torch.long).cuda()
             det_acc = (det_disc_pred == det_label).float().mean()
             if det_acc > 0.6:
-                losses['det_src_loss'] = self.det_disc.loss(det_disc_logprob, src=False)
+                losses['det_src_loss'] = self.det_disc.loss(det_disc_logits, src=False)
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
@@ -129,35 +131,37 @@ class DiscRunner03(BaseRunner):
 
             # train Discriminators
             seg_fusion_feats, det_fusion_feats = self.model.forward_fusion(**tgt_data_batch)
-            seg_disc_logprob = self.seg_disc(seg_fusion_feats)
-            det_disc_logprob = self.det_disc(det_fusion_feats)
-            seg_disc_loss = self.seg_disc.loss(seg_disc_logprob, src=False)
-            det_disc_loss = self.det_disc.loss(det_disc_logprob, src=False)
+            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=True)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats.detach())
+            det_disc_logits = self.det_disc(det_fusion_feats.detach())
+            seg_disc_loss = self.seg_disc.loss(seg_disc_logits, src=False)
+            det_disc_loss = self.det_disc.loss(det_disc_logits, src=False)
             disc_loss = seg_disc_loss + det_disc_loss
 
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
-            disc_loss.backward(retain_graph=True)
+            disc_loss.backward()
             self.seg_opt.step()
             self.det_opt.step()
 
             # train network on target domain without task loss
             self.optimizer.zero_grad()
 
-            seg_disc_logprob = self.seg_disc(seg_fusion_feats)  # (N, 2)
-            seg_disc_pred = seg_disc_logprob.max(1)[1]  # (N, ); cuda
+            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=False)
+            seg_disc_logits = self.seg_disc(seg_fusion_feats)  # (N, 2)
+            seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
             seg_label = torch.zeros(len(seg_disc_pred), dtype=torch.long).cuda()
             seg_acc = (seg_disc_pred == seg_label).float().mean()
             if seg_acc > 0.6:
-                seg_tgt_loss = self.seg_disc.loss(seg_disc_logprob, src=True)
+                seg_tgt_loss = self.seg_disc.loss(seg_disc_logits, src=True)
                 seg_tgt_loss.backward()
 
-            det_disc_logprob = self.det_disc(det_fusion_feats)  # (M, 2)
-            det_disc_pred = det_disc_logprob.max(1)[1]  # (M, ); cuda
+            det_disc_logits = self.det_disc(det_fusion_feats)  # (M, 2)
+            det_disc_pred = det_disc_logits.max(1)[1]  # (M, ); cuda
             det_label = torch.zeros(len(det_disc_pred), dtype=torch.long).cuda()
             det_acc = (det_disc_pred == det_label).float().mean()
             if det_acc > 0.6:
-                det_tgt_loss = self.det_disc.loss(det_disc_logprob, src=True)
+                det_tgt_loss = self.det_disc.loss(det_disc_logits, src=True)
                 det_tgt_loss.backward()  # accumulate grad
             log_vars['seg_tgt_acc'] = seg_acc.item()
             log_vars['det_tgt_acc'] = det_acc.item()

@@ -5,9 +5,9 @@ from ..registry import DISCRIMINATORS
 
 
 @DISCRIMINATORS.register_module()
-class FCDiscriminatorNew(nn.Module):
+class FCDiscriminatorCE(nn.Module):
     def __init__(self, in_dim=128):
-        super(FCDiscriminatorNew, self).__init__()
+        super(FCDiscriminatorCE, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(in_dim, 64),
             nn.ReLU(inplace=True),
@@ -15,23 +15,19 @@ class FCDiscriminatorNew(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(64, 2),
         )
-        self.nllloss = nn.NLLLoss()
+        self.criterion = nn.CrossEntropyLoss()
 
-    def forward(self, x, return_logits=False):
+    def forward(self, x):
         # x.shape=(N, in_dim=128)
-        logits = self.fc(x)
-        prob = F.log_softmax(logits, dim=1)
-        if return_logits:
-            return logits, prob
-        else:
-            return prob
+        x = self.fc(x)
+        return x
 
-    def loss(self, prob, src=True):
+    def loss(self, logits, src=True):
         if src:
-            labels = torch.ones(prob.size(0), dtype=torch.long).cuda()
+            labels = torch.ones(logits.size(0), dtype=torch.long).cuda()
         else:
-            labels = torch.zeros(prob.size(0), dtype=torch.long).cuda()
-        return self.nllloss(prob, labels)
+            labels = torch.zeros(logits.size(0), dtype=torch.long).cuda()
+        return self.criterion(logits, labels)
 
 
 @DISCRIMINATORS.register_module()
@@ -58,6 +54,36 @@ class FCDiscriminator(nn.Module):
         else:
             labels = torch.zeros(logits.size(0), dtype=torch.long).cuda()
         return self.nllloss(F.log_softmax(logits, dim=1), labels)
+
+
+@DISCRIMINATORS.register_module()
+class FCDiscriminatorNew(nn.Module):
+    def __init__(self, in_dim=128):
+        super(FCDiscriminatorNew, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(in_dim, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, 2),
+        )
+        self.nllloss = nn.NLLLoss()
+
+    def forward(self, x, return_logits=False):
+        # x.shape=(N, in_dim=128)
+        logits = self.fc(x)
+        logprob = F.log_softmax(logits, dim=1)
+        if return_logits:
+            return logits, logprob
+        else:
+            return logprob
+
+    def loss(self, logprob, src=True):
+        if src:
+            labels = torch.ones(logprob.size(0), dtype=torch.long).cuda()
+        else:
+            labels = torch.zeros(logprob.size(0), dtype=torch.long).cuda()
+        return self.nllloss(logprob, labels)
 
 
 @DISCRIMINATORS.register_module()
