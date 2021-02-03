@@ -37,13 +37,13 @@ class Conv2dDiscriminator(nn.Module):
         super(Conv2dDiscriminator, self).__init__()
         dim1, dim2 = 64, 64
         self.conv = nn.Sequential(
-            nn.Conv2d(in_dim, dim1, kernel_size=3, stride=2),
+            nn.Conv2d(in_dim, dim1, kernel_size=3, stride=2, bias=True),
             # nn.Dropout2d(p=0.5),
             nn.ReLU(inplace=True),
-            nn.Conv2d(dim1, dim2, kernel_size=3, stride=2),
+            nn.Conv2d(dim1, dim2, kernel_size=3, stride=2, bias=True),
             # nn.Dropout2d(p=0.5),
             nn.ReLU(inplace=True),
-            nn.Conv2d(dim1, 2, kernel_size=3, padding=1),
+            nn.Conv2d(dim1, 2, kernel_size=3, padding=1, bias=True),
         )
         self.criterion = nn.CrossEntropyLoss()
 
