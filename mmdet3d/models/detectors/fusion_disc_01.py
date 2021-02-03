@@ -15,8 +15,9 @@ from mmdet.utils import get_root_logger
 from mmcv.utils import print_log
 
 
+# Conv2dDiscriminator
 @DETECTORS.register_module()
-class FusionDisc(nn.Module):
+class FusionDisc01(nn.Module):
     def __init__(self,
                  pts_voxel_layer=None,
                  pts_voxel_encoder=None,
@@ -29,7 +30,7 @@ class FusionDisc(nn.Module):
                  train_cfg=None,
                  test_cfg=None,
                  pretrained=None):
-        super(FusionDisc, self).__init__()
+        super(FusionDisc01, self).__init__()
 
         if img_backbone:
             self.img_backbone = builder.build_backbone(img_backbone)
@@ -84,7 +85,7 @@ class FusionDisc(nn.Module):
         # x = self.pts_backbone(x)
         # if self.with_pts_neck:
         #     x = self.pts_neck(x)
-        return voxel_features, x
+        return x
 
     def det_forward(self, x):
         x = self.pts_backbone(x)
@@ -93,11 +94,11 @@ class FusionDisc(nn.Module):
 
     def extract_feat(self, points, pts_indices, img, img_metas):
         img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
-        voxel_feats, x = self.extract_pts_feat(pts=points,
-                                               img_feats=img_feats,
-                                               pts_indices=pts_indices,
-                                               img_metas=img_metas)
-        return img_feats, voxel_feats, x
+        x = self.extract_pts_feat(pts=points,
+                                  img_feats=img_feats,
+                                  pts_indices=pts_indices,
+                                  img_metas=img_metas)
+        return img_feats, x
 
     def forward_train(self,
                       img=None,
@@ -112,7 +113,7 @@ class FusionDisc(nn.Module):
                       gt_bboxes_ignore=None):
         # points: list of tensor; len(points)=batch_size; points[0].shape=(num_points, 4)
         # print('len:', len(gt_bboxes_3d))  # batch_size
-        img_feats, voxel_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
+        img_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
         pts_feats = self.det_forward(x)
 
         losses = dict()
@@ -127,7 +128,7 @@ class FusionDisc(nn.Module):
                                             gt_labels_3d, img_metas,
                                             gt_bboxes_ignore)
         losses.update(losses_pts)
-        return losses, seg_fusion_feats, voxel_feats
+        return losses, seg_fusion_feats, x
 
     def forward_fusion(self,
                        img=None,
@@ -137,9 +138,9 @@ class FusionDisc(nn.Module):
                        pts_indices=None,
                        img_metas=None,
                        **kwargs):
-        img_feats, voxel_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
+        img_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
         seg_fusion_feats = self.img_seg_head.forward_fusion(img_feats, seg_points, seg_pts_indices)
-        return seg_fusion_feats, voxel_feats
+        return seg_fusion_feats, x
 
     def forward_pts_train(self,
                           pts_feats,
@@ -184,7 +185,7 @@ class FusionDisc(nn.Module):
 
     def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):
         """Test function without augmentaiton."""
-        img_feats, voxel_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
+        img_feats, x = self.extract_feat(points, pts_indices, img, img_metas)
         pts_feats = self.det_forward(x)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
 
