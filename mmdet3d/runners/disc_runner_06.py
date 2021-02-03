@@ -90,29 +90,32 @@ class DiscRunner06(BaseRunner):
 
             # segmentation
             seg_concat_feats = torch.cat([seg_src_feats, seg_tgt_feats], dim=0)
-            seg_concat_logits = self.seg_disc(seg_concat_feats.detach())
+            # seg_concat_logits = self.seg_disc(seg_concat_feats.detach())
+            seg_concat_logits = self.seg_disc(seg_concat_feats)
             seg_src_labels = torch.ones(len(seg_src_feats), dtype=torch.long).cuda()
             seg_tgt_labels = torch.ones(len(seg_tgt_feats), dtype=torch.long).cuda()
             seg_concat_labels = torch.cat([seg_src_labels, seg_tgt_labels], dim=0)
             seg_Dloss = self.seg_disc.criterion(seg_concat_logits, seg_concat_labels)
             log_seg_Dloss = seg_Dloss.item()
 
-            self.seg_opt.zero_grad()
-            seg_Dloss.backward()
-            self.seg_opt.step()
-
             # detection
-            det_src_Dlogits = self.det_disc(det_src_feats.detach())
+            # det_src_Dlogits = self.det_disc(det_src_feats.detach())
+            det_src_Dlogits = self.det_disc(det_src_feats)
             det_src_Dloss = self.det_disc.loss(det_src_Dlogits, src=True)
 
-            det_tgt_Dlogits = self.det_disc(det_tgt_feats.detach())
+            # det_tgt_Dlogits = self.det_disc(det_tgt_feats.detach())
+            det_tgt_Dlogits = self.det_disc(det_tgt_feats)
             det_tgt_Dloss = self.det_disc.loss(det_tgt_Dlogits, src=False)
 
             det_Dloss = (det_src_Dloss + det_tgt_Dloss) * 0.5
             log_det_Dloss = det_Dloss.item()
 
+            Dloss = seg_Dloss + det_Dloss
+
+            self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
-            det_Dloss.backward()
+            Dloss.backward()
+            self.seg_opt.step()
             self.det_opt.step()
 
             # ------------------------
