@@ -93,6 +93,8 @@ class DiscRunner05(BaseRunner):
             seg_disc_loss = self.seg_disc.loss(seg_disc_logits, src=True)
             det_disc_loss = self.det_disc.loss(det_disc_logits, src=True)
             disc_loss = seg_disc_loss + det_disc_loss
+            losses['seg_src_Dloss'] = seg_disc_loss
+            losses['det_src_Dloss'] = det_disc_loss
 
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
@@ -109,14 +111,14 @@ class DiscRunner05(BaseRunner):
             seg_acc = (seg_disc_pred == seg_label).float().mean()
             acc_threshold = 0.7
             if seg_acc > acc_threshold:
-                losses['seg_src_loss'] = self.seg_disc.loss(seg_disc_logits, src=False)
+                losses['seg_src_GANloss'] = self.seg_disc.loss(seg_disc_logits, src=False)
 
             det_disc_logits = self.det_disc(det_fusion_feats)  # (4, 2, 49, 99)
             det_disc_pred = det_disc_logits.max(1)[1]  # (4, 49, 99); cuda
             det_label = torch.ones_like(det_disc_pred, dtype=torch.long).cuda()
             det_acc = (det_disc_pred == det_label).float().mean()
             if det_acc > acc_threshold:
-                losses['det_src_loss'] = self.det_disc.loss(det_disc_logits, src=False)
+                losses['det_src_GANloss'] = self.det_disc.loss(det_disc_logits, src=False)
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
@@ -139,6 +141,8 @@ class DiscRunner05(BaseRunner):
             seg_disc_loss = self.seg_disc.loss(seg_disc_logits, src=False)
             det_disc_loss = self.det_disc.loss(det_disc_logits, src=False)
             disc_loss = seg_disc_loss + det_disc_loss
+            losses['seg_tgt_Dloss'] = seg_disc_loss
+            losses['det_tgt_Dloss'] = det_disc_loss
 
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
@@ -156,7 +160,7 @@ class DiscRunner05(BaseRunner):
             seg_acc = (seg_disc_pred == seg_label).float().mean()
             if seg_acc > acc_threshold:
                 seg_tgt_loss = self.seg_disc.loss(seg_disc_logits, src=True)
-                losses['seg_tgt_loss'] = seg_tgt_loss
+                losses['seg_tgt_GANloss'] = seg_tgt_loss
                 seg_tgt_loss.backward()
 
             det_disc_logits = self.det_disc(det_fusion_feats)  # (4, 2, 49, 99)
@@ -165,7 +169,7 @@ class DiscRunner05(BaseRunner):
             det_acc = (det_disc_pred == det_label).float().mean()
             if det_acc > acc_threshold:
                 det_tgt_loss = self.det_disc.loss(det_disc_logits, src=True)
-                losses['det_tgt_loss'] = det_tgt_loss
+                losses['det_tgt_GANloss'] = det_tgt_loss
                 det_tgt_loss.backward()  # accumulate grad
             log_vars['seg_tgt_acc'] = seg_acc.item()
             log_vars['det_tgt_acc'] = det_acc.item()
