@@ -4,8 +4,9 @@
 # Seg: FCDiscriminator; Det: Conv2dDiscriminator
 
 # variants: Runner, model, Discriminators
-runner_ver = '06'
-model_ver = '01'  # '01' return (N, 128, 200, 400); '' return (M, 128)
+# 05_2
+runner_ver = '05'
+model_ver = '01'
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
