@@ -93,7 +93,7 @@ class DiscRunner06(BaseRunner):
             # seg_concat_logits = self.seg_disc(seg_concat_feats.detach())
             seg_concat_logits = self.seg_disc(seg_concat_feats)
             seg_src_labels = torch.ones(len(seg_src_feats), dtype=torch.long).cuda()
-            seg_tgt_labels = torch.ones(len(seg_tgt_feats), dtype=torch.long).cuda()
+            seg_tgt_labels = torch.zeros(len(seg_tgt_feats), dtype=torch.long).cuda()
             seg_concat_labels = torch.cat([seg_src_labels, seg_tgt_labels], dim=0)
             seg_Dloss = self.seg_disc.criterion(seg_concat_logits, seg_concat_labels)
             log_seg_Dloss = seg_Dloss.item()
