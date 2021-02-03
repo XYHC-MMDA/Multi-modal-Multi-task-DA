@@ -156,6 +156,7 @@ class DiscRunner05(BaseRunner):
             seg_acc = (seg_disc_pred == seg_label).float().mean()
             if seg_acc > acc_threshold:
                 seg_tgt_loss = self.seg_disc.loss(seg_disc_logits, src=True)
+                losses['seg_tgt_loss'] = seg_tgt_loss
                 seg_tgt_loss.backward()
 
             det_disc_logits = self.det_disc(det_fusion_feats)  # (4, 2, 49, 99)
@@ -164,6 +165,7 @@ class DiscRunner05(BaseRunner):
             det_acc = (det_disc_pred == det_label).float().mean()
             if det_acc > acc_threshold:
                 det_tgt_loss = self.det_disc.loss(det_disc_logits, src=True)
+                losses['det_tgt_loss'] = det_tgt_loss
                 det_tgt_loss.backward()  # accumulate grad
             log_vars['seg_tgt_acc'] = seg_acc.item()
             log_vars['det_tgt_acc'] = det_acc.item()

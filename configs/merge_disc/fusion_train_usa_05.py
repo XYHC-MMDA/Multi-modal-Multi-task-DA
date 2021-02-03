@@ -3,6 +3,7 @@
 # logits instead of logprob; CrossEntropyLoss() instead of NLLLoss()
 # Seg: FCDiscriminator; Det: Conv2dDiscriminator
 
+# variants: Runner, model, Discriminators
 runner_ver = '05'
 model_ver = '01'
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
