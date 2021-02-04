@@ -14,10 +14,11 @@ from .multi_univoxelization import MultiSensorMultiTaskUni
 from .sep_seg_det import SepSegDet
 from .fusion_disc import FusionDisc
 from .fusion_disc_01 import FusionDisc01
+from .fusion_disc_02 import FusionDisc02
 
 __all__ = [
     'Base3DDetector', 'VoxelNet', 'DynamicVoxelNet', 'MVXTwoStageDetector',
     'DynamicMVXFasterRCNN', 'MVXFasterRCNN', 'PartA2', 'VoteNet', 'H3DNet',
     'CenterPoint', 'SSD3DNet', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni',
-    'SepSegDet', 'FusionDisc', 'FusionDisc01'
+    'SepSegDet', 'FusionDisc', 'FusionDisc01', 'FusionDisc02'
 ]

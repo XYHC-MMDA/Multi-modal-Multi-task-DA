@@ -15,7 +15,7 @@ from mmdet.utils import get_root_logger
 from mmcv.utils import print_log
 
 
-# Conv2dDiscriminator
+# return img_feats before fusion
 @DETECTORS.register_module()
 class FusionDisc02(nn.Module):
     def __init__(self,
