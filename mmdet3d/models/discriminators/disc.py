@@ -62,6 +62,37 @@ class Conv2dDiscriminator(nn.Module):
 
 
 @DISCRIMINATORS.register_module()
+class Conv2dDiscriminator01(nn.Module):
+    def __init__(self, in_dim=128):
+        # in_dim: input_channels
+        super(Conv2dDiscriminator01, self).__init__()
+        dim1, dim2 = 64, 64
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_dim, dim1, kernel_size=3, padding=1, stride=2),
+            nn.BatchNorm2d(dim1),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(dim1, dim2, kernel_size=3, padding=1),
+            nn.BatchNorm2d(dim2),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(dim1, 2, kernel_size=3, padding=1),
+        )
+        self.criterion = nn.CrossEntropyLoss()
+
+    def forward(self, x):
+        # x.shape=(N, 128, 200, 400)
+        x = self.conv(x)  # (N, 2, 49, 99)
+        return x
+
+    def loss(self, logits, src=True):
+        N, _, H, W = logits.shape
+        if src:
+            labels = torch.ones([N, H, W], dtype=torch.long).cuda()
+        else:
+            labels = torch.zeros([N, H, W], dtype=torch.long).cuda()
+        return self.criterion(logits, labels)
+
+
+@DISCRIMINATORS.register_module()
 class FCDiscriminator(nn.Module):
     def __init__(self, in_dim=128):
         super(FCDiscriminator, self).__init__()
