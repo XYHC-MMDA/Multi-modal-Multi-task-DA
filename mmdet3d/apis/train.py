@@ -11,7 +11,7 @@ from mmdet.core import DistEvalHook, EvalHook
 from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.utils import get_root_logger
 from mmdet3d.models import build_discriminator
-from mmdet3d.runners import DiscRunner, RepRunner
+from mmdet3d.runners import RepRunner
 from mmdet3d.parallel import MyDataParallel
 
 
