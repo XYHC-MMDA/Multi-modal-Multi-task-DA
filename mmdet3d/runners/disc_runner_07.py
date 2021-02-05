@@ -116,7 +116,7 @@ class DiscRunner07(BaseRunner):
             src_acc = (src_Dpred == src_Dlabels).float().mean()
             acc_threshold = 0.6
             if src_acc > acc_threshold:
-                losses['src_GANloss'] = self.seg_disc.loss(src_Dlogits, src=False)
+                losses['src_GANloss'] = self.det_disc.loss(src_Dlogits, src=False)
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
