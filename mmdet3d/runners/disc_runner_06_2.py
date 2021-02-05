@@ -168,10 +168,11 @@ class DiscRunner06_2(BaseRunner):
             seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
             seg_label = torch.zeros_like(seg_disc_pred, dtype=torch.long).cuda()
             seg_acc = (seg_disc_pred == seg_label).float().mean()
+            tgt_GANloss = None
             if seg_acc > acc_threshold:
                 seg_tgt_loss = self.seg_disc.loss(seg_disc_logits, src=True)
+                tgt_GANloss = seg_tgt_loss
                 log_vars['seg_tgt_GANloss'] = seg_tgt_loss.item()
-                seg_tgt_loss.backward()
 
             det_disc_logits = self.det_disc(det_tgt_feats)  # (4, 2, 49, 99)
             det_disc_pred = det_disc_logits.max(1)[1]  # (4, 49, 99); cuda
@@ -180,12 +181,16 @@ class DiscRunner06_2(BaseRunner):
             if det_acc > acc_threshold:
                 det_tgt_loss = self.det_disc.loss(det_disc_logits, src=True)
                 log_vars['det_tgt_GANloss'] = det_tgt_loss.item()
-                det_tgt_loss.backward()  # accumulate grad
+                if tgt_GANloss is None:
+                    tgt_GANloss = det_tgt_loss
+                else:
+                    tgt_GANloss += det_tgt_loss
 
             log_vars['seg_tgt_acc'] = seg_acc.item()
             log_vars['det_tgt_acc'] = det_acc.item()
-
-            self.optimizer.step()
+            if tgt_GANloss is not None:
+                tgt_GANloss.backward()
+                self.optimizer.step()
 
             # after_train_iter callback
             self.log_buffer.update(log_vars, num_samples)
