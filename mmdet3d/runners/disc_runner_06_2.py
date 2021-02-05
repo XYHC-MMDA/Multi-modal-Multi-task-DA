@@ -112,12 +112,12 @@ class DiscRunner06_2(BaseRunner):
             seg_tgt_Dloss = self.seg_disc.loss(seg_tgt_logits, src=False)
             log_seg_tgt_Dloss = seg_tgt_Dloss.item()
 
-            # src detection
+            # tgt detection
             det_tgt_logits = self.det_disc(det_tgt_feats)
             det_tgt_Dloss = self.det_disc.loss(det_tgt_logits, src=False)
             log_det_tgt_Dloss = det_tgt_Dloss.item()
 
-            tgt_Dloss = seg_src_Dloss + det_src_Dloss
+            tgt_Dloss = seg_tgt_Dloss + det_tgt_Dloss
             self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
             tgt_Dloss.backward()
