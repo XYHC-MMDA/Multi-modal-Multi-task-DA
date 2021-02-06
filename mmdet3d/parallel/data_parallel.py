@@ -46,7 +46,7 @@ class MyDataParallel(DataParallel):
 
     def extract_img_feat(self, *inputs, **kwargs):
         inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
-        return self.module.extract_img_feat(kwargs['img'], kwargs['img_metas'])
+        return self.module.extract_img_feat(kwargs[0]['img'], kwargs[0]['img_metas'])
 
     def scatter(self, inputs, kwargs, device_ids):
         return scatter_kwargs(inputs, kwargs, device_ids, dim=self.dim)
