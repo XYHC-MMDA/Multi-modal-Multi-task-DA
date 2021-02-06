@@ -117,8 +117,8 @@ def rep_train_detector(model, dataset, cfg,
 
     # if distributed:
     #     runner.register_hook(DistSamplerSeedHook())
-    # if cfg.resume_from:
-    #     runner.resume(cfg.resume_from)
+    if cfg.resume_from:
+        runner.resume(cfg.resume_from)
     # elif cfg.load_from:
     #     runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
