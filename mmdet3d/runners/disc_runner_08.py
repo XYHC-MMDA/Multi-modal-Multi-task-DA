@@ -16,7 +16,7 @@ from mmdet3d.apis import parse_losses, set_requires_grad
 
 
 @RUNNERS.register_module()
-class DiscRunner07(BaseRunner):
+class DiscRunner08(BaseRunner):
     def __init__(self,
                  model,
                  seg_discriminator,
@@ -31,11 +31,17 @@ class DiscRunner07(BaseRunner):
                  meta=None,
                  max_iters=None,
                  max_epochs=None):
-        super(DiscRunner07, self).__init__(model, batch_processor, optimizer, work_dir, logger,
-                                           meta, max_iters, max_epochs)
-        # self.seg_disc = seg_discriminator
+        super(DiscRunner08, self).__init__(model,
+                                             batch_processor,
+                                             optimizer,
+                                             work_dir,
+                                             logger,
+                                             meta,
+                                             max_iters,
+                                             max_epochs)
+        self.seg_disc = seg_discriminator
         self.det_disc = det_discriminator
-        # self.seg_opt = seg_disc_optimizer
+        self.seg_opt = seg_disc_optimizer
         self.det_opt = det_disc_optimizer
         self.lambda_GANLoss = lambda_GANLoss  # L = L_task + self.lambda_GANLoss * L_GAN
 
@@ -53,7 +59,7 @@ class DiscRunner07(BaseRunner):
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
-        # self.seg_disc.train()
+        self.seg_disc.train()
         self.det_disc.train()
         self.mode = 'train'
         self.data_loader = src_data_loader
@@ -79,69 +85,114 @@ class DiscRunner07(BaseRunner):
             # train Discriminators
             # ------------------------
 
-            set_requires_grad(self.det_disc, requires_grad=True)
-            # src_img_feats=(4, 64, 225, 400)
-            src_img_feats = self.model.extract_img_feat(**src_data_batch)
-            src_Dlogits = self.det_disc(src_img_feats)
-            src_Dloss = self.det_disc.loss(src_Dlogits, src=True)
-            log_src_Dloss = src_Dloss.item()
+            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=True)
+            # seg_src/tgt_feats: (N, 128); det_src/tgt_feats: (4, 128, 200, 400)
+            seg_src_feats, det_src_feats = self.model.forward_fusion(**src_data_batch)
 
+            # src segmentation
+            seg_src_logits = self.seg_disc(seg_src_feats)
+            seg_src_Dloss = self.seg_disc.loss(seg_src_logits, src=True)
+            log_seg_src_Dloss = seg_src_Dloss.item()
+
+            # src detection
+            det_src_logits = self.det_disc(det_src_feats)
+            det_src_Dloss = self.det_disc.loss(det_src_logits, src=True)
+            log_det_src_Dloss = det_src_Dloss.item()
+
+            src_Dloss = seg_src_Dloss + det_src_Dloss
+            self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
             src_Dloss.backward()
+            self.seg_opt.step()
             self.det_opt.step()
 
-            # det_tgt_Dlogits = self.det_disc(det_tgt_feats.detach())
-            tgt_img_feats = self.model.extract_img_feat(**tgt_data_batch)
-            tgt_Dlogits = self.det_disc(tgt_img_feats)
-            tgt_Dloss = self.det_disc.loss(tgt_Dlogits, src=False)
-            log_tgt_Dloss = tgt_Dloss.item()
 
+            # tgt segmentation
+            seg_tgt_feats, det_tgt_feats = self.model.forward_fusion(**tgt_data_batch)
+
+            seg_tgt_logits = self.seg_disc(seg_tgt_feats)
+            seg_tgt_Dloss = self.seg_disc.loss(seg_tgt_logits, src=False)
+            log_seg_tgt_Dloss = seg_tgt_Dloss.item()
+
+            # tgt detection
+            det_tgt_logits = self.det_disc(det_tgt_feats)
+            det_tgt_Dloss = self.det_disc.loss(det_tgt_logits, src=False)
+            log_det_tgt_Dloss = det_tgt_Dloss.item()
+
+            tgt_Dloss = seg_tgt_Dloss + det_tgt_Dloss
+            self.seg_opt.zero_grad()
             self.det_opt.zero_grad()
             tgt_Dloss.backward()
+            self.seg_opt.step()
             self.det_opt.step()
 
             # ------------------------
-            # train network on source: task loss + lambda * GANLoss
+            # train network on source: task loss + GANLoss
             # ------------------------
-            set_requires_grad(self.det_disc, requires_grad=False)
-            losses, src_img_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
+            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=False)
+            losses, seg_src_feats, det_src_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
 
-            src_Dlogits = self.det_disc(src_img_feats)  # (N, 64, 225, 400)
-            src_Dpred = src_Dlogits.max(1)[1]  # (N, 225, 400); cuda
-            src_Dlabels = torch.ones_like(src_Dpred, dtype=torch.long).cuda()
-            src_acc = (src_Dpred == src_Dlabels).float().mean()
+            seg_disc_logits = self.seg_disc(seg_src_feats)  # (N, 2)
+            seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
+            seg_label = torch.ones_like(seg_disc_pred, dtype=torch.long).cuda()
+            seg_acc = (seg_disc_pred == seg_label).float().mean()
             acc_threshold = 0.6
-            if src_acc > acc_threshold:
-                losses['src_GANloss'] = self.lambda_GANLoss * self.det_disc.loss(src_Dlogits, src=False)
+            if seg_acc > acc_threshold:
+                losses['seg_src_GANloss'] = self.lambda_GANLoss * self.seg_disc.loss(seg_disc_logits, src=False)
+
+            det_disc_logits = self.det_disc(det_src_feats)  # (4, 2, 49, 99)
+            det_disc_pred = det_disc_logits.max(1)[1]  # (4, 49, 99); cuda
+            det_label = torch.ones_like(det_disc_pred, dtype=torch.long).cuda()
+            det_acc = (det_disc_pred == det_label).float().mean()
+            if det_acc > acc_threshold:
+                losses['det_src_GANloss'] = self.lambda_GANLoss * self.det_disc.loss(det_disc_logits, src=False)
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
-            log_vars['src_Dloss'] = log_src_Dloss
-            log_vars['tgt_Dloss'] = log_tgt_Dloss
-            log_vars['src_acc'] = src_acc.item()
+            log_vars['seg_src_Dloss'] = log_seg_src_Dloss
+            log_vars['det_src_Dloss'] = log_det_src_Dloss
+            log_vars['seg_tgt_Dloss'] = log_seg_tgt_Dloss
+            log_vars['det_tgt_Dloss'] = log_det_tgt_Dloss
+            log_vars['seg_src_acc'] = seg_acc.item()
+            log_vars['det_src_acc'] = det_acc.item()
 
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
 
             # ------------------------
-            # train network on target: only lambda * GANLoss
+            # train network on target: only GANLoss
             # ------------------------
             self.optimizer.zero_grad()
-            tgt_img_feats = self.model.extract_img_feat(**tgt_data_batch)
+            seg_tgt_feats, det_tgt_feats = self.model.forward_fusion(**tgt_data_batch)
 
-            tgt_Dlogits = self.det_disc(tgt_img_feats)
-            tgt_Dpred = tgt_Dlogits.max(1)[1]  # (N, ); cuda
-            tgt_Dlabels = torch.zeros_like(tgt_Dpred, dtype=torch.long).cuda()
-            tgt_acc = (tgt_Dpred == tgt_Dlabels).float().mean()
-            if tgt_acc > acc_threshold:
-                tgt_GANloss = self.lambda_GANLoss * self.det_disc.loss(tgt_Dlogits, src=True)
-                log_vars['tgt_GANloss'] = tgt_GANloss.item()
+            seg_disc_logits = self.seg_disc(seg_tgt_feats)  # (N, 2)
+            seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
+            seg_label = torch.zeros_like(seg_disc_pred, dtype=torch.long).cuda()
+            seg_acc = (seg_disc_pred == seg_label).float().mean()
+            tgt_GANloss = None
+            if seg_acc > acc_threshold:
+                seg_tgt_loss = self.lambda_GANLoss * self.seg_disc.loss(seg_disc_logits, src=True)
+                tgt_GANloss = seg_tgt_loss
+                log_vars['seg_tgt_GANloss'] = seg_tgt_loss.item()
+
+            det_disc_logits = self.det_disc(det_tgt_feats)  # (4, 2, 49, 99)
+            det_disc_pred = det_disc_logits.max(1)[1]  # (4, 49, 99); cuda
+            det_label = torch.zeros_like(det_disc_pred, dtype=torch.long).cuda()
+            det_acc = (det_disc_pred == det_label).float().mean()
+            if det_acc > acc_threshold:
+                det_tgt_loss = self.lambda_GANLoss * self.det_disc.loss(det_disc_logits, src=True)
+                log_vars['det_tgt_GANloss'] = det_tgt_loss.item()
+                if tgt_GANloss is None:
+                    tgt_GANloss = det_tgt_loss
+                else:
+                    tgt_GANloss += det_tgt_loss
+
+            log_vars['seg_tgt_acc'] = seg_acc.item()
+            log_vars['det_tgt_acc'] = det_acc.item()
+            if tgt_GANloss is not None:
                 tgt_GANloss.backward()
-
-            log_vars['tgt_acc'] = tgt_acc.item()
-
-            self.optimizer.step()
+                self.optimizer.step()
 
             # after_train_iter callback
             self.log_buffer.update(log_vars, num_samples)

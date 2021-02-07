@@ -31,13 +31,13 @@ class DiscRunner06_2(BaseRunner):
                  max_iters=None,
                  max_epochs=None):
         super(DiscRunner06_2, self).__init__(model,
-                                           batch_processor,
-                                           optimizer,
-                                           work_dir,
-                                           logger,
-                                           meta,
-                                           max_iters,
-                                           max_epochs)
+                                             batch_processor,
+                                             optimizer,
+                                             work_dir,
+                                             logger,
+                                             meta,
+                                             max_iters,
+                                             max_epochs)
         self.seg_disc = seg_discriminator
         self.det_disc = det_discriminator
         self.seg_opt = seg_disc_optimizer

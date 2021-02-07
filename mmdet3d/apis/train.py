@@ -55,8 +55,8 @@ def train_detector(model, dataset, cfg,
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
-    runner = PRunner(model, seg_discriminator, det_discriminator, seg_optimizer, det_optimizer,
-                        optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
+    runner = PRunner(model, seg_discriminator, det_discriminator, seg_optimizer, det_optimizer, cfg.lambda_GANLoss,
+                     optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     runner.timestamp = timestamp
 
     # register hooks; no opimizer_config & momentum_config

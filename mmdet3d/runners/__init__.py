@@ -6,4 +6,5 @@ from .disc_runner_05 import DiscRunner05
 from .disc_runner_06 import DiscRunner06
 from .disc_runner_06_2 import DiscRunner06_2
 from .disc_runner_07 import DiscRunner07
+from .disc_runner_08 import DiscRunner08
 from .reproduce_runner import RepRunner

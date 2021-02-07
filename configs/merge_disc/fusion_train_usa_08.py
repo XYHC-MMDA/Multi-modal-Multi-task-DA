@@ -1,9 +1,9 @@
 # variants: Runner, model, Discriminators
-runner_ver = '07'
-model_ver = '02'  # return img_feats before fusion
-seg_disc, seg_in = 'FCDiscriminatorCE', 128  # no use
-det_disc, det_in = 'Conv2dDiscriminator01', 64
-lambda_GANLoss = 1.0
+runner_ver = '08'
+model_ver = '01'  # return (N, 128) for seg; (M, 128, 200, 400) for det
+seg_disc, seg_in = 'FCDiscriminatorCE', 128
+det_disc, det_in = 'DetDiscriminator01', 128
+lambda_GANLoss = 0.1  # 1.0 corresponds to fusion_train_usa_06_2.py
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
