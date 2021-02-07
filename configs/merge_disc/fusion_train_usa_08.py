@@ -2,7 +2,7 @@
 runner_ver = '08'
 model_ver = '01'  # return (N, 128) for seg; (M, 128, 200, 400) for det
 seg_disc, seg_in = 'FCDiscriminatorCE', 128
-det_disc, det_in = 'DetDiscriminator01', 128
+det_disc, det_in = 'DetDiscriminator', 128
 lambda_GANLoss = 0.1  # 1.0 corresponds to fusion_train_usa_06_2.py
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]

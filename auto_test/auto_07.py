@@ -6,7 +6,7 @@ import time
 # variants
 ckpt_ver = '07'
 cfg_ver = '07'
-l, r = 25, 42  # [l, r]
+l, r = 43, 48  # [l, r]
 
 
 filename = f'checkpoints/merge_disc/fusion_train_usa_{ckpt_ver}/result.txt'
