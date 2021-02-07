@@ -6,10 +6,10 @@ import time
 # variants
 ckpt_ver = 'rep_48'
 cfg_ver = 'rep'
-l, r = 1, 32  # [l, r]
+l, r = 1, 48  # [l, r]
 
 
-filename = f'checkpoints/merge_disc/fusion_train_usa_{ckpt_ver}/result.txt'
+filename = f'checkpoints/merge_disc/fusion_train_usa_{ckpt_ver}/valresult.txt'
 f = open(filename, 'a')
 for i in range(l, r+1):
     start = time.time()
