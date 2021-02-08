@@ -91,7 +91,7 @@ class SingleSegRunner(BaseRunner):
 
                 self.seg_opt.zero_grad()
                 tgt_Dloss.backward()
-                self.det_opt.step()
+                self.seg_opt.step()
 
             # ------------------------
             # train network on source: task loss + GANLoss

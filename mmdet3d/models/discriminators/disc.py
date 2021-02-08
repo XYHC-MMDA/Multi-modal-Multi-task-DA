@@ -27,10 +27,11 @@ class FCDiscriminatorCE(nn.Module):
         return x
 
     def loss(self, logits, src=True):
+        label_shape = logits.shape[:1] + logits.shape[2:]
         if src:
-            labels = torch.ones(logits.size(0), dtype=torch.long).cuda()
+            labels = torch.ones(label_shape, dtype=torch.long).cuda()
         else:
-            labels = torch.zeros(logits.size(0), dtype=torch.long).cuda()
+            labels = torch.zeros(label_shape, dtype=torch.long).cuda()
         return self.criterion(logits, labels)
 
 
