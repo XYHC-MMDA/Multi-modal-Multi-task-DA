@@ -3,6 +3,7 @@ runner = 'SingleSegRunner'
 seg_discriminator = None
 seg_optimizer = None
 model_type = 'SingleSegXYZ'
+lambda_GANLoss = 0.1
 
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
