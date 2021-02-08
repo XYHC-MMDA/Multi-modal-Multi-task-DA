@@ -33,10 +33,10 @@ class SingleSegRunner(BaseRunner):
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
-        self.seg_disc.train()
         self.mode = 'train'
         self.data_loader = src_data_loader
         if self.with_disc:
+            self.seg_disc.train()
             tgt_data_iter = iter(tgt_data_loader)
             assert len(tgt_data_loader) <= len(src_data_loader)
 
