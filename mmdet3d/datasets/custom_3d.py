@@ -149,9 +149,15 @@ class Custom3DDataset(Dataset):
             return None
         self.pre_pipeline(input_dict)
         example = self.pipeline(input_dict)
-        if self.filter_empty_gt and (example is None or len(
-                example['gt_bboxes_3d']._data) == 0):
-            return None
+        # if self.filter_empty_gt and (example is None or len(
+        #         example['gt_bboxes_3d']._data) == 0):
+        #     return None
+        if self.filter_empty_gt:
+            if example is None:
+                return None
+            key = 'gt_bboxes_3d'
+            if key in example.keys() and len(example[key]._data) == 0:
+                return None
         return example
 
     def prepare_test_data(self, index):
