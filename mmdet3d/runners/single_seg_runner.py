@@ -133,8 +133,8 @@ class SingleSegRunner(BaseRunner):
                 tgt_acc = (disc_pred == seg_label).float().mean()
                 log_vars['tgt_acc'] = tgt_acc.item()
                 if tgt_acc > acc_threshold:
-                    tgt_loss = self.lambda_GANLoss * self.seg_disc.loss(disc_logits, src=True)
-                    log_vars['tgt_loss'] = tgt_loss.item()
+                    tgt_GANloss = self.lambda_GANLoss * self.seg_disc.loss(disc_logits, src=True)
+                    log_vars['tgt_GANloss'] = tgt_GANloss.item()  # original tgt_loss
 
                     self.optimizer.zero_grad()
                     tgt_loss.backward()
