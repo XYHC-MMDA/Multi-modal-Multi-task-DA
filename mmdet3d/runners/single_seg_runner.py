@@ -168,6 +168,33 @@ class SingleSegRunner(BaseRunner):
         time.sleep(1)  # wait for some hooks like loggers to finish
         self.call_hook('after_run')
 
+    def run_iter(self, data_batch, train_mode):
+        assert self.batch_processor is None
+        if train_mode:
+            outputs = self.model.train_step(data_batch, self.optimizer)
+        else:
+            outputs = self.model.val_step(data_batch, self.optimizer)
+        if not isinstance(outputs, dict):
+            raise TypeError('"model.train_step()" or "model.val_step()" must return a dict')
+        if 'log_vars' in outputs:
+            self.log_buffer.update(outputs['log_vars'], outputs['num_samples'])
+        self.outputs = outputs
+
+    def val(self, data_loader, **kwargs):
+        self.model.eval()
+        self.mode = 'val'
+        self.data_loader = data_loader
+        self.call_hook('before_val_epoch')
+        time.sleep(2)  # Prevent possible deadlock during epoch transition
+        for i, data_batch in enumerate(self.data_loader):
+            self._inner_iter = i
+            self.call_hook('before_val_iter')
+            with torch.no_grad():
+                self.run_iter(data_batch, train_mode=False)
+            self.call_hook('after_val_iter')
+
+        self.call_hook('after_val_epoch')
+
     def save_checkpoint(self,
                         out_dir,
                         filename_tmpl='epoch_{}.pth',
