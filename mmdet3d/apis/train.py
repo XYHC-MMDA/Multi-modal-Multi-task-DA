@@ -98,7 +98,8 @@ def train_single_seg_detector(model, dataset, cfg, distributed=False, timestamp=
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
     runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, lambda_GANLoss=cfg.lambda_GANLoss,
-                     optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
+                     return_fusion_feats=cfg.return_fusion_feats, optimizer=optimizer, work_dir=cfg.work_dir,
+                     logger=logger, meta=meta)
     runner.timestamp = timestamp
 
     # register hooks; no opimizer_config & momentum_config

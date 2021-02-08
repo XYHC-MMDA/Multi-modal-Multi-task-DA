@@ -1,10 +1,10 @@
 # variants
 model_type = 'SingleSegXYZ'
 runner = 'SingleSegRunner'
-lambda_GANLoss = 0.0
+lambda_GANLoss = 0.1
 
-seg_discriminator = None
-seg_optimizer = None
+seg_discriminator = dict(type='FCDiscriminatorCE', in_dim=64)
+seg_optimizer = dict(type='Adam', lr=0.0002, weight_decay=0.001)
 return_fusion_feats = False
 
 

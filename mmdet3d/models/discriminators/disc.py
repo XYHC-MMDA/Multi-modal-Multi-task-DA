@@ -18,8 +18,12 @@ class FCDiscriminatorCE(nn.Module):
         self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
+        if x.dim() == 4:
+            x = x.permute([0, 2, 3, 1])
         # x.shape=(N, in_dim=128)
         x = self.fc(x)
+        if x.dim() == 4:
+            x = x.permute([0, 3, 1, 2])
         return x
 
     def loss(self, logits, src=True):

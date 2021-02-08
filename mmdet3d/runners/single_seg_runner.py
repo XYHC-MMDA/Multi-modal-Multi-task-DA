@@ -14,6 +14,7 @@ class SingleSegRunner(BaseRunner):
                  seg_disc=None,
                  seg_opt=None,
                  lambda_GANLoss=1.0,
+                 return_fusion_feats=True,
                  batch_processor=None,
                  optimizer=None,
                  work_dir=None,
@@ -26,10 +27,17 @@ class SingleSegRunner(BaseRunner):
         self.seg_disc = seg_disc
         self.seg_opt = seg_opt
         self.lambda_GANLoss = lambda_GANLoss  # L = L_task + self.lambda_GANLoss * L_GAN
+        self.return_fusion_feats = return_fusion_feats
 
     @property
     def with_disc(self):
         return hasattr(self, 'seg_disc') and self.seg_disc is not None
+
+    def get_feats(self, img_feats, fusion_feats):
+        if self.return_fusion_feats:
+            return fusion_feats
+        else:
+            return img_feats
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
@@ -64,8 +72,8 @@ class SingleSegRunner(BaseRunner):
                 set_requires_grad(self.seg_disc, requires_grad=True)
                 # seg_feats_before_fusion: (N, 64, 225, 400); seg_feats_after_fusion: (N, 128)
                 # src segmentation
-                img_feats, fusion_feats = self.model.extact_fusion_feats(**src_data_batch)
-                src_feats = fusion_feats
+                img_feats, fusion_feats = self.model.extract_feat(**src_data_batch)
+                src_feats = self.get_feats(img_feats, fusion_feats)
                 src_logits = self.seg_disc(src_feats)
                 src_Dloss = self.seg_disc.loss(src_logits, src=True)
                 log_src_Dloss = src_Dloss.item()
@@ -75,8 +83,8 @@ class SingleSegRunner(BaseRunner):
                 self.seg_opt.step()
 
                 # tgt segmentation
-                img_feats, fusion_feats = self.model.extact_fusion_feats(**tgt_data_batch)
-                tgt_feats = fusion_feats
+                img_feats, fusion_feats = self.model.extract_feat(**tgt_data_batch)
+                tgt_feats = self.get_feats(img_feats, fusion_feats)
                 tgt_logits = self.seg_disc(tgt_feats)
                 tgt_Dloss = self.seg_disc.loss(tgt_logits, src=False)
                 log_tgt_Dloss = tgt_Dloss.item()
@@ -89,7 +97,7 @@ class SingleSegRunner(BaseRunner):
             # train network on source: task loss + GANLoss
             # ------------------------
             losses, img_feats, fusion_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
-            src_feats = fusion_feats
+            src_feats = self.get_feats(img_feats, fusion_feats)
 
             acc_threshold = 0.6
             if self.with_disc:
@@ -117,7 +125,7 @@ class SingleSegRunner(BaseRunner):
             # ------------------------
             if self.with_disc:
                 img_feats, fusion_feats = self.model.extract_feat(**tgt_data_batch)
-                tgt_feats = fusion_feats
+                tgt_feats = self.get_feats(img_feats, fusion_feats)
 
                 disc_logits = self.seg_disc(tgt_feats)  # (N, 2)
                 disc_pred = disc_logits.max(1)[1]  # (N, ); cuda
