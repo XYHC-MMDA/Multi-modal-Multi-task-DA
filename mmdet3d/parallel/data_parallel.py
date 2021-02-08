@@ -48,9 +48,9 @@ class MyDataParallel(DataParallel):
         inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
         return self.module.extract_img_feat(kwargs[0]['img'], kwargs[0]['img_metas'])
 
-    def extract_fusion_feats(self, *inputs, **kwargs):
+    def extract_feat(self, *inputs, **kwargs):
         inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
-        return self.module.extract_fusion_feats(kwargs[0]['img'], kwargs[0]['seg_points'], kwargs[0]['seg_pts_indices'])
+        return self.module.extract_feat(kwargs[0]['img'], kwargs[0]['seg_points'], kwargs[0]['seg_pts_indices'])
 
     def scatter(self, inputs, kwargs, device_ids):
         return scatter_kwargs(inputs, kwargs, device_ids, dim=self.dim)

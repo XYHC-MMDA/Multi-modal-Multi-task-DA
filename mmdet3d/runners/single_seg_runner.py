@@ -116,7 +116,7 @@ class SingleSegRunner(BaseRunner):
             # train network on target: only GANLoss
             # ------------------------
             if self.with_disc:
-                img_feats, fusion_feats = self.model.extract_fusion_feats(**tgt_data_batch)
+                img_feats, fusion_feats = self.model.extract_feat(**tgt_data_batch)
                 tgt_feats = fusion_feats
 
                 disc_logits = self.seg_disc(tgt_feats)  # (N, 2)

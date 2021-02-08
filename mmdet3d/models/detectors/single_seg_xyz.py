@@ -30,7 +30,7 @@ class SingleSegXYZ(Base3DDetector):
         img_feats = self.img_backbone(img)
         return img_feats
 
-    def extract_fusion_feats(self, img, seg_points, seg_pts_indices):
+    def extract_feat(self, img, seg_points, seg_pts_indices):
         img_feats = self.extract_img_feat(img)
         fusion_feats = self.img_seg_head.forward_fusion(img_feats, seg_points, seg_pts_indices)
         return img_feats, fusion_feats
@@ -43,14 +43,14 @@ class SingleSegXYZ(Base3DDetector):
                       img_metas=None):
         # img_feats = self.extract_img_feat(img, img_metas)
         # fusion_feats = self.img_seg_head.forward_fusion(img_feats, seg_points, seg_pts_indices)
-        img_feats, fusion_feats = self.extract_fusion_feats(img, seg_points, seg_pts_indices)
+        img_feats, fusion_feats = self.extract_feat(img, seg_points, seg_pts_indices)
         seg_logits = self.img_seg_head.forward_logits(fusion_feats)
         losses_img = self.img_seg_head.loss(seg_logits, seg_label)  # key='seg_loss'
         return losses_img, img_feats, fusion_feats
 
     def simple_test(self, img, seg_points, seg_pts_indices):
         """Test function without augmentaiton."""
-        img_feats, fusion_feats = self.extract_fusion_feats(img, seg_points, seg_pts_indices)
+        img_feats, fusion_feats = self.extract_feat(img, seg_points, seg_pts_indices)
         seg_logits = self.img_seg_head.forward_logits(fusion_feats)
         return seg_logits
 
