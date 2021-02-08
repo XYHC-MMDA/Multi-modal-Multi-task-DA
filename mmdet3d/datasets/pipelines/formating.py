@@ -265,7 +265,9 @@ class SegDetFormatBundle(object):
         for key in [
             'points', 'pts_indices', 'seg_points', 'seg_pts_indices', 'seg_label'
         ]:
-            assert key in results.keys(), f"key {key} does not exist."
+            # assert key in results.keys(), f"key {key} does not exist."
+            if key not in results.keys():
+                continue
             results[key] = DC(to_tensor(results[key]), stack=False)
 
         # stack=True
