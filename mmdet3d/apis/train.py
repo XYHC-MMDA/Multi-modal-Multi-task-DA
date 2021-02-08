@@ -25,8 +25,7 @@ def set_random_seed(seed, deterministic=False):
         torch.backends.cudnn.benchmark = False
 
 
-def train_detector(model, dataset, cfg,
-                   distributed=False, timestamp=None, meta=None):
+def train_detector(model, dataset, cfg, distributed=False, timestamp=None, meta=None):
     logger = get_root_logger(cfg.log_level)
 
     # prepare data loaders
@@ -56,6 +55,49 @@ def train_detector(model, dataset, cfg,
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
     runner = PRunner(model, seg_discriminator, det_discriminator, seg_optimizer, det_optimizer, cfg.lambda_GANLoss,
+                     optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
+    runner.timestamp = timestamp
+
+    # register hooks; no opimizer_config & momentum_config
+    runner.register_training_hooks(cfg.lr_config, checkpoint_config=cfg.checkpoint_config, log_config=cfg.log_config)
+
+    # if distributed:
+    #     runner.register_hook(DistSamplerSeedHook())
+    if cfg.resume_from:
+        runner.resume(cfg.resume_from)
+    # elif cfg.load_from:
+    #     runner.load_checkpoint(cfg.load_from)
+    runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
+
+
+def train_single_seg_detector(model, dataset, cfg, distributed=False, timestamp=None, meta=None):
+    # dataset: [src_dataset, tgt_dataset]
+    logger = get_root_logger(cfg.log_level)
+    data_loaders = [
+        build_dataloader(
+            ds,
+            cfg.data.samples_per_gpu,
+            cfg.data.workers_per_gpu,
+            # cfg.gpus will be ignored if distributed
+            len(cfg.gpu_ids),
+            dist=distributed,
+            seed=cfg.seed) for ds in dataset
+    ]
+
+    # put model on gpus
+    # model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+    model = MyDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+
+    # discriminators
+    seg_disc, seg_opt = None, None
+    if cfg.seg_discriminator is not None:
+        seg_disc = build_discriminator(cfg.seg_discriminator).cuda()
+        seg_opt = build_optimizer(seg_disc, cfg.seg_optimizer)
+
+    # build runner
+    optimizer = build_optimizer(model, cfg.optimizer)
+    PRunner = RUNNERS.get(cfg.runner)
+    runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, lambda_GANLoss=cfg.lambda_GANLoss,
                      optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     runner.timestamp = timestamp
 
