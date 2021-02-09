@@ -76,11 +76,6 @@ def parse_args():
 def main():
     args = parse_args()
 
-    assert args.out or args.eval or args.format_only or args.show, \
-        ('Please specify at least one operation (save/eval/format/show the '
-         'results) with the argument "--out", "--eval", "--format_only" '
-         'or "--show"')
-
     if args.eval and args.format_only:
         raise ValueError('--eval and --format_only cannot be both specified')
 
@@ -121,7 +116,7 @@ def main():
 
     # build the model and load checkpoint
     model_start_time = time.time()
-    model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
+    model = build_detector(cfg.model, train_cfg=None, test_cfg=None)
     # fp16_cfg = cfg.get('fp16', None)
     # if fp16_cfg is not None:
     #     wrap_fp16_model(model)
