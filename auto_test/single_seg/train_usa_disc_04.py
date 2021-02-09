@@ -4,7 +4,7 @@ import os
 import time 
 
 # variants
-cfg = 'train_usa_disc_02'
+cfg = 'train_usa_disc_04'
 l, r = 1, 24  # [l, r]
 
 
