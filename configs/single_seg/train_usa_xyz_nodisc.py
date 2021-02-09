@@ -87,12 +87,12 @@ test_pipeline = [
         type='LoadSegDetPointsFromFile',
         load_dim=5,
         use_dim=5),
-    dict(
-        type='LoadPointsFromMultiSweeps',
-        sweeps_num=10,
-        file_client_args=file_client_args),
+    # dict(
+    #     type='LoadPointsFromMultiSweeps',
+    #     sweeps_num=10,
+    #     file_client_args=file_client_args),
     dict(type='LoadFrontImage'),  # filter 'seg_points', 'seg_label', 'seg_pts_indices' inside front camera; 'img'
-    dict(type='PointsSensorFilter'),  # filter 'points', 'pts_indices' inside front camera
+    # dict(type='PointsSensorFilter'),  # filter 'points', 'pts_indices' inside front camera
     dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),  # filter 'points', 'seg_points' within point_cloud_range
     dict(type='MergeCat'),  # merge 'seg_label', 'gt_labels_3d' (from 10 classes to 4 classes, without background)
     dict(type='SegDetFormatBundle'),
