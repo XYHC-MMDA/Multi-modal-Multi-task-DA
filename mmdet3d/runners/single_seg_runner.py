@@ -137,7 +137,7 @@ class SingleSegRunner(BaseRunner):
                     log_vars['tgt_GANloss'] = tgt_GANloss.item()  # original tgt_loss
 
                     self.optimizer.zero_grad()
-                    tgt_loss.backward()
+                    tgt_GANloss.backward()
                     self.optimizer.step()
 
             # after_train_iter callback
