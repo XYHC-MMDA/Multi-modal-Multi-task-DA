@@ -47,6 +47,43 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     return box_preds  # list of dict; key='pts_bbox'
 
 
+def single_seg_test(model, data_loader):
+    model.eval()
+    dataset = data_loader.dataset
+    prog_bar = mmcv.ProgressBar(len(dataset))
+    evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
+    print('\nStart Test Loop')
+    batch_size = data_loader.batch_size
+    for idx, data in enumerate(data_loader):
+        with torch.no_grad():
+            seg_res = model(return_loss=False, rescale=True, **data)
+
+        # handle seg
+        seg_label = data['seg_label'][0].data[0]  # list of tensor
+        seg_pts_indices = data['seg_pts_indices'][0].data[0]  # list of tensor
+        seg_pred = seg_res.argmax(1).cpu().numpy()
+        pred_list = []
+        gt_list = []
+        left_idx = 0
+        for i in range(len(seg_label)):
+            # num_points = len(seg_pts_indices[i])
+            assert len(seg_label[i]) == len(seg_pts_indices[i])
+            num_points = len(seg_label[i])
+            right_idx = left_idx + num_points
+            pred_list.append(seg_pred[left_idx: right_idx])
+            gt_list.append(seg_label[i].numpy())
+            left_idx = right_idx
+        evaluator.batch_update(pred_list, gt_list)
+
+        # batch_size = len(box_res)
+        for _ in range(batch_size):
+            prog_bar.update()
+
+    print(evaluator.print_table())
+    print('overall_acc:', evaluator.overall_acc)
+    print('overall_iou:', evaluator.overall_iou)
+
+
 def single_gpu_test(model, data_loader, show=False, out_dir=None):
     """Test model with single gpu.
 
