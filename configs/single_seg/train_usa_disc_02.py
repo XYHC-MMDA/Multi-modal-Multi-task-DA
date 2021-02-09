@@ -33,8 +33,8 @@ model = dict(
         class_weights=[2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.])
 )
 
-# train_cfg = dict()
-# test_cfg = dict()
+train_cfg = None
+test_cfg = None
 
 class_names = [
     'vehicle',  # car, truck, bus, trailer, cv
@@ -57,26 +57,8 @@ train_pipeline = [
     dict(type='LoadSegDetPointsFromFile',  # 'points', 'seg_points', 'seg_label'
          load_dim=5,
          use_dim=5),
-    # dict(
-    #     type='LoadPointsFromMultiSweeps',
-    #     sweeps_num=10,
-    #     file_client_args=file_client_args),
-    # dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(type='LoadFrontImage'),  # filter 'seg_points', 'seg_label', 'seg_pts_indices' inside front camera; 'img'
-    # dict(type='PointsSensorFilter'),  # filter 'points', 'pts_indices' inside front camera
-    # dict(
-    #     type='GlobalRotScaleTrans',
-    #     rot_range=[-0.7854, 0.7854],
-    #     scale_ratio_range=[0.9, 1.1],
-    #     translation_std=[0.2, 0.2, 0.2]),
-    # dict(
-    #     type='RandomFlip3D',
-    #     flip_ratio_bev_horizontal=0.5,
-    #     flip_ratio_bev_vertical=0.5),
     dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),  # filter 'points', 'seg_points' within point_cloud_range
-    # dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    # dict(type='DetLabelFilter'),
-    # dict(type='PointShuffle'),
     dict(type='MergeCat'),  # merge 'seg_label', 'gt_labels_3d' (from 10 classes to 4 classes, without background)
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
@@ -87,34 +69,11 @@ test_pipeline = [
         type='LoadSegDetPointsFromFile',
         load_dim=5,
         use_dim=5),
-    dict(
-        type='LoadPointsFromMultiSweeps',
-        sweeps_num=10,
-        file_client_args=file_client_args),
     dict(type='LoadFrontImage'),  # filter 'seg_points', 'seg_label', 'seg_pts_indices' inside front camera; 'img'
-    dict(type='PointsSensorFilter'),  # filter 'points', 'pts_indices' inside front camera
     dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),  # filter 'points', 'seg_points' within point_cloud_range
     dict(type='MergeCat'),  # merge 'seg_label', 'gt_labels_3d' (from 10 classes to 4 classes, without background)
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
-    # dict(
-    #     type='MultiScaleFlipAug3D',
-    #     img_scale=(1333, 800),
-    #     pts_scale_ratio=1,
-    #     flip=False,
-    #     transforms=[
-    #         dict(
-    #             type='GlobalRotScaleTrans',
-    #             rot_range=[0, 0],
-    #             scale_ratio_range=[1., 1.],
-    #             translation_std=[0, 0, 0]),
-    #         dict(type='RandomFlip3D'),
-    #         dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
-    #         dict(type='MergeCat'),
-    #         dict(type='SegDetFormatBundle'),
-    #         dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
-    #                                      'points', 'pts_indices'])
-    #     ])
 ]
 
 # dataset

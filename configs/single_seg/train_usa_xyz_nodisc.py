@@ -33,8 +33,8 @@ model = dict(
         class_weights=[2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.])
 )
 
-# train_cfg = dict()
-# test_cfg = dict()
+train_cfg = None
+test_cfg = None
 
 class_names = [
     'vehicle',  # car, truck, bus, trailer, cv
