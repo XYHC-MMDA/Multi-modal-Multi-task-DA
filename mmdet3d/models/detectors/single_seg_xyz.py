@@ -67,9 +67,9 @@ class SingleSegXYZ(Base3DDetector):
         if num_augs == 1:
             # img = [img] if img is None else img
             # seg_pts_indices = [seg_pts_indices] if seg_pts_indices is None else seg_pts_indices
-            return self.simple_test(img=img[0],
-                                    seg_points=seg_points[0],
-                                    seg_pts_indices=seg_pts_indices[0])
+            return self.simple_test(img=img,
+                                    seg_points=seg_points,
+                                    seg_pts_indices=seg_pts_indices)
         else:
             assert False, 'aug test error'
             # return self.aug_test(points, img_metas, img, **kwargs)

@@ -59,8 +59,8 @@ def single_seg_test(model, data_loader):
             seg_res = model(return_loss=False, rescale=True, **data)
 
         # handle seg
-        seg_label = data['seg_label'][0].data[0]  # list of tensor
-        seg_pts_indices = data['seg_pts_indices'][0].data[0]  # list of tensor
+        seg_label = data['seg_label'].data[0]  # list of tensor
+        seg_pts_indices = data['seg_pts_indices'].data[0]  # list of tensor
         seg_pred = seg_res.argmax(1).cpu().numpy()
         pred_list = []
         gt_list = []
