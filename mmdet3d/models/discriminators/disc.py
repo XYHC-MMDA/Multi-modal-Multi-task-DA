@@ -36,6 +36,37 @@ class FCDiscriminatorCE(nn.Module):
 
 
 @DISCRIMINATORS.register_module()
+class ConvDiscriminator1x1(nn.Module):
+    def __init__(self, in_dim=128):
+        # in_dim: input_channels
+        super(ConvDiscriminator1x1, self).__init__()
+        dim1, dim2 = 256, 256
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_dim, dim1, kernel_size=1),
+            nn.BatchNorm2d(dim1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(dim1, dim2, kernel_size=1),
+            nn.BatchNorm2d(dim2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(dim1, 2, kernel_size=1),
+        )
+        self.criterion = nn.CrossEntropyLoss()
+
+    def forward(self, x):
+        # x.shape=(N, 128, 225, 400)
+        x = self.conv(x)  # (N, 2, 225, 400)
+        return x
+
+    def loss(self, logits, src=True):
+        N, _, H, W = logits.shape
+        if src:
+            labels = torch.ones([N, H, W], dtype=torch.long).cuda()
+        else:
+            labels = torch.zeros([N, H, W], dtype=torch.long).cuda()
+        return self.criterion(logits, labels)
+
+
+@DISCRIMINATORS.register_module()
 class DetDiscriminator(nn.Module):
     def __init__(self, in_dim=128):
         # in_dim: input_channels

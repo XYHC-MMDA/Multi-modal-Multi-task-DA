@@ -12,3 +12,4 @@ from .disc_runner_08 import DiscRunner08
 from .single_seg_runner import SingleSegRunner
 from .single_seg_runner_02 import SingleSegRunner02
 from .single_seg_runner_03 import SingleSegRunner03
+from .single_seg_runner_04 import SingleSegRunner04
