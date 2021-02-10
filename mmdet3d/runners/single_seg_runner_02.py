@@ -9,11 +9,13 @@ from mmdet3d.apis import parse_losses, set_requires_grad
 
 
 @RUNNERS.register_module()
-class SingleSegRunner(BaseRunner):
+class SingleSegRunner02(BaseRunner):
     def __init__(self, model,
                  seg_disc=None,
                  seg_opt=None,
                  lambda_GANLoss=0.0,
+                 src_acc_threshold=1.0,
+                 tgt_acc_threshold=0.6,
                  return_fusion_feats=True,
                  batch_processor=None,
                  optimizer=None,
@@ -22,11 +24,13 @@ class SingleSegRunner(BaseRunner):
                  meta=None,
                  max_iters=None,
                  max_epochs=None):
-        super(SingleSegRunner, self).__init__(model, batch_processor, optimizer, work_dir, logger, meta,
-                                              max_iters, max_epochs)
+        super(SingleSegRunner02, self).__init__(model, batch_processor, optimizer, work_dir, logger, meta,
+                                                max_iters, max_epochs)
         self.seg_disc = seg_disc
         self.seg_opt = seg_opt
         self.lambda_GANLoss = lambda_GANLoss  # L = L_task + self.lambda_GANLoss * L_GAN
+        self.src_acc_threshold = src_acc_threshold
+        self.tgt_acc_threshold = tgt_acc_threshold
         self.return_fusion_feats = return_fusion_feats
 
     @property
@@ -72,25 +76,22 @@ class SingleSegRunner(BaseRunner):
                 set_requires_grad(self.seg_disc, requires_grad=True)
                 # seg_feats_before_fusion: (N, 64, 225, 400); seg_feats_after_fusion: (N, 128)
                 # src segmentation
-                img_feats, fusion_feats = self.model.extract_feat(**src_data_batch)
-                src_feats = self.get_feats(img_feats, fusion_feats)
+                src_img_feats, src_fusion_feats = self.model.extract_feat(**src_data_batch)
+                src_feats = self.get_feats(src_img_feats, src_fusion_feats)
                 src_logits = self.seg_disc(src_feats)
                 src_Dloss = self.seg_disc.loss(src_logits, src=True)
                 log_src_Dloss = src_Dloss.item()
 
-                self.seg_opt.zero_grad()
-                src_Dloss.backward()
-                self.seg_opt.step()
-
                 # tgt segmentation
-                img_feats, fusion_feats = self.model.extract_feat(**tgt_data_batch)
-                tgt_feats = self.get_feats(img_feats, fusion_feats)
+                tgt_img_feats, tgt_fusion_feats = self.model.extract_feat(**tgt_data_batch)
+                tgt_feats = self.get_feats(tgt_img_feats, tgt_fusion_feats)
                 tgt_logits = self.seg_disc(tgt_feats)
                 tgt_Dloss = self.seg_disc.loss(tgt_logits, src=False)
                 log_tgt_Dloss = tgt_Dloss.item()
 
+                Dloss = (src_Dloss + tgt_Dloss) * 0.5
                 self.seg_opt.zero_grad()
-                tgt_Dloss.backward()
+                Dloss.backward()
                 self.seg_opt.step()
 
             # ------------------------
@@ -99,14 +100,13 @@ class SingleSegRunner(BaseRunner):
             losses, img_feats, fusion_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
             src_feats = self.get_feats(img_feats, fusion_feats)
 
-            acc_threshold = 0.6
             if self.with_disc:
                 set_requires_grad(self.seg_disc, requires_grad=True)
                 disc_logits = self.seg_disc(src_feats)  # (N, 2)
                 disc_pred = disc_logits.max(1)[1]  # (N, ); cuda
                 seg_label = torch.ones_like(disc_pred, dtype=torch.long).cuda()
                 src_acc = (disc_pred == seg_label).float().mean()
-                if src_acc > acc_threshold:
+                if src_acc > self.src_acc_threshold:
                     losses['src_GANloss'] = self.lambda_GANLoss * self.seg_disc.loss(disc_logits, src=False)
 
             loss, log_vars = parse_losses(losses)
@@ -132,7 +132,7 @@ class SingleSegRunner(BaseRunner):
                 seg_label = torch.zeros_like(disc_pred, dtype=torch.long).cuda()
                 tgt_acc = (disc_pred == seg_label).float().mean()
                 log_vars['tgt_acc'] = tgt_acc.item()
-                if tgt_acc > acc_threshold:
+                if tgt_acc > self.tgt_acc_threshold:
                     tgt_GANloss = self.lambda_GANLoss * self.seg_disc.loss(disc_logits, src=True)
                     log_vars['tgt_GANloss'] = tgt_GANloss.item()  # original tgt_loss
 

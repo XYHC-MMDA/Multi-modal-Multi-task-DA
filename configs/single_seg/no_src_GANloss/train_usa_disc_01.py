@@ -1,11 +1,13 @@
 # variants
 model_type = 'SingleSegXYZ'
-runner = 'SingleSegRunner'
-lambda_GANLoss = 0.1  # task_loss + lambda_GANLoss * GANLoss
+runner = 'SingleSegRunner02'
+lambda_GANLoss = 0.1
+src_acc_threshold = 1.0
+tgt_acc_threshold = 0.6
 
-seg_discriminator = dict(type='FCDiscriminatorCE', in_dim=64)
+seg_discriminator = dict(type='FCDiscriminatorCE', in_dim=128)
 seg_optimizer = dict(type='Adam', lr=0.0002, weight_decay=0.001)
-return_fusion_feats = False
+return_fusion_feats = True
 
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]

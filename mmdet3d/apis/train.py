@@ -97,9 +97,16 @@ def train_single_seg_detector(model, dataset, cfg, distributed=False, timestamp=
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
-    runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, lambda_GANLoss=cfg.lambda_GANLoss,
-                     return_fusion_feats=cfg.return_fusion_feats, optimizer=optimizer, work_dir=cfg.work_dir,
-                     logger=logger, meta=meta)
+    runner_kwargs = dict()
+    for key in ['lambda_GANLoss', 'src_acc_threshold', 'tgt_acc_threshold', 'return_fusion_feats']:
+        if not hasattr(cfg, key):
+            continue
+        runner_kwargs[key] = getattr(cfg, key)
+    runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, **runner_kwargs,
+                     optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
+    # runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, lambda_GANLoss=cfg.lambda_GANLoss,
+    #                  return_fusion_feats=cfg.return_fusion_feats, optimizer=optimizer, work_dir=cfg.work_dir,
+    #                  logger=logger, meta=meta)
     runner.timestamp = timestamp
 
     # register hooks; no opimizer_config & momentum_config
