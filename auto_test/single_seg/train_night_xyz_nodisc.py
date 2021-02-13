@@ -5,7 +5,7 @@ import time
 
 # variants
 cfg = 'train_night_xyz_nodisc'
-l, r = 1, 36  # [l, r]
+l, r = 1, 24  # [l, r]
 
 
 filename = f'checkpoints/single_seg/{cfg}/result.txt'
