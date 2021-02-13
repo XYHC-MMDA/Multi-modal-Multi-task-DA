@@ -6,7 +6,7 @@ runner = 'ImgDiscRunner01'
 model_type = 'FusionDisc02'  # return img_feats before fusion
 lambda_GANLoss = 0.0001
 
-seg_discriminator = dict(type='ConvDiscriminator1x1', in_dim=64, activation='ReLU')
+seg_discriminator = dict(type='FCDiscriminatorCE', in_dim=64)
 seg_optimizer = dict(type='Adam', lr=0.0002, weight_decay=0.001)
 det_discriminator = None
 det_optimizer = None
