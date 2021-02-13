@@ -15,3 +15,4 @@ from .single_seg_runner_03 import SingleSegRunner03
 from .single_seg_runner_04 import SingleSegRunner04
 
 from .img_disc_runner_01 import ImgDiscRunner01
+from .img_disc_runner_02 import ImgDiscRunner02
