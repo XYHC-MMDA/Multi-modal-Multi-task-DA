@@ -19,10 +19,10 @@ from mmdet3d.apis import parse_losses, set_requires_grad
 class ImgDiscRunner01(BaseRunner):
     def __init__(self,
                  model,
-                 seg_discriminator=None,
-                 seg_disc_optimizer=None,
-                 det_discriminator=None,
-                 det_disc_optimizer=None,
+                 seg_disc=None,
+                 seg_opt=None,
+                 det_disc=None,
+                 det_opt=None,
                  src_acc_threshold=1.0,
                  tgt_acc_threshold=0.6,
                  lambda_GANLoss=0.0001,
@@ -35,10 +35,10 @@ class ImgDiscRunner01(BaseRunner):
                  max_epochs=None):
         super(ImgDiscRunner01, self).__init__(model, batch_processor, optimizer, work_dir, logger,
                                               meta, max_iters, max_epochs)
-        self.seg_disc = seg_discriminator
-        self.seg_opt = seg_disc_optimizer
-        # self.det_disc = det_discriminator
-        # self.det_opt = det_disc_optimizer
+        self.seg_disc = seg_disc
+        self.seg_opt = seg_opt
+        # self.det_disc = det_disc
+        # self.det_opt = det_opt
         self.lambda_GANLoss = lambda_GANLoss  # L = src_task_task + self.lambda_GANLoss * tgt_GANloss
         self.src_acc_threshold = src_acc_threshold
         self.tgt_acc_threshold = tgt_acc_threshold

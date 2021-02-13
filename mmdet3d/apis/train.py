@@ -46,15 +46,24 @@ def train_detector(model, dataset, cfg, distributed=False, timestamp=None, meta=
     model = MyDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # discriminators
-    seg_discriminator = build_discriminator(cfg.seg_discriminator).cuda()
-    det_discriminator = build_discriminator(cfg.det_discriminator).cuda()
-    seg_optimizer = build_optimizer(seg_discriminator, cfg.seg_optimizer)
-    det_optimizer = build_optimizer(det_discriminator, cfg.det_optimizer)
+    seg_disc, seg_opt = None, None
+    if cfg.seg_discriminator is not None:
+        seg_disc = build_discriminator(cfg.seg_discriminator).cuda()
+        seg_opt = build_optimizer(seg_disc, cfg.seg_optimizer)
+    det_disc, det_opt = None, None
+    if cfg.det_discriminator is not None:
+        det_disc = build_discriminator(cfg.det_discriminator).cuda()
+        det_opt = build_optimizer(det_disc, cfg.det_optimizer)
 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
-    runner = PRunner(model, seg_discriminator, det_discriminator, seg_optimizer, det_optimizer, cfg.lambda_GANLoss,
+    runner_kwargs = dict()
+    for key in ['lambda_GANLoss', 'src_acc_threshold', 'tgt_acc_threshold']:
+        if not hasattr(cfg, key):
+            continue
+        runner_kwargs[key] = getattr(cfg, key)
+    runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, det_disc=det_disc, det_opt=det_opt, **runner_kwargs,
                      optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     runner.timestamp = timestamp
 
