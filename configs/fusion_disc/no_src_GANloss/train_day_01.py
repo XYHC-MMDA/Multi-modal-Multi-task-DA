@@ -269,15 +269,15 @@ evaluation = dict(interval=100)
 
 # shedule_2x.py
 optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)
-optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+# optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=1000,
     warmup_ratio=1.0 / 1000,
-    step=[28, 34])
+    step=[18, 28])
 momentum_config = None
-total_epochs = 48
+total_epochs = 36
 
 # default_runtime.py
 checkpoint_config = dict(interval=1)
