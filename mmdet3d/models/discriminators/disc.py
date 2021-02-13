@@ -37,17 +37,18 @@ class FCDiscriminatorCE(nn.Module):
 
 @DISCRIMINATORS.register_module()
 class ConvDiscriminator1x1(nn.Module):
-    def __init__(self, in_dim=128):
+    def __init__(self, in_dim=128, activation='ReLU'):
         # in_dim: input_channels
+        assert activation in ['ReLU', 'Leaky']
         super(ConvDiscriminator1x1, self).__init__()
         dim1, dim2 = 256, 256
         self.conv = nn.Sequential(
             nn.Conv2d(in_dim, dim1, kernel_size=1),
             nn.BatchNorm2d(dim1),
-            nn.ReLU(inplace=True),
+            self._make_activation(activation),
             nn.Conv2d(dim1, dim2, kernel_size=1),
             nn.BatchNorm2d(dim2),
-            nn.ReLU(inplace=True),
+            self._make_activation(activation),
             nn.Conv2d(dim1, 2, kernel_size=1),
         )
         self.criterion = nn.CrossEntropyLoss()
@@ -64,6 +65,12 @@ class ConvDiscriminator1x1(nn.Module):
         else:
             labels = torch.zeros([N, H, W], dtype=torch.long).cuda()
         return self.criterion(logits, labels)
+
+    def _make_activation(self, act):
+        if act == 'ReLU':
+            return nn.ReLU(inplace=True)
+        elif act == 'Leaky':
+            return nn.LeakyReLU(0.2, inplace=True)
 
 
 @DISCRIMINATORS.register_module()

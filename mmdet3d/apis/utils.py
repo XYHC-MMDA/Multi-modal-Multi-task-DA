@@ -32,5 +32,7 @@ def set_requires_grad(models, requires_grad=False):
     if not isinstance(models, list):
         models = [models]
     for model in models:
+        if model is None:
+            continue
         for param in model.parameters():
             param.requires_grad = requires_grad
