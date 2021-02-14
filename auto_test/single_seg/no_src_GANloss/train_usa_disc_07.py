@@ -5,8 +5,8 @@ import time
 
 # variants
 cfg = 'train_usa_disc_07'
-ckpt = 'train_usa_disc_07'
-l, r = 25, 36  # [l, r]
+ckpt = 'train_usa_disc_07_repeat'
+l, r = 1, 30  # [l, r]
 
 
 filename = f'checkpoints/single_seg/no_src_GANloss/{ckpt}/result.txt'
