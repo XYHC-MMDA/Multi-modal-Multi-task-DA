@@ -9,7 +9,7 @@ from mmdet3d.apis import parse_losses, set_requires_grad
 
 
 @RUNNERS.register_module()
-class SingleSegRunner04(BaseRunner):
+class SingleSegRunner06(BaseRunner):
     def __init__(self, model,
                  seg_disc=None,
                  seg_opt=None,
@@ -24,7 +24,7 @@ class SingleSegRunner04(BaseRunner):
                  meta=None,
                  max_iters=None,
                  max_epochs=None):
-        super(SingleSegRunner04, self).__init__(model, batch_processor, optimizer, work_dir, logger, meta,
+        super(SingleSegRunner06, self).__init__(model, batch_processor, optimizer, work_dir, logger, meta,
                                                 max_iters, max_epochs)
         self.seg_disc = seg_disc
         self.seg_opt = seg_opt
