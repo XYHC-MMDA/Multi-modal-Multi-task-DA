@@ -13,6 +13,8 @@ from .single_seg_runner import SingleSegRunner
 from .single_seg_runner_02 import SingleSegRunner02
 from .single_seg_runner_03 import SingleSegRunner03
 from .single_seg_runner_04 import SingleSegRunner04
+from .single_seg_runner_05 import SingleSegRunner05
+from .single_seg_runner_06 import SingleSegRunner06
 
 from .img_disc_runner_01 import ImgDiscRunner01
 from .img_disc_runner_02 import ImgDiscRunner02
