@@ -97,21 +97,31 @@ def train_single_seg_detector(model, dataset, cfg, distributed=False, timestamp=
     # model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
     model = MyDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
-    # discriminators
-    seg_disc, seg_opt = None, None
+    # build runner
+    runner_kwargs = dict()
     if cfg.seg_discriminator is not None:
         seg_disc = build_discriminator(cfg.seg_discriminator).cuda()
-        seg_opt = build_optimizer(seg_disc, cfg.seg_optimizer)
+        runner_kwargs['seg_disc'] = seg_disc
+        runner_kwargs['seg_opt'] = build_optimizer(seg_disc, cfg.seg_optimizer)
 
-    # build runner
+    if cfg.img_disc is not None:
+        img_disc = build_discriminator(cfg.img_disc).cuda()
+        runner_kwargs['img_disc'] = img_disc
+        runner_kwargs['img_opt'] = build_optimizer(img_disc, cfg.img_opt)
+
+    if cfg.lidar_disc is not None:
+        lidar_disc = build_discriminator(cfg.lidar_disc).cuda()
+        runner_kwargs['lidar_disc'] = lidar_disc
+        runner_kwargs['lidar_opt'] = build_optimizer(lidar_disc, cfg.lidar_opt)
+
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
-    runner_kwargs = dict()
-    for key in ['lambda_GANLoss', 'src_acc_threshold', 'tgt_acc_threshold', 'return_fusion_feats']:
+    for key in ['lambda_GANLoss', 'src_acc_threshold', 'tgt_acc_threshold', 'return_fusion_feats',
+                'lambda_img', 'lambda_lidar']:
         if not hasattr(cfg, key):
             continue
         runner_kwargs[key] = getattr(cfg, key)
-    runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, **runner_kwargs,
+    runner = PRunner(model, **runner_kwargs,
                      optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     # runner = PRunner(model, seg_disc=seg_disc, seg_opt=seg_opt, lambda_GANLoss=cfg.lambda_GANLoss,
     #                  return_fusion_feats=cfg.return_fusion_feats, optimizer=optimizer, work_dir=cfg.work_dir,
