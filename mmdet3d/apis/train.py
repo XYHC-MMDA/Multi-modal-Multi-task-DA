@@ -99,20 +99,15 @@ def train_single_seg_detector(model, dataset, cfg, distributed=False, timestamp=
 
     # build runner
     runner_kwargs = dict()
-    if cfg.seg_discriminator is not None:
-        seg_disc = build_discriminator(cfg.seg_discriminator).cuda()
-        runner_kwargs['seg_disc'] = seg_disc
-        runner_kwargs['seg_opt'] = build_optimizer(seg_disc, cfg.seg_optimizer)
-
-    if cfg.img_disc is not None:
-        img_disc = build_discriminator(cfg.img_disc).cuda()
-        runner_kwargs['img_disc'] = img_disc
-        runner_kwargs['img_opt'] = build_optimizer(img_disc, cfg.img_opt)
-
-    if cfg.lidar_disc is not None:
-        lidar_disc = build_discriminator(cfg.lidar_disc).cuda()
-        runner_kwargs['lidar_disc'] = lidar_disc
-        runner_kwargs['lidar_opt'] = build_optimizer(lidar_disc, cfg.lidar_opt)
+    for disc_key, opt_key in [('seg_discriminator', 'seg_optimizer'),
+                              ('img_disc', 'img_opt'),
+                              ('lidar_disc', 'lidar_opt')]:
+        if not hasattr(cfg, disc_key):
+            continue
+        disc = build_discriminator(getattr(cfg, disc_key)).cuda()
+        opt = build_optimizer(disc, getattr(cfg, opt_key))
+        runner_kwargs[disc_key] = disc_key
+        runner_kwargs[opt_key] = opt
 
     optimizer = build_optimizer(model, cfg.optimizer)
     PRunner = RUNNERS.get(cfg.runner)
