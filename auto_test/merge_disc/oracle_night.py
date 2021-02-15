@@ -3,20 +3,21 @@ import argparse
 import os 
 import time 
 
-cfg = 'train_day_03'
-ckpt = 'train_day_03'
-l, r = 1, 17
+# variants
+ckpt = 'oracle_night'
+cfg = 'oracle_night'
+l, r = 1, 24  # [l, r]
 
 
-filename = f'checkpoints/fusion_disc/no_src_GANloss/{ckpt}/result.txt'
+filename = f'checkpoints/merge_disc/{ckpt}/result.txt'
 f = open(filename, 'a')
 for i in range(l, r+1):
     start = time.time()
     proc = Popen(['python', './tools/mmda_test.py',
-                  f'configs/fusion_disc/no_src_GANloss/{cfg}.py',
-                  f'checkpoints/fusion_disc/no_src_GANloss/{ckpt}/epoch_{i}.pth',
+                  f'configs/merge_disc/{cfg}.py',
+                  f'checkpoints/merge_disc/{ckpt}/epoch_{i}.pth',
                   '--eval', 'mAP',
-                  '--json', f'checkpoints/fusion_disc/no_src_GANloss/{ckpt}/{i}'], stdout=f)
+                  '--json', f'checkpoints/merge_disc/{ckpt}/{i}'], stdout=f)
     # print(f'epoch_{i}.pth finished')
     proc.wait()
     end = time.time()
