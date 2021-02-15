@@ -1,4 +1,5 @@
 # correct weights
+# baseline_usa
 
 ann_train = 'mmda_xmuda_split/train_usa.pkl'
 ann_val = 'mmda_xmuda_split/test_singapore.pkl'

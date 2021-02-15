@@ -1,10 +1,9 @@
-# fusion_day_rep
-# baseline_day
-ann_train = 'mmda_xmuda_split/train_day.pkl'
-ann_val = 'mmda_xmuda_split/test_night.pkl'
+# oracle_sng
+ann_train = 'mmda_xmuda_split/train_singapore.pkl'
+ann_val = 'mmda_xmuda_split/test_singapore.pkl'
 daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
 usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
-class_weights = daynight_weights
+class_weights = usasng_weights
 
 
 ########################################################
