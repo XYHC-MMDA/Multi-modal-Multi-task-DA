@@ -106,6 +106,8 @@ def train_single_seg_detector(model, dataset, cfg, distributed=False, timestamp=
             continue
         disc = build_discriminator(getattr(cfg, disc_key)).cuda()
         opt = build_optimizer(disc, getattr(cfg, opt_key))
+        if disc_key == 'seg_discriminator':
+            disc_key, opt_key = 'seg_disc', 'seg_opt'
         runner_kwargs[disc_key] = disc
         runner_kwargs[opt_key] = opt
 
