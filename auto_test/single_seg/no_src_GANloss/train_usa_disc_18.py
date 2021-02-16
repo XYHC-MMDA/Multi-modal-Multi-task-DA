@@ -6,7 +6,7 @@ import time
 # variants
 cfg = 'train_usa_disc_18'
 ckpt = 'train_usa_disc_18'
-l, r = 1, 16  # [l, r]
+l, r = 17, 24  # [l, r]
 
 
 filename = f'checkpoints/single_seg/no_src_GANloss/{ckpt}/result.txt'

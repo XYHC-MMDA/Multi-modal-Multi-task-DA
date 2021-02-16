@@ -4,8 +4,8 @@ import os
 import time 
 
 # variants
-cfg = 'train_usa_disc_16'
-ckpt = 'train_usa_disc_16'
+cfg = 'train_usa_disc_17'
+ckpt = 'train_usa_disc_17'
 l, r = 1, 24  # [l, r]
 
 
