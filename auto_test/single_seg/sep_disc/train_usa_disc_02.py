@@ -6,7 +6,7 @@ import time
 # variants
 cfg = 'train_usa_disc_02'
 ckpt = 'train_usa_disc_02'
-l, r = 1, 16  # [l, r]
+l, r = 17, 24  # [l, r]
 
 
 filename = f'checkpoints/single_seg/sep_disc/{ckpt}/result.txt'
