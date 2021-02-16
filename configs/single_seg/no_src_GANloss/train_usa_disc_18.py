@@ -133,9 +133,9 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=1000,
     warmup_ratio=1.0 / 1000,
-    step=[12, 18])
+    step=[16, 22])
 momentum_config = None
-total_epochs = 36 
+total_epochs = 24
 
 # default_runtime.py
 checkpoint_config = dict(interval=1)
