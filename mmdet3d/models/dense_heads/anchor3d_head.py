@@ -5,7 +5,7 @@ from mmcv.runner import force_fp32
 from torch import nn as nn
 
 from mmdet3d.core import (PseudoSampler, box3d_multiclass_nms, limit_period,
-                          xywhr2xyxyr)
+                          xywhr2xyxyr, box3d_multiclass_nms2)
 from mmdet.core import (build_anchor_generator, build_assigner,
                         build_bbox_coder, build_sampler, multi_apply)
 from mmdet.models import HEADS
@@ -516,9 +516,12 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
             mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)  # shape=(3000, 5)
 
         score_thr = cfg.get('score_thr', 0)
-        results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
-                                       mlvl_scores, score_thr, cfg.max_num,
-                                       cfg, mlvl_dir_scores)
+        # results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
+        #                                mlvl_scores, score_thr, cfg.max_num,
+        #                                cfg, mlvl_dir_scores)
+        results = box3d_multiclass_nms2(mlvl_bboxes, mlvl_bboxes_for_nms,
+                                        mlvl_scores, score_thr, cfg.max_num,
+                                        cfg, mlvl_dir_scores)
         bboxes, scores, labels, dir_scores = results  # bboxes.shape=(N, 9); scores/labels/dir_scores.shape=(N, )
         if bboxes.shape[0] > 0:
             dir_rot = limit_period(bboxes[..., 6] - self.dir_offset,

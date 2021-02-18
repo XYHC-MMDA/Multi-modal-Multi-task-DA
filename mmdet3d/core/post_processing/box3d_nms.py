@@ -88,6 +88,75 @@ def box3d_multiclass_nms(mlvl_bboxes,
     return bboxes, scores, labels, dir_scores
 
 
+def box3d_multiclass_nms2(mlvl_bboxes,
+                         mlvl_bboxes_for_nms,
+                         mlvl_scores,
+                         score_thr,
+                         max_num,
+                         cfg,
+                         mlvl_dir_scores=None):
+    '''
+    My own multiclass nms
+    '''
+    # do multi class nms
+    # the fg class id range: [0, num_classes-1]
+    num_classes = mlvl_scores.shape[1] - 1
+    bboxes = []
+    scores = []
+    labels = []
+    dir_scores = []
+    max_ind = mlvl_scores.max(dim=1)[1]
+    for i in range(0, num_classes):
+        # get bboxes and scores of this class
+        mask_i = max_ind == i
+        scores_i = mlvl_scores[mask_i]
+        cls_inds = scores_i[:, i] > score_thr
+        if not cls_inds.any():
+            continue
+
+        _scores = scores_i[cls_inds, i]
+        _bboxes_for_nms = mlvl_bboxes_for_nms[cls_inds, :]
+
+        if cfg.use_rotate_nms:
+            nms_func = nms_gpu
+        else:
+            nms_func = nms_normal_gpu
+
+        selected = nms_func(_bboxes_for_nms, _scores, cfg.nms_thr)
+        _mlvl_bboxes = mlvl_bboxes[cls_inds, :]
+        bboxes.append(_mlvl_bboxes[selected])
+        scores.append(_scores[selected])
+        cls_label = mlvl_bboxes.new_full((len(selected), ),
+                                         i,
+                                         dtype=torch.long)
+        labels.append(cls_label)
+
+        if mlvl_dir_scores is not None:
+            _mlvl_dir_scores = mlvl_dir_scores[cls_inds]
+            dir_scores.append(_mlvl_dir_scores[selected])
+
+    if bboxes:
+        bboxes = torch.cat(bboxes, dim=0)
+        scores = torch.cat(scores, dim=0)
+        labels = torch.cat(labels, dim=0)
+        if mlvl_dir_scores is not None:
+            dir_scores = torch.cat(dir_scores, dim=0)
+        if bboxes.shape[0] > max_num:
+            _, inds = scores.sort(descending=True)
+            inds = inds[:max_num]
+            bboxes = bboxes[inds, :]
+            labels = labels[inds]
+            scores = scores[inds]
+            if mlvl_dir_scores is not None:
+                dir_scores = dir_scores[inds]
+    else:
+        bboxes = mlvl_scores.new_zeros((0, mlvl_bboxes.size(-1)))
+        scores = mlvl_scores.new_zeros((0, ))
+        labels = mlvl_scores.new_zeros((0, ), dtype=torch.long)
+        dir_scores = mlvl_scores.new_zeros((0, ))
+    return bboxes, scores, labels, dir_scores
+
+
 def aligned_3d_nms(boxes, scores, classes, thresh):
     """3d nms for aligned boxes.
 
