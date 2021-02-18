@@ -96,7 +96,7 @@ def box3d_multiclass_nms2(mlvl_bboxes,
                           cfg,
                           mlvl_dir_scores=None):
     '''
-    My own multiclass nms
+    My own multiclass nms; mAP 50.21 for box3d_multiclass_nms; 50.10 for box3d_multiclass_nms2
     '''
     # do multi class nms
     # the fg class id range: [0, num_classes-1]

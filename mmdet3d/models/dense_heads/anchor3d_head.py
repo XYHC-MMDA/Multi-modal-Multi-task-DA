@@ -516,12 +516,9 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
             mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)  # shape=(3000, 5)
 
         score_thr = cfg.get('score_thr', 0)
-        # results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
-        #                                mlvl_scores, score_thr, cfg.max_num,
-        #                                cfg, mlvl_dir_scores)
-        results = box3d_multiclass_nms2(mlvl_bboxes, mlvl_bboxes_for_nms,
-                                        mlvl_scores, score_thr, cfg.max_num,
-                                        cfg, mlvl_dir_scores)
+        results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
+                                       mlvl_scores, score_thr, cfg.max_num,
+                                       cfg, mlvl_dir_scores)
         bboxes, scores, labels, dir_scores = results  # bboxes.shape=(N, 9); scores/labels/dir_scores.shape=(N, )
         if bboxes.shape[0] > 0:
             dir_rot = limit_period(bboxes[..., 6] - self.dir_offset,

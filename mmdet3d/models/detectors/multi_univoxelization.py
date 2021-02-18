@@ -100,7 +100,8 @@ class MultiSensorMultiTaskUni(Base3DDetector):
                       img_metas=None,
                       gt_bboxes_ignore=None):
         # points: list of tensor; len(points)=batch_size; points[0].shape=(num_points, 4)
-        # print('len:', len(gt_bboxes_3d))  # batch_size
+        # gt_bboxes_3d: list of LiDARInstance3Dboxes; gt_bboxes_3d[0].tensor.shape=(num_gt, 9)
+        # gt_labels_3d: list of tensor (num_gt, )
         img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
 
         losses = dict()
