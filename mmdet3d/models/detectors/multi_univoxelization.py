@@ -78,9 +78,9 @@ class MultiSensorMultiTaskUni(Base3DDetector):
                                                 img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
         batch_size = coors[-1, 0] + 1
         x = self.pts_middle_encoder(voxel_features, coors, batch_size)  # (N, C, H, W) = (4, 64, 200, 400)
-        x = self.pts_backbone(x)
-        if self.with_pts_neck:
-            x = self.pts_neck(x)
+        x = self.pts_backbone(x)  # tuple of tensor: ((4, 192, 100, 200), (4, 432, 50, 100), (4, 1008, 25, 50))
+        if self.with_pts_neck:    # FPN
+            x = self.pts_neck(x)  # tuple of tensor: ((4, 256, 100, 200), (4, 256, 50, 100), (4, 256, 25, 50))
         return x
 
     def extract_feat(self, points, pts_indices, img, img_metas):
@@ -122,6 +122,10 @@ class MultiSensorMultiTaskUni(Base3DDetector):
                           img_metas,
                           gt_bboxes_ignore=None):
         outs = self.pts_bbox_head(pts_feats)
+        # outs = (x0, x1 ,x2);
+        # x0: list of cls_score; cls_score = (N, num_anchors * num_classes, Hi, Wi); len(x0) = num_scale
+        # x1: list of bbox_pred, bbox_pred = (N, num_anchors * bbox_code_size, Hi, Wi); len(x1) = num_scale
+        # x2: list of dir_cls_pred; dir_cls_pred = (N, num_anchors * 2, Hi, Wi); len(x2) = num_scale
         loss_inputs = outs + (gt_bboxes_3d, gt_labels_3d, img_metas)
         losses = self.pts_bbox_head.loss(
             *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
@@ -132,10 +136,14 @@ class MultiSensorMultiTaskUni(Base3DDetector):
         outs = self.pts_bbox_head(x)
         bbox_list = self.pts_bbox_head.get_bboxes(
             *outs, img_metas, rescale=rescale)
+        # bbox_list: list of tuple; len(bbox_list) = test_batch_size
+        # bbox_list[0]: (bboxes, scores, labels)
+        # bboxes: LiDARInstance3DBoxes of tensor (N, 9); scores: tensor (N, ); labels: tensor (N, )
         bbox_results = [
             bbox3d2result(bboxes, scores, labels)
             for bboxes, scores, labels in bbox_list
         ]
+        # bbox_results: [dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels)] on cpu
         return bbox_results
 
     def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):

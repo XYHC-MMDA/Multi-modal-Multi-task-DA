@@ -73,25 +73,27 @@ class FreeAnchor3DHead(Anchor3DHead):
         assert len(featmap_sizes) == self.anchor_generator.num_levels
 
         anchor_list = self.get_anchors(featmap_sizes, input_metas)
-        anchors = [torch.cat(anchor) for anchor in anchor_list]
+        anchors = [torch.cat(anchor) for anchor in anchor_list]  # list of tensors
+        # len(anchors) == batch_size == 4; anchors[i].shape = (210000, 9); 210000 = 160000 + 40000 + 10000
 
         # concatenate each level
         cls_scores = [
             cls_score.permute(0, 2, 3, 1).reshape(
                 cls_score.size(0), -1, self.num_classes)
             for cls_score in cls_scores
-        ]
+        ]  # cls_scores[0/1/2].shape = (4, 160000/40000/10000, 4);
         bbox_preds = [
             bbox_pred.permute(0, 2, 3, 1).reshape(
                 bbox_pred.size(0), -1, self.box_code_size)
             for bbox_pred in bbox_preds
-        ]
+        ]  # bbox_preds[0/1/2].shape = (4, 160000/40000/10000, 9)
         dir_cls_preds = [
             dir_cls_pred.permute(0, 2, 3,
                                  1).reshape(dir_cls_pred.size(0), -1, 2)
             for dir_cls_pred in dir_cls_preds
-        ]
+        ]  # dir_cls_preds[0/1/2].shape = (4, 160000/40000/10000, 2)
 
+        # len(cls_scores) == len(bbox_preds) == len(dir_cls_preds) == num_outs == len(scales) == 3
         cls_scores = torch.cat(cls_scores, dim=1)
         bbox_preds = torch.cat(bbox_preds, dim=1)
         dir_cls_preds = torch.cat(dir_cls_preds, dim=1)

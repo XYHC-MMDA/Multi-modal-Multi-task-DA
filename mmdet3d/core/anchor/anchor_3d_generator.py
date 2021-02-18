@@ -122,6 +122,8 @@ class Anchor3DRangeGenerator(object):
         # torch: 0.6975 s for 1000 times
         # numpy: 4.3345 s for 1000 times
         # which is ~5 times faster than the numpy implementation
+
+        # self.size_per_range = True
         if not self.size_per_range:
             return self.anchors_single_range(
                 featmap_size,
@@ -141,8 +143,9 @@ class Anchor3DRangeGenerator(object):
                     anchor_size,
                     self.rotations,
                     device=device))
-        # print(mr_anchors[0].shape)  # (1, 100, 200, 1, 2, 9)
-        mr_anchors = torch.cat(mr_anchors, dim=-3)  # (1, 100, 200, 4, 2, 9)
+        # mr_anchors: list of tensors; len(mr_anchors) == len(self.sizes) == 4
+        # mr_anchors[i].shape = (1, 100, 200, 1, 2, 9)
+        mr_anchors = torch.cat(mr_anchors, dim=-3)  # shape = (1, 100, 200, 4, 2, 9)
         return mr_anchors
 
     def anchors_single_range(self,

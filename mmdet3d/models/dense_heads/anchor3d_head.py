@@ -85,7 +85,7 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
         # build anchor generator
         self.anchor_generator = build_anchor_generator(anchor_generator)
         # In 3D detection, the anchor stride is connected with anchor size
-        self.num_anchors = self.anchor_generator.num_base_anchors
+        self.num_anchors = self.anchor_generator.num_base_anchors  # num_rot * num_size
         # build box coder
         self.bbox_coder = build_bbox_coder(bbox_coder)
         self.box_code_size = self.bbox_coder.code_size
@@ -177,12 +177,17 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
             list[list[torch.Tensor]]: Anchors of each image, valid flags \
                 of each image.
         """
-        num_imgs = len(input_metas) # batch_size
+        num_imgs = len(input_metas)  # batch_size=4
         # since feature map sizes of all images are the same, we only compute
         # anchors for one time
         multi_level_anchors = self.anchor_generator.grid_anchors(
             featmap_sizes, device=device)
-        # print(multi_level_anchors[0].shape) # (160000, 9)
+        # multi_level_anchors: list of tensors;
+        # len(multi_level_anchors) == len(featmap_sizes) == num_levels == len(scales) == 3
+        # num_anchors = num_size * num_rot == len(scales) * len(rotations)
+        # multi_level_anchors[0].shape = (160000, 9); 160000 = num_anchors * H * W = 8 * 100 * 200;
+        # multi_level_anchors[1].shape = (40000, 9); 40000 = 8 * 50 * 100
+        # multi_level_anchors[2].shape = (10000, 9); 10000 = 8 * 25 * 50
         anchor_list = [multi_level_anchors for _ in range(num_imgs)]
         return anchor_list
 
@@ -335,12 +340,11 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
                     losses.
         """
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]  # [(100, 200), (50, 100), (25, 50)]
-        assert len(featmap_sizes) == self.anchor_generator.num_levels
+        assert len(featmap_sizes) == self.anchor_generator.num_levels  # num_levels = len(scales); scales = [1, 2, 4]
         device = cls_scores[0].device
         anchor_list = self.get_anchors(
             featmap_sizes, input_metas, device=device)
-        # print('len:', len(anchor_list))  # 4
-        # print('llen:', len(anchor_list[0])) # 3; (160000, 9), (40000, 9); (10000, 9)
+        # len(anchor_list) = batch_size =4 ;
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
         cls_reg_targets = self.anchor_target_3d(
             anchor_list,
@@ -404,6 +408,12 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
         device = cls_scores[0].device
         mlvl_anchors = self.anchor_generator.grid_anchors(
             featmap_sizes, device=device)
+        # multi_level_anchors: list of tensors;
+        # len(multi_level_anchors) == len(featmap_sizes) == num_levels == len(scales) == 3
+        # num_anchors = num_size * num_rot == len(scales) * len(rotations)
+        # multi_level_anchors[0].shape = (160000, 9); 160000 = num_anchors * H * W = 8 * 100 * 200;
+        # multi_level_anchors[1].shape = (40000, 9); 40000 = 8 * 50 * 100
+        # multi_level_anchors[2].shape = (10000, 9); 10000 = 8 * 25 * 50
         mlvl_anchors = [
             anchor.reshape(-1, self.box_code_size) for anchor in mlvl_anchors
         ]
@@ -456,7 +466,7 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
                 - labels (torch.Tensor): Label of each bbox.
         """
         cfg = self.test_cfg if cfg is None else cfg
-        assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
+        assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)  # == num_levels == 3
         mlvl_bboxes = []
         mlvl_scores = []
         mlvl_dir_scores = []
@@ -483,40 +493,38 @@ class Anchor3DHead(nn.Module, AnchorTrainMixin):
                 else:
                     max_scores, _ = scores[:, :-1].max(dim=1)
                 _, topk_inds = max_scores.topk(nms_pre)
-                anchors = anchors[topk_inds, :]
-                bbox_pred = bbox_pred[topk_inds, :]
-                scores = scores[topk_inds, :]
-                dir_cls_score = dir_cls_score[topk_inds]
+                anchors = anchors[topk_inds, :]  # shape=(1000, 9)
+                bbox_pred = bbox_pred[topk_inds, :]  # shape=(1000, 9)
+                scores = scores[topk_inds, :]  # shape=(1000, num_classes)
+                dir_cls_score = dir_cls_score[topk_inds]  # shape=(1000, )
 
-            bboxes = self.bbox_coder.decode(anchors, bbox_pred)
-            # print(bboxes.shape)  # (nms_pre, 9)
+            bboxes = self.bbox_coder.decode(anchors, bbox_pred)  # shape=(1000, 9)
             mlvl_bboxes.append(bboxes)
             mlvl_scores.append(scores)
             mlvl_dir_scores.append(dir_cls_score)
 
-        mlvl_bboxes = torch.cat(mlvl_bboxes)
+        mlvl_bboxes = torch.cat(mlvl_bboxes)  # shape=(3000, 9)
         mlvl_bboxes_for_nms = xywhr2xyxyr(input_meta['box_type_3d'](
-            mlvl_bboxes, box_dim=self.box_code_size).bev)
-        mlvl_scores = torch.cat(mlvl_scores)
-        mlvl_dir_scores = torch.cat(mlvl_dir_scores)
+            mlvl_bboxes, box_dim=self.box_code_size).bev)  # shape=(3000, 5); xyxyr
+        # input_meta['box_type_3d']: LiDARInstance3DBoxes
+        mlvl_scores = torch.cat(mlvl_scores)  # shape=(3000, 4)
+        mlvl_dir_scores = torch.cat(mlvl_dir_scores)  # shape=(3000, )
 
         if self.use_sigmoid_cls:
             # Add a dummy background class to the front when using sigmoid
             padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
-            mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)
+            mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)  # shape=(3000, 5)
 
         score_thr = cfg.get('score_thr', 0)
         results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
                                        mlvl_scores, score_thr, cfg.max_num,
                                        cfg, mlvl_dir_scores)
-        bboxes, scores, labels, dir_scores = results
-        # print(bboxes.shape)  # (N, 9)
+        bboxes, scores, labels, dir_scores = results  # bboxes.shape=(N, 9); scores/labels/dir_scores.shape=(N, )
         if bboxes.shape[0] > 0:
             dir_rot = limit_period(bboxes[..., 6] - self.dir_offset,
                                    self.dir_limit_offset, np.pi)
             bboxes[..., 6] = (
                 dir_rot + self.dir_offset +
                 np.pi * dir_scores.to(bboxes.dtype))
-        # print(input_meta['box_type_3d'])  # LiDARInstance3DBoxes
         bboxes = input_meta['box_type_3d'](bboxes, box_dim=self.box_code_size)
         return bboxes, scores, labels

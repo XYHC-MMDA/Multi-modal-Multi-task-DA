@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 src_domain, tgt_domain = 'usa', 'sng'
-# plt_title = f'Seg_Fusion: {src_domain}-{tgt_domain}(test {tgt_domain})'
-# src_file = f'checkpoints/single_seg/train_{src_domain}_xyz_nodisc.txt'
-# tgt_file = f'checkpoints/single_seg/train_{tgt_domain}_xyz_nodisc.txt'
-plt_title = 'Multi_Task_Fusion: usa-sng(test sng)'
-src_file = 'checkpoints/merge_disc/fusion_usa_rep_new.txt'
-tgt_file = 'checkpoints/merge_disc/oracle_sng.txt'
+plt_title = f'Seg_Fusion: {src_domain}-{tgt_domain}(test {tgt_domain})'
+src_file = f'checkpoints/single_seg/no_src_GANloss/train_{src_domain}_disc_07.txt'
+tgt_file = f'checkpoints/single_seg/train_usa_xyz_nodisc.txt'
+# plt_title = 'Multi_Task_Fusion: usa-sng(test sng)'
+# src_file = 'checkpoints/merge_disc/fusion_usa_rep_new.txt'
+# tgt_file = 'checkpoints/merge_disc/oracle_sng.txt'
 
 srcf = open(src_file, 'r')
 lines = srcf.readlines()
@@ -22,22 +22,24 @@ for line in lines:
         src_det.append(mAP)
 if len(src_det) > 0:
     assert len(src_seg) == len(src_det)
+src_seg = src_seg[:24]
 x_range = np.arange(len(src_seg)) + 1
 
-tgtf = open(tgt_file, 'r')
-lines = tgtf.readlines()
-tgtf.close()
-tgt_seg, tgt_det = [], []
-for line in lines:
-    if line.startswith('overall_iou'):
-        iou = float(line.split()[-1])
-        tgt_seg.append(iou)
-    if line.startswith('mAP'):
-        mAP = float(line.split()[-1])
-        tgt_det.append(mAP)
-if len(tgt_det) > 0:
-    assert len(tgt_seg) == len(tgt_det)
-    assert len(src_seg) == len(tgt_seg)
+if tgt_file:
+    tgtf = open(tgt_file, 'r')
+    lines = tgtf.readlines()
+    tgtf.close()
+    tgt_seg, tgt_det = [], []
+    for line in lines:
+        if line.startswith('overall_iou'):
+            iou = float(line.split()[-1])
+            tgt_seg.append(iou)
+        if line.startswith('mAP'):
+            mAP = float(line.split()[-1])
+            tgt_det.append(mAP)
+    if len(tgt_det) > 0:
+        assert len(tgt_seg) == len(tgt_det)
+        assert len(src_seg) == len(tgt_seg)
 
 if __name__ == '__main__':
     plt.title(plt_title)
