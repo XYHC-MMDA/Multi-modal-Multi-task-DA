@@ -89,12 +89,12 @@ def box3d_multiclass_nms(mlvl_bboxes,
 
 
 def box3d_multiclass_nms2(mlvl_bboxes,
-                         mlvl_bboxes_for_nms,
-                         mlvl_scores,
-                         score_thr,
-                         max_num,
-                         cfg,
-                         mlvl_dir_scores=None):
+                          mlvl_bboxes_for_nms,
+                          mlvl_scores,
+                          score_thr,
+                          max_num,
+                          cfg,
+                          mlvl_dir_scores=None):
     '''
     My own multiclass nms
     '''
@@ -110,12 +110,17 @@ def box3d_multiclass_nms2(mlvl_bboxes,
         # get bboxes and scores of this class
         mask_i = max_ind == i
         scores_i = mlvl_scores[mask_i]
+        bboxes_for_nms_i = mlvl_bboxes_for_nms[mask_i]
+        bboxes_i = mlvl_bboxes[mask_i]
+        if mlvl_dir_scores is not None:
+            dir_scores_i = mlvl_dir_scores[mask_i]
+
         cls_inds = scores_i[:, i] > score_thr
         if not cls_inds.any():
             continue
 
         _scores = scores_i[cls_inds, i]
-        _bboxes_for_nms = mlvl_bboxes_for_nms[cls_inds, :]
+        _bboxes_for_nms = bboxes_for_nms_i[cls_inds, :]
 
         if cfg.use_rotate_nms:
             nms_func = nms_gpu
@@ -123,16 +128,16 @@ def box3d_multiclass_nms2(mlvl_bboxes,
             nms_func = nms_normal_gpu
 
         selected = nms_func(_bboxes_for_nms, _scores, cfg.nms_thr)
-        _mlvl_bboxes = mlvl_bboxes[cls_inds, :]
+        _mlvl_bboxes = bboxes_i[cls_inds, :]
         bboxes.append(_mlvl_bboxes[selected])
         scores.append(_scores[selected])
-        cls_label = mlvl_bboxes.new_full((len(selected), ),
-                                         i,
-                                         dtype=torch.long)
+        cls_label = bboxes_i.new_full((len(selected), ),
+                                       i,
+                                       dtype=torch.long)
         labels.append(cls_label)
 
         if mlvl_dir_scores is not None:
-            _mlvl_dir_scores = mlvl_dir_scores[cls_inds]
+            _mlvl_dir_scores = dir_scores_i[cls_inds]
             dir_scores.append(_mlvl_dir_scores[selected])
 
     if bboxes:
