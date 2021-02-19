@@ -72,9 +72,9 @@ for idx in range(len(dataset)):
 
     # LiDARInstance3DBoxes points_in_boxes
     tensor_boxes = gt_bboxes_3d.tensor.cuda()
+    tensor_boxes = tensor_boxes[:, :7]
     pts1 = seg_points.cuda()
     start = time.time()
-    tensor_boxes = tensor_boxes[:, :7]
     box_idx = points_in_boxes_gpu(pts1.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
     # boxes = LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
     # box_idx = boxes.points_in_boxes(seg_points[:, :3].cuda())
