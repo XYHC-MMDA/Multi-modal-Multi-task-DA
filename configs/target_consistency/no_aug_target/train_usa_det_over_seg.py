@@ -225,7 +225,7 @@ target_pipeline = [
     dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'
     dict(type='MergeCat'),  # merge 'seg_label', 'gt_labels_3d'
     dict(type='SegDetFormatBundle'),
-    dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'points', 'pts_indices'])
+    dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'points', 'pts_indices'])
 ]
 test_pipeline = [
     dict(

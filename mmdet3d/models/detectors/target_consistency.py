@@ -150,6 +150,7 @@ class TargetConsistency(Base3DDetector):
                        img=None,
                        seg_points=None,
                        seg_pts_indices=None,
+                       seg_label=None,  # just for debug
                        points=None,
                        pts_indices=None,
                        img_metas=None,
