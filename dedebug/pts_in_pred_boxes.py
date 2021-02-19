@@ -59,7 +59,7 @@ args = parser.parse_args()
 cfg = Config.fromfile(args.config)
 dataset = build_dataset(cfg.data.train)
 print('Dataset Loaded.')
-num_classes = 4
+num_classes = 5
 
 for idx in range(len(dataset)):
     data = dataset[idx]
@@ -72,17 +72,18 @@ for idx in range(len(dataset)):
 
     # LiDARInstance3DBoxes points_in_boxes
     tensor_boxes = gt_bboxes_3d.tensor.cuda()
-    tensor_boxes = tensor_boxes[:, :7]
     pts1 = seg_points.cuda()
     start = time.time()
+    tensor_boxes = tensor_boxes[:, :7]
     box_idx = points_in_boxes_gpu(pts1.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
     # boxes = LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
     # box_idx = boxes.points_in_boxes(seg_points[:, :3].cuda())
 
-    fake_labels = torch.tensor([num_classes] * len(seg_labels))
-    for i in range(len(box_idx)):
-        if box_idx[i] != -1:
-            fake_labels[i] = gt_labels_3d[box_idx[i]]
+    # fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
+    # for i in range(len(box_idx)):
+    #     if box_idx[i] != -1:
+    #         fake_labels[i] = gt_labels_3d[box_idx[i]]
+    fake_labels = list(map(lambda x: gt_labels_3d[x] if x >= 0 else num_classes-1, box_idx))
     end = time.time()
     t1 = end - start
 
@@ -95,7 +96,7 @@ for idx in range(len(dataset)):
     # nuscenes points_in_box
     start = time.time()
     allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
-    fake_labels = torch.tensor([4] * len(seg_labels))
+    fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
     for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
         mask = points_in_box(corners.T, seg_points[:, :3].T)
         fake_labels[mask] = label

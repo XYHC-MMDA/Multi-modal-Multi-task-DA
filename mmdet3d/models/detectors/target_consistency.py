@@ -10,10 +10,11 @@ from mmdet3d.ops import Voxelization
 from mmdet.models import DETECTORS
 from .. import builder
 from .base import Base3DDetector
+from mmdet3d.ops.roiaware_pool3d import points_in_boxes_gpu
 
 
 @DETECTORS.register_module()
-class MultiSensorMultiTaskUni(Base3DDetector):
+class TargetConsistency(Base3DDetector):
     def __init__(self,
                  pts_voxel_layer=None,
                  pts_voxel_encoder=None,
@@ -26,7 +27,7 @@ class MultiSensorMultiTaskUni(Base3DDetector):
                  train_cfg=None,
                  test_cfg=None,
                  pretrained=None):
-        super(MultiSensorMultiTaskUni, self).__init__()
+        super(TargetConsistency, self).__init__()
 
         if img_backbone:
             self.img_backbone = builder.build_backbone(img_backbone)
@@ -79,42 +80,13 @@ class MultiSensorMultiTaskUni(Base3DDetector):
         batch_size = coors[-1, 0] + 1
         x = self.pts_middle_encoder(voxel_features, coors, batch_size)  # (N, C, H, W) = (4, 64, 200, 400)
         x = self.pts_backbone(x)  # tuple of tensor: ((4, 192, 100, 200), (4, 432, 50, 100), (4, 1008, 25, 50))
-        if self.with_pts_neck:    # FPN
-            x = self.pts_neck(x)  # tuple of tensor: ((4, 256, 100, 200), (4, 256, 50, 100), (4, 256, 25, 50))
+        x = self.pts_neck(x)  # tuple of tensor: ((4, 256, 100, 200), (4, 256, 50, 100), (4, 256, 25, 50))
         return x
 
     def extract_feat(self, points, pts_indices, img, img_metas):
         img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
         pts_feats = self.extract_pts_feat(pts=points, img_feats=img_feats, pts_indices=pts_indices, img_metas=img_metas)
         return img_feats, pts_feats
-
-    def forward_train(self,
-                      img=None,
-                      seg_points=None,
-                      seg_pts_indices=None,
-                      seg_label=None,
-                      points=None,
-                      pts_indices=None,
-                      gt_bboxes_3d=None,
-                      gt_labels_3d=None,
-                      img_metas=None,
-                      gt_bboxes_ignore=None):
-        # points: list of tensor; len(points)=batch_size; points[0].shape=(num_points, 4)
-        # gt_bboxes_3d: list of LiDARInstance3Dboxes; gt_bboxes_3d[0].tensor.shape=(num_gt, 9)
-        # gt_labels_3d: list of tensor (num_gt, )
-        img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
-
-        losses = dict()
-        seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
-        losses_img = self.img_seg_head.loss(seg_logits, seg_label)
-        losses.update(losses_img)
-
-        # pts_feats: tuple
-        losses_pts = self.forward_pts_train(pts_feats, gt_bboxes_3d,
-                                            gt_labels_3d, img_metas,
-                                            gt_bboxes_ignore)
-        losses.update(losses_pts)
-        return losses
 
     def forward_pts_train(self,
                           pts_feats,
@@ -132,11 +104,86 @@ class MultiSensorMultiTaskUni(Base3DDetector):
             *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
         return losses
 
-    def simple_test_pts(self, x, img_metas, rescale=False):
+    def forward_train(self,
+                      img=None,
+                      seg_points=None,
+                      seg_pts_indices=None,
+                      seg_label=None,
+                      points=None,
+                      pts_indices=None,
+                      gt_bboxes_3d=None,
+                      gt_labels_3d=None,
+                      img_metas=None,
+                      gt_bboxes_ignore=None):
+        '''
+
+        Args:
+            img: (4, 3, 225, 400)
+            seg_points: list of tensor (N, 4); len == batch_size
+            seg_pts_indices: list of tensor (N, 2); len == batch_size
+            seg_label: list of tensor (N, ); len == batch_size
+            points: list of tensor (M, 4); len == batch_size
+            pts_indices: list of tensor (M, 2); len == batch_size
+            gt_bboxes_3d: list of LiDARInstance3Dboxes; gt_bboxes_3d[i].tensor.shape=(num_gt_i, 9); len == batch_size
+            gt_labels_3d: list of tensor (num_gt_i, ); len ==batch_size
+            img_metas:
+            gt_bboxes_ignore:
+
+        Returns: losses
+
+        '''
+        img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
+
+        losses = dict()
+        seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
+        losses_img = self.img_seg_head.loss(seg_logits, seg_label)
+        losses.update(losses_img)
+
+        # pts_feats: tuple
+        losses_pts = self.forward_pts_train(pts_feats, gt_bboxes_3d,
+                                            gt_labels_3d, img_metas,
+                                            gt_bboxes_ignore)
+        losses.update(losses_pts)
+        return losses
+
+    def forward_target(self,
+                       img=None,
+                       seg_points=None,
+                       seg_pts_indices=None,
+                       points=None,
+                       pts_indices=None,
+                       img_metas=None,
+                       **kwargs):
+        # no aug on target; if aug, pay attention to seg_points
+        img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
+        seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
+        # seg_logits.shape=(num_seg_pts_batch, num_classes=4+1)
+
+        outs = self.pts_bbox_head(pts_feats)
+        bbox_list = self.pts_bbox_head.get_bboxes(*outs, img_metas)
+        # bbox_list: list of tuple; len(bbox_list) = target_batch_size
+        # bbox_list[i]: (bboxes, scores, labels)
+        # bboxes: LiDARInstance3DBoxes of tensor (num_pred, 9); scores: tensor (num_pred, ); labels: tensor (num_pred, )
+
+        for batch_id, (bboxes, scores, labels) in enumerate(bbox_list):
+            seg_points_i = seg_points[batch_id]
+            num_seg_pts = len(seg_points_i)
+            num_pred_boxes = len(labels)
+            tensor_boxes = bboxes.tensor[:, :7]
+
+            fake_labels = torch.tensor([self.img_seg_head.num_classes-1] * num_seg_pts)
+            box_idx = points_in_boxes_gpu(seg_points_i.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
+            # box_idx = bboxes.points_in_boxes(seg_points_i)
+            for i in range(num_pred_boxes):
+                mask = box_idx == i
+                fake_labels[mask] = labels[i]
+
+        return seg_logits, bbox_list
+
+    def simple_test_pts(self, pts_feats, img_metas):
         """Test function of point cloud branch."""
-        outs = self.pts_bbox_head(x)
-        bbox_list = self.pts_bbox_head.get_bboxes(
-            *outs, img_metas, rescale=rescale)
+        outs = self.pts_bbox_head(pts_feats)
+        bbox_list = self.pts_bbox_head.get_bboxes(*outs, img_metas)
         # bbox_list: list of tuple; len(bbox_list) = test_batch_size
         # bbox_list[0]: (bboxes, scores, labels)
         # bboxes: LiDARInstance3DBoxes of tensor (N, 9); scores: tensor (N, ); labels: tensor (N, )
@@ -149,17 +196,31 @@ class MultiSensorMultiTaskUni(Base3DDetector):
         # scores: tensor (N, ); labels: tensor(N, )
         return bbox_results
 
-    def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):
+    def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas):
         """Test function without augmentaiton."""
         img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
 
         bbox_list = [dict() for i in range(len(img_metas))]  # len(bbox_list)=batch_size
-        bbox_pts = self.simple_test_pts(pts_feats, img_metas, rescale=rescale)
+        bbox_pts = self.simple_test_pts(pts_feats, img_metas)
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
             result_dict['pts_bbox'] = pts_bbox
 
         return seg_logits, bbox_list
+
+    def forward_test(self,
+                     img=None,
+                     seg_points=None,
+                     seg_pts_indices=None,
+                     points=None,
+                     pts_indices=None,
+                     img_metas=None,
+                     # seg_label=None,
+                     **kwargs):
+        num_augs = len(points)
+        assert num_augs == 1
+        return self.simple_test(img=img[0], seg_points=seg_points[0], seg_pts_indices=seg_pts_indices[0],
+                                points=points[0], pts_indices=pts_indices[0], img_metas=img_metas[0])
 
     @torch.no_grad()
     @force_fp32()
@@ -185,7 +246,7 @@ class MultiSensorMultiTaskUni(Base3DDetector):
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
-        super(MultiSensorMultiTaskUni, self).init_weights(pretrained)
+        super(TargetConsistency, self).init_weights(pretrained)
         if pretrained is None:
             img_pretrained = None
             pts_pretrained = None

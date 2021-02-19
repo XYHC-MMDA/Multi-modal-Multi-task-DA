@@ -15,8 +15,8 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
         # print(type(data['img'][0]))  # DataContainter
         with torch.no_grad():
             seg_res, box_res = model(return_loss=False, rescale=True, **data)
-        # len(box_res) == batch_size
-        # print(box_res[0].keys())  # 'pts_bbox'
+        # len(box_res) == batch_size == 1
+        # box_res: [dict('pts_bbox'=dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels))]
 
         # handle seg
         seg_label = data['seg_label'][0].data[0]  # list of tensor
@@ -35,7 +35,9 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
             left_idx = right_idx
         evaluator.batch_update(pred_list, gt_list)
 
+        # handle det
         box_preds.extend(box_res)
+
         # progress bar
         batch_size = len(box_res)
         for _ in range(batch_size):
@@ -44,7 +46,7 @@ def mmda_single_gpu_test(model, data_loader, show=False, out_dir=None):
     print(evaluator.print_table())
     print('overall_acc:', evaluator.overall_acc)
     print('overall_iou:', evaluator.overall_iou)
-    return box_preds  # list of dict; key='pts_bbox'
+    return box_preds  # list of dict('pts_bbox'=dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels))
 
 
 def single_seg_test(model, data_loader):

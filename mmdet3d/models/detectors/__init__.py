@@ -17,11 +17,12 @@ from .fusion_disc_01 import FusionDisc01
 from .fusion_disc_02 import FusionDisc02
 from .single_seg_xyz import SingleSegXYZ
 from .sep_disc import SepDisc
+from .target_consistency import TargetConsistency
 
 __all__ = [
     'Base3DDetector', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni',
     'SepSegDet', 'FusionDisc', 'FusionDisc01', 'FusionDisc02', 'SingleSegXYZ',
-    'SepDisc'
+    'SepDisc', 'TargetConsistency'
 ]
 
 # __all__ = [

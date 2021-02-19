@@ -304,6 +304,9 @@ class MMDAMergeCatDataset(Custom3DDataset):
                  result_names=['pts_bbox'],
                  show=False,
                  out_dir=None):
+        # results: list of dict('pts_bbox'=dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels))
+        # jsonfile_prefix: args.json
+
         result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
         # result_files = dict(pts_bbox=osp.join(jsonfile_prefix, 'pts_bbox/results_nusc.json'))
 
