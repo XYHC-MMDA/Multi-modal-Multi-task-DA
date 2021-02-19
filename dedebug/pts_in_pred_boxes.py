@@ -9,6 +9,7 @@ import torch
 from PIL import Image
 import os
 import pdb
+from tools.evaluator import SegEvaluator
 
 
 def points_in_box(corners, points):
@@ -55,6 +56,7 @@ args = parser.parse_args()
 cfg = Config.fromfile(args.config)
 dataset = build_dataset(cfg.data.train)
 print('Dataset Loaded.')
+num_classes = 4
 
 for idx in range(len(dataset)):
     data = dataset[idx]
@@ -64,10 +66,19 @@ for idx in range(len(dataset)):
     gt_bboxes_3d = data['gt_bboxes_3d'].data  # tensor=(M, 9)
     gt_labels_3d = data['gt_labels_3d'].data  # (M, )
 
-    fake_labels = torch.tensor([4] * len(seg_labels))
+    boxes = LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
+    box_ids = boxes.points_in_boxes(seg_points[:, :3].cuda())
 
-    boxes =  LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
-    mask = boxes.points_in_boxes(points[:, :3].cuda())
+    fake_labels = torch.tensor([num_classes] * len(seg_labels))
+    for i in range(len(box_ids)):
+        if box_ids[i] != -1:
+            fake_labels[i] = gt_labels_3d[box_ids[i]]
+
+    evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
+    evaluator.update(fake_labels.numpy(), seg_labels.numpy())
+    print(evaluator.print_table())
+    print('overall_acc:', evaluator.overall_acc)
+    print('overall_iou:', evaluator.overall_iou)
     pdb.set_trace()
 
     # allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
