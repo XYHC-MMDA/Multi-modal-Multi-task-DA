@@ -10,6 +10,7 @@ from PIL import Image
 import os
 import pdb
 from tools.evaluator import SegEvaluator
+import time
 
 
 def points_in_box(corners, points):
@@ -66,6 +67,9 @@ for idx in range(len(dataset)):
     gt_bboxes_3d = data['gt_bboxes_3d'].data  # tensor=(M, 9)
     gt_labels_3d = data['gt_labels_3d'].data  # (M, )
 
+
+    # LiDARInstance3DBoxes points_in_boxes
+    start = time.time()
     boxes = LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
     box_ids = boxes.points_in_boxes(seg_points[:, :3].cuda())
 
@@ -73,19 +77,30 @@ for idx in range(len(dataset)):
     for i in range(len(box_ids)):
         if box_ids[i] != -1:
             fake_labels[i] = gt_labels_3d[box_ids[i]]
+    end = time.time()
+    t1 = end - start
 
     evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
     evaluator.update(fake_labels.numpy(), seg_labels.numpy())
     print(evaluator.print_table())
     print('overall_acc:', evaluator.overall_acc)
     print('overall_iou:', evaluator.overall_iou)
+
+    # nuscenes points_in_box
+    start = time.time()
+    allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
+    fake_labels = torch.tensor([4] * len(seg_labels))
+    for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
+        mask = points_in_box(corners.T, seg_points[:, :3].T)
+        fake_labels[mask] = label
+    end = time.time()
+    t2 = end - start
+
+    evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
+    evaluator.update(fake_labels.numpy(), seg_labels.numpy())
+    print(evaluator.print_table())
+    print('overall_acc:', evaluator.overall_acc)
+    print('overall_iou:', evaluator.overall_iou)
+
+    print('t1: %.4fs t2: %.4fs' % (t1, t2))
     pdb.set_trace()
-
-    # allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
-    # fake_labels = torch.tensor([4] * len(seg_labels))
-    # for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
-    #     mask = points_in_box(corners.T, seg_points[:, :3].T)
-    #     fake_labels[mask] = label
-    #     pdb.set_trace()
-
-
