@@ -159,8 +159,8 @@ train_pipeline = [
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
     dict(type='FrontImageFilter', resize=img_size),  # new 'img', 'seg_pts_indices'; filter 'seg_points', 'seg_label'
     dict(type='PointsSensorFilter', resize=img_size),  # filter 'points'; new 'pts_indices'
-    # dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
-    # # fliplr & color jitter; 'img': PIL.Image to np.array; modify 'seg_pts_indices', 'pts_indices' accordingly;
+    dict(type='Aug2D', fliplr=0.0, color_jitter=(0.4, 0.4, 0.4)),
+    # fliplr & color jitter; 'img': PIL.Image to np.array; modify 'seg_pts_indices', 'pts_indices' accordingly;
     # dict(
     #     type='GlobalRotScaleTrans',
     #     rot_range=[-0.7854, 0.7854],
