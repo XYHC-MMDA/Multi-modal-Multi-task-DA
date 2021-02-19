@@ -20,3 +20,5 @@ from .img_disc_runner_01 import ImgDiscRunner01
 from .img_disc_runner_02 import ImgDiscRunner02
 
 from .sep_disc_runner_01 import SepDiscRunner01
+
+from .target_consistency_runner import TargetConsistencyRunner
