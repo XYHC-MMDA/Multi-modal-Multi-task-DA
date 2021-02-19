@@ -19,6 +19,7 @@ from mmdet3d.apis import parse_losses, set_requires_grad
 class TargetConsistencyRunner(BaseRunner):
     def __init__(self,
                  model,
+                 cfg=None,
                  batch_processor=None,
                  optimizer=None,
                  work_dir=None,
@@ -34,6 +35,7 @@ class TargetConsistencyRunner(BaseRunner):
                                                       meta,
                                                       max_iters,
                                                       max_epochs)
+        self.cfg = cfg
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
@@ -71,12 +73,12 @@ class TargetConsistencyRunner(BaseRunner):
             # ------------------------
             # train network on target
             # ------------------------
-            if self.epoch >= self._max_epochs // 2:
+            if self.epoch >= self.cfg.target_start_epoch:
 
                 # forward_target
                 seg_target_loss = self.model.forward_target(**tgt_data_batch)
-
                 log_vars['seg_target_loss'] = seg_target_loss.item()
+
                 self.optimizer.zero_grad()
                 seg_target_loss.backward()
                 self.optimizer.step()

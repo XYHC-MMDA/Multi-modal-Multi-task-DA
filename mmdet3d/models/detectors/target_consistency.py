@@ -165,20 +165,24 @@ class TargetConsistency(Base3DDetector):
         # bbox_list[i]: (bboxes, scores, labels)
         # bboxes: LiDARInstance3DBoxes of tensor (num_pred, 9); scores: tensor (num_pred, ); labels: tensor (num_pred, )
 
+        fake_labels = []
         for batch_id, (bboxes, scores, labels) in enumerate(bbox_list):
             seg_points_i = seg_points[batch_id]
             num_seg_pts = len(seg_points_i)
             num_pred_boxes = len(labels)
             tensor_boxes = bboxes.tensor[:, :7]
 
-            fake_labels = torch.tensor([self.img_seg_head.num_classes-1] * num_seg_pts)
+            fake_labels_i = torch.tensor([self.img_seg_head.num_classes-1] * num_seg_pts).to(seg_points.device)
             box_idx = points_in_boxes_gpu(seg_points_i.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
-            # box_idx = bboxes.points_in_boxes(seg_points_i)
             for i in range(num_pred_boxes):
                 mask = box_idx == i
-                fake_labels[mask] = labels[i]
+                fake_labels_i[mask] = labels[i]
 
-        return seg_logits, bbox_list
+            fake_labels.append(fake_labels_i)
+
+        fake_labels = torch.cat(fake_labels)
+        target_seg_loss = self.img_seg_head.loss(seg_logits, fake_labels)
+        return target_seg_loss
 
     def simple_test_pts(self, pts_feats, img_metas):
         """Test function of point cloud branch."""
