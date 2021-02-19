@@ -1,5 +1,6 @@
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset
+from mmdet3d.core.bbox import LiDARInstance3DBoxes
 from mmdet.datasets import build_dataloader
 from mmcv import Config, DictAction
 import argparse
@@ -7,6 +8,7 @@ import numpy as torch
 import torch
 from PIL import Image
 import os
+import pdb
 
 
 def points_in_box(corners, points):
@@ -22,9 +24,12 @@ def points_in_box(corners, points):
     """
 
     p1 = corners[:, 0]
-    p_x = corners[:, 4]
-    p_y = corners[:, 1]
-    p_z = corners[:, 3]
+    p_x = corners[:, 3]
+    p_y = corners[:, 4]
+    p_z = corners[:, 1]
+    # p_x = corners[:, 4]
+    # p_y = corners[:, 1]
+    # p_z = corners[:, 3]
 
     i = p_x - p1
     j = p_y - p1
@@ -32,13 +37,13 @@ def points_in_box(corners, points):
 
     v = points - p1.reshape((-1, 1))
 
-    iv = torch.dot(i, v)
-    jv = torch.dot(j, v)
-    kv = torch.dot(k, v)
+    iv = torch.matmul(i, v)
+    jv = torch.matmul(j, v)
+    kv = torch.matmul(k, v)
 
-    mask_x = torch.logical_and(0 <= iv, iv <= torch.dot(i, i))
-    mask_y = torch.logical_and(0 <= jv, jv <= torch.dot(j, j))
-    mask_z = torch.logical_and(0 <= kv, kv <= torch.dot(k, k))
+    mask_x = torch.logical_and(0 <= iv, iv <= torch.matmul(i, i))
+    mask_y = torch.logical_and(0 <= jv, jv <= torch.matmul(j, j))
+    mask_z = torch.logical_and(0 <= kv, kv <= torch.matmul(k, k))
     mask = torch.logical_and(torch.logical_and(mask_x, mask_y), mask_z)
 
     return mask
@@ -53,15 +58,23 @@ print('Dataset Loaded.')
 
 for idx in range(len(dataset)):
     data = dataset[idx]
-    seg_points = data['seg_points'].data
-    seg_labels = data['seg_label'].data
-    gt_bboxes_3d = data['gt_bboxes_3d'].data  # tensor=(N, 9)
-    gt_labels_3d = data['gt_labels_3d'].data  # (N, )
+    points = data['points'].data[:, :3]
+    seg_points = data['seg_points'].data[:, :3]  # (N, 4) -> (N, 3)
+    seg_labels = data['seg_label'].data  # (N, ) 
+    gt_bboxes_3d = data['gt_bboxes_3d'].data  # tensor=(M, 9)
+    gt_labels_3d = data['gt_labels_3d'].data  # (M, )
 
-    allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
     fake_labels = torch.tensor([4] * len(seg_labels))
-    for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
-        mask = points_in_box(corners.T, seg_points.T)
-        fake_labels[mask] = label
+
+    boxes =  LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
+    mask = boxes.points_in_boxes(points[:, :3].cuda())
+    pdb.set_trace()
+
+    # allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
+    # fake_labels = torch.tensor([4] * len(seg_labels))
+    # for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
+    #     mask = points_in_box(corners.T, seg_points[:, :3].T)
+    #     fake_labels[mask] = label
+    #     pdb.set_trace()
 
 
