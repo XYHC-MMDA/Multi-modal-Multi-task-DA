@@ -83,7 +83,7 @@ for idx in range(len(dataset)):
     # for i in range(len(box_idx)):
     #     if box_idx[i] != -1:
     #         fake_labels[i] = gt_labels_3d[box_idx[i]]
-    fake_labels = list(map(lambda x: gt_labels_3d[x] if x >= 0 else num_classes-1, box_idx))
+    fake_labels = torch.tensor(list(map(lambda x: gt_labels_3d[x] if x >= 0 else num_classes-1, box_idx)))
     end = time.time()
     t1 = end - start
 
