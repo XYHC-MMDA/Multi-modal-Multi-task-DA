@@ -76,11 +76,12 @@ class TargetConsistencyRunner(BaseRunner):
             if self.epoch >= self.cfg.target_start_epoch:
 
                 # forward_target
-                seg_target_loss = self.model.forward_target(**tgt_data_batch)
-                log_vars['seg_target_loss'] = seg_target_loss.item()
+                losses = self.model.forward_target(**tgt_data_batch)  # dict('seg_loss'=)
+                tgt_seg_loss = losses['seg_loss']
+                log_vars['seg_target_loss'] = tgt_seg_loss.item()
 
                 self.optimizer.zero_grad()
-                seg_target_loss.backward()
+                tgt_seg_loss.backward()
                 self.optimizer.step()
 
             # after_train_iter callback
