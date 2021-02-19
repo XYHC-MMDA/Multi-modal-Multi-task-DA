@@ -12,7 +12,7 @@ from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.utils import get_root_logger
 from mmdet3d.models import build_discriminator
 from mmdet3d.runners import RepRunner
-from mmdet3d.parallel import MyDataParallel
+from mmdet3d.parallel import MyDataParallel, TCDataParallel
 
 
 def set_random_seed(seed, deterministic=False):
@@ -218,7 +218,7 @@ def train_tc_detector(model, dataset, cfg, distributed=False, timestamp=None, me
             broadcast_buffers=False,
             find_unused_parameters=find_unused_parameters)
     else:
-        model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+        model = TCDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)

@@ -172,7 +172,7 @@ class TargetConsistency(Base3DDetector):
             num_pred_boxes = len(labels)
             tensor_boxes = bboxes.tensor[:, :7]
 
-            fake_labels_i = torch.tensor([self.img_seg_head.num_classes-1] * num_seg_pts).to(seg_points.device)
+            fake_labels_i = torch.tensor([self.img_seg_head.num_classes-1] * num_seg_pts).to(seg_points[0].device)
             box_idx = points_in_boxes_gpu(seg_points_i.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
             for i in range(num_pred_boxes):
                 mask = box_idx == i
@@ -180,7 +180,6 @@ class TargetConsistency(Base3DDetector):
 
             fake_labels.append(fake_labels_i)
 
-        fake_labels = torch.cat(fake_labels)
         target_seg_loss = self.img_seg_head.loss(seg_logits, fake_labels)
         return target_seg_loss
 

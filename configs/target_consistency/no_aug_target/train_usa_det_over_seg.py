@@ -19,7 +19,7 @@ class_weights = usasng_weights
 # lr_step = [16, 22]
 lr_step = [1, 22]
 total_epochs = 24
-target_start_epoch = lr_step[0]
+target_start_epoch = 0 
 
 ##########################################################
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
@@ -282,6 +282,7 @@ data = dict(
         classes=class_names,
         modality=input_modality,
         test_mode=False,
+        filter_empty_gt=False,
         box_type_3d='LiDAR'),
     val=dict(
         type=dataset_type,
