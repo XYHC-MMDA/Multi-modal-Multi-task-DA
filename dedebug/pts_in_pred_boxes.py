@@ -1,8 +1,10 @@
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset
 from mmdet3d.core.bbox import LiDARInstance3DBoxes
+from mmdet3d.ops.roiaware_pool3d import points_in_boxes_gpu
 from mmdet.datasets import build_dataloader
 from mmcv import Config, DictAction
+
 import argparse
 import numpy as torch
 import torch
@@ -69,14 +71,18 @@ for idx in range(len(dataset)):
 
 
     # LiDARInstance3DBoxes points_in_boxes
+    tensor_boxes = gt_bboxes_3d.tensor.cuda()
+    pts1 = seg_points.cuda()
     start = time.time()
-    boxes = LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
-    box_ids = boxes.points_in_boxes(seg_points[:, :3].cuda())
+    tensor_boxes = tensor_boxes[:, :7]
+    box_idx = points_in_boxes_gpu(pts1.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
+    # boxes = LiDARInstance3DBoxes(gt_bboxes_3d.tensor[:, :7])
+    # box_idx = boxes.points_in_boxes(seg_points[:, :3].cuda())
 
     fake_labels = torch.tensor([num_classes] * len(seg_labels))
-    for i in range(len(box_ids)):
-        if box_ids[i] != -1:
-            fake_labels[i] = gt_labels_3d[box_ids[i]]
+    for i in range(len(box_idx)):
+        if box_idx[i] != -1:
+            fake_labels[i] = gt_labels_3d[box_idx[i]]
     end = time.time()
     t1 = end - start
 
