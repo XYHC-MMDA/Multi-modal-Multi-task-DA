@@ -16,10 +16,9 @@ daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
 usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
-# lr_step = [16, 22]
-lr_step = [1, 22]
+lr_step = [16, 22]
 total_epochs = 24
-target_start_epoch = 0 
+target_start_epoch = lr_step[0] 
 
 ##########################################################
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
