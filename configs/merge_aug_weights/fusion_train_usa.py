@@ -149,31 +149,33 @@ file_client_args = dict(backend='disk')
 img_size = (400, 225)
 train_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',  # NuscMultiModalDataset
+        type='LoadSegDetPointsFromFile',  # new 'points', 'seg_points', 'seg_label'
         load_dim=5,
         use_dim=5),
     dict(
-        type='LoadPointsFromMultiSweeps',
+        type='LoadPointsFromMultiSweeps',  # modify 'points'
         sweeps_num=10,
         file_client_args=file_client_args),
-    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
-    dict(type='FrontImageFilter', resize=img_size),  # 'seg_pts_indices'
-    dict(type='PointsSensorFilter', resize=img_size),  # 'pts_indices'
-    dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),  # fliplr & color jitter; PIL.Image to np.array
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
+    dict(type='FrontImageFilter', resize=img_size),  # new 'img', 'seg_pts_indices'; filter 'seg_points', 'seg_label'
+    dict(type='PointsSensorFilter', resize=img_size),  # filter 'points'; new 'pts_indices'
+    dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
+    # fliplr & color jitter; 'img': PIL.Image to np.array; modify 'seg_pts_indices', 'pts_indices' accordingly;
     dict(
         type='GlobalRotScaleTrans',
         rot_range=[-0.7854, 0.7854],
         scale_ratio_range=[0.9, 1.1],
-        translation_std=[0.2, 0.2, 0.2]),
+        translation_std=[0.2, 0.2, 0.2]),  # 3D Rot, Scale, Trans for 'points'
     dict(
         type='RandomFlip3D',
         # flip_ratio_bev_horizontal=0.5,
-        flip_ratio_bev_vertical=0.5),
+        flip_ratio_bev_vertical=0.5),  # do nothing; to read further
     dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+    # filter 'points', 'pts_indices', 'seg_points', 'seg_label', 'seg_pts_indices'
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    dict(type='DetLabelFilter'),
-    dict(type='PointShuffle'),
-    dict(type='MergeCat'),
+    dict(type='DetLabelFilter'),  # Filter labels == -1; not in TEN_CLASSES
+    dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'
+    dict(type='MergeCat'),  # merge 'seg_label', 'gt_labels_3d'
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                  'points', 'pts_indices', 'gt_bboxes_3d', 'gt_labels_3d'])
