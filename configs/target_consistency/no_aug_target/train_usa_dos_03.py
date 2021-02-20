@@ -8,7 +8,7 @@
 ##############################################
 runner = 'TargetConsistencyRunner'
 model_type = 'TargetConsistency'
-lambda_target = 1.0
+lambda_target = 0.01
 
 src_train = 'mmda_xmuda_split/train_usa.pkl'
 tgt_train = 'mmda_xmuda_split/train_singapore.pkl'

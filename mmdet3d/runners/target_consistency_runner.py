@@ -77,7 +77,7 @@ class TargetConsistencyRunner(BaseRunner):
 
                 # forward_target
                 losses = self.model.forward_target(**tgt_data_batch)  # dict('seg_loss'=)
-                tgt_seg_loss = losses['seg_loss']
+                tgt_seg_loss = self.cfg.lambda_target * losses['seg_loss']
                 log_vars['seg_target_loss'] = tgt_seg_loss.item()
 
                 self.optimizer.zero_grad()
