@@ -155,6 +155,20 @@ class TargetConsistency(Base3DDetector):
                        pts_indices=None,
                        img_metas=None,
                        **kwargs):
+        '''
+
+        Args:
+            img: (4, 3, 225, 400)
+            seg_points: list of tensor (N, 4); len == batch_size
+            seg_pts_indices: list of tensor (N, 2); len == batch_size
+            seg_label: list of tensor (N, ); len == batch_size
+            points: list of tensor (M, 4); len == batch_size
+            pts_indices: list of tensor (M, 2); len == batch_size
+            img_metas:
+
+        Returns: losses
+
+        '''
         # no aug on target; if aug, pay attention to seg_points
         img_feats, pts_feats = self.extract_feat(points, pts_indices, img, img_metas)
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
@@ -171,17 +185,19 @@ class TargetConsistency(Base3DDetector):
             seg_points_i = seg_points[batch_id]
             num_seg_pts = len(seg_points_i)
             num_pred_boxes = len(labels)
-            tensor_boxes = bboxes.tensor[:, :7]
+            tensor_boxes = bboxes.tensor[:, :7]  # len(tensor_boxes) == len(scores) == len(labels) == num_pred_boxes
 
             fake_labels_i = torch.tensor([self.img_seg_head.num_classes-1] * num_seg_pts).to(seg_points[0].device)
+            # fake_labels_i: tensor (num_seg_pts, ); filled with num_classes-1 (background == 4)
             box_idx = points_in_boxes_gpu(seg_points_i.unsqueeze(0), tensor_boxes.unsqueeze(0)).squeeze(0)
+            # box_idx: tensor (num_seg_pts, ); box_idx[i]==-1: not in any bounding box; box_idx[i]=k>=0: in k_th box
             for i in range(num_pred_boxes):
-                mask = box_idx == i
+                mask = box_idx == i  # select points in i_th box
                 fake_labels_i[mask] = labels[i]
 
             fake_labels.append(fake_labels_i)
 
-        target_seg_loss = self.img_seg_head.loss(seg_logits, fake_labels)
+        target_seg_loss = self.img_seg_head.loss(seg_logits, fake_labels)  # cross_entropy
         return target_seg_loss
 
     def simple_test_pts(self, pts_feats, img_metas):
