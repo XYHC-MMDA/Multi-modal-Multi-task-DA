@@ -89,33 +89,38 @@ for idx in range(len(dataset)):
     # fake_labels = torch.tensor(list(map(lambda x: gt_labels_3d[x] if x >= 0 else num_classes-1, box_idx)))
 
     # 3.
-    fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
-    mask = box_idx != -1
-    fake_labels[mask] = torch.tensor(list(map(lambda x: gt_labels_3d[x], box_idx[mask])), dtype=torch.long)
-    end = time.time()
-    t1 = end - start
+    flag = False
+    if flag:
+        fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
+        mask = box_idx != -1
+        fake_labels[mask] = torch.tensor(list(map(lambda x: gt_labels_3d[x], box_idx[mask])), dtype=torch.long)
+        end = time.time()
+        t1 = end - start
 
-    evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
-    evaluator.update(fake_labels.numpy(), seg_labels.numpy())
-    print(evaluator.print_table())
-    print('overall_acc:', evaluator.overall_acc)
-    print('overall_iou:', evaluator.overall_iou)
+        evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
+        evaluator.update(fake_labels.numpy(), seg_labels.numpy())
+        print(evaluator.print_table())
+        print('overall_acc:', evaluator.overall_acc)
+        print('overall_iou:', evaluator.overall_iou)
 
-    # nuscenes points_in_box
-    start = time.time()
-    allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
-    fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
-    for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
-        mask = points_in_box(corners.T, seg_points[:, :3].T)
-        fake_labels[mask] = label
-    end = time.time()
-    t2 = end - start
+        # nuscenes points_in_box
+        start = time.time()
+        allcorners = gt_bboxes_3d.corners  # (N, 8, 3)
+        fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
+        for i, (corners, label) in enumerate(zip(allcorners, gt_labels_3d)):
+            mask = points_in_box(corners.T, seg_points[:, :3].T)
+            fake_labels[mask] = label
+        end = time.time()
+        t2 = end - start
 
-    evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
-    evaluator.update(fake_labels.numpy(), seg_labels.numpy())
-    print(evaluator.print_table())
-    print('overall_acc:', evaluator.overall_acc)
-    print('overall_iou:', evaluator.overall_iou)
+        evaluator = SegEvaluator(class_names=dataset.SEG_CLASSES)
+        evaluator.update(fake_labels.numpy(), seg_labels.numpy())
+        print(evaluator.print_table())
+        print('overall_acc:', evaluator.overall_acc)
+        print('overall_iou:', evaluator.overall_iou)
 
-    print('t1: %.4fs t2: %.4fs' % (t1, t2))
-    pdb.set_trace()
+        print('t1: %.4fs t2: %.4fs' % (t1, t2))
+
+    if idx % 100 == 0:
+        print(idx)
+    # pdb.set_trace()
