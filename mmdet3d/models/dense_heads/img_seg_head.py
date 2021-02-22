@@ -9,7 +9,7 @@ class ImageSegHead(nn.Module):
     def __init__(self, img_feat_dim, seg_pts_dim, num_classes, lidar_fc=[], concat_fc=[], class_weights=None):
         super(ImageSegHead, self).__init__()
         # self.in_channels = in_channels  # feat_channels
-        self.num_classes = num_classes
+        self.num_classes = num_classes  # include background
         self.lidar_fc = [seg_pts_dim] + lidar_fc
         self.concat_fc = [self.lidar_fc[-1] + img_feat_dim] + concat_fc
         if class_weights:
@@ -57,12 +57,15 @@ class ImageSegHead(nn.Module):
         seg_logits = self.forward_logits(fusion_feats)
         return seg_logits
 
-    def loss(self, seg_logits, seg_label):
+    def loss(self, seg_logits, seg_label, ignore_background=False):
         # seg_logits = self.forward(img_feats, img_indices, img_meta)
         # seg_label[0].device: cuda:0
         y = torch.cat(seg_label)  # shape=(M,); dtype=torch.uint8
         # y = y.type(torch.LongTensor).cuda()
-        seg_loss = F.cross_entropy(seg_logits, y, weight=self.class_weights)
+        if ignore_background:
+            seg_loss = F.cross_entropy(seg_logits, y, weight=self.class_weights, ignore_index=self.num_classes-1)
+        else:
+            seg_loss = F.cross_entropy(seg_logits, y, weight=self.class_weights)
         return dict(seg_loss=seg_loss)
 
 
