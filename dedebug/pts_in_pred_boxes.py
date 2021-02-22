@@ -91,7 +91,7 @@ for idx in range(len(dataset)):
     # 3.
     fake_labels = torch.tensor([num_classes-1] * len(seg_labels))
     mask = box_idx != -1
-    fake_labels[mask] = torch.tensor(list(map(lambda x: gt_labels_3d[x], box_idx[mask])))
+    fake_labels[mask] = torch.tensor(list(map(lambda x: gt_labels_3d[x], box_idx[mask])), dtype=torch.long)
     end = time.time()
     t1 = end - start
 
