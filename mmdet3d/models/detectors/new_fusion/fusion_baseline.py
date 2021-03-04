@@ -193,9 +193,10 @@ class FusionBaseline(Base3DDetector):
 
     def simple_test(self, img, seg_points, seg_pts_indices, points, pts_indices, img_metas, rescale=False):
         """Test function without augmentaiton."""
+        seg_pts_feats = self.extract_pts_feat(seg_points)
         img_feats, det_feats = self.extract_feat(points, pts_indices, img, img_metas)
 
-        seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_points, seg_pts_indices=seg_pts_indices)
+        seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_pts_feats, seg_pts_indices=seg_pts_indices)
 
         bbox_list = [dict() for i in range(len(img_metas))]  # len(bbox_list)=batch_size
         bbox_pts = self.simple_test_pts(det_feats, img_metas, rescale=rescale)
