@@ -319,7 +319,7 @@ momentum_config = None
 # default_runtime.py
 checkpoint_config = dict(interval=1)
 log_config = dict(
-    interval=25,
+    interval=50,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')
