@@ -28,8 +28,7 @@ voxel_size = [0.25, 0.25, 8]
 img_feat_channels = 64
 pts_feat_dim = 64
 voxel_feat_dim = 128
-seg_pts_dim = 3  # (x, y, z, reflectance)
-det_pts_dim = 3  # (x, y, z, timestamp)
+det_pts_dim = 3  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
 
 backbone_arch = 'regnetx_1.6gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
@@ -37,7 +36,7 @@ FPN_in_channels = arch_map[backbone_arch]
 
 model = dict(
     type=model_type,
-    vfes=[3, 64, 64],
+    vfes=[3, 64, pts_feat_dim],
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
@@ -45,7 +44,7 @@ model = dict(
     img_seg_head=dict(
         type='ImageSegHead',
         img_feat_dim=img_feat_channels,
-        seg_pts_dim=seg_pts_dim,  # no use
+        seg_pts_dim=pts_feat_dim,  # concat_feats_dim 
         num_classes=5,
         lidar_fc=[],  # no fc before fusion
         concat_fc=[128, 64],
