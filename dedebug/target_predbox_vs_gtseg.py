@@ -1,3 +1,4 @@
+import mmcv
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset
 from mmdet3d.core.bbox import LiDARInstance3DBoxes
@@ -66,7 +67,7 @@ def calc(model, data_loader):
 
         # handle det
         dic = box_res[0]['pts_bbox']
-        tensor_boxes = dic['boxes_3d'].tensor[:, :7]
+        tensor_boxes = dic['boxes_3d'].tensor[:, :7].cuda()
         labels = dic['labels_3d']
 
         num_seg_pts = len(seg_points[0])
@@ -106,7 +107,7 @@ if __name__ == '__main__':
 
     # set random seeds
     if args.seed is not None:
-        set_random_seed(args.seed, deterministic=args.deterministic)
+        set_random_seed(args.seed)
 
     # build the dataloader
     samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)

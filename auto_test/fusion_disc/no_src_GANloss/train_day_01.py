@@ -5,7 +5,7 @@ import time
 
 cfg = 'train_day_01'
 ckpt = 'train_day_01'
-l, r = 1, 18
+l, r = 27, 36
 
 
 filename = f'checkpoints/fusion_disc/no_src_GANloss/{ckpt}/result.txt'

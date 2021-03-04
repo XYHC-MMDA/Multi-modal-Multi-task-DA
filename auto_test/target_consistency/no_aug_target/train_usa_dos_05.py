@@ -3,8 +3,8 @@ import argparse
 import os 
 import time 
 
-cfg = 'train_usa_dos_04'
-ckpt = 'train_usa_dos_04_resume'
+cfg = 'train_usa_dos_05'
+ckpt = 'train_usa_dos_05_resume'
 l, r = 17, 24
 
 

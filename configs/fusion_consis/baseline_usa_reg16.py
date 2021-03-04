@@ -30,6 +30,11 @@ pts_feat_dim = 64
 voxel_feat_dim = 128
 seg_pts_dim = 3  # (x, y, z, reflectance)
 det_pts_dim = 3  # (x, y, z, timestamp)
+
+backbone_arch = 'regnetx_1.6gf'
+arch_map = dict('regnetx_1.6gf'=[168, 408, 912], 'regnetx_3.2gf'=[192, 432, 1008])
+FPN_in_channels = arch_map[backbone_arch]
+
 model = dict(
     type=model_type,
     vfes=[3, 64, 64],
@@ -63,10 +68,11 @@ model = dict(
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
         type='PointPillarsScatter', in_channels=voxel_feat_dim, output_shape=scatter_shape),
-    pretrained=dict(pts='open-mmlab://regnetx_1.6gf'),
+    # pretrained=dict(pts='open-mmlab://regnetx_1.6gf'),
+    pretrained=dict(pts='open-mmlab://' + backbone_arch),
     pts_backbone=dict(
         type='NoStemRegNet',
-        arch='regnetx_1.6gf',
+        arch=backbone_arch,
         out_indices=(1, 2, 3),
         frozen_stages=-1,
         strides=(1, 2, 2, 2),
@@ -81,7 +87,7 @@ model = dict(
         # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
         act_cfg=dict(type='ReLU'),
-        in_channels=[192, 432, 1008],
+        in_channels=FPN_in_channels,
         out_channels=256,
         start_level=0,
         num_outs=3),
@@ -271,6 +277,7 @@ lr_config = dict(
     warmup_iters=1000,
     warmup_ratio=1.0 / 1000,
     step=lr_step)
+optimizer_config = None 
 # optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 momentum_config = None
 

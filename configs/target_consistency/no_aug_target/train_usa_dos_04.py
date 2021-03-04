@@ -141,7 +141,8 @@ test_cfg = dict(
         nms_across_levels=False,
         nms_pre=1000,
         nms_thr=0.2,
-        score_thr=0.05,
+        # score_thr=0.05,
+        score_thr=0.1,
         min_bbox_size=0,
         max_num=500))
 

@@ -73,7 +73,7 @@ class FusionBaseline(Base3DDetector):
     def extract_pts_feat(self, pts):
         pts_feats = []
         for p in pts:
-            pts_feats.append(self.vfe_layers(p[:, :3]))
+            pts_feats.append(self.vfe_layers(p[:, :3].unsqueeze(0)).squeeze(0))
         return pts_feats
 
 
@@ -96,14 +96,17 @@ class FusionBaseline(Base3DDetector):
             sample_feats.append(x[i][pts_indices[i][:, 0], pts_indices[i][:, 1]])
         concat_pts = []
         for i in range(len(pts_feats)):
-            concat_pts.append(torch.cat([pts[:, :3], pts_feats[i], sample_feats[i]], 1))
+            concat_pts.append(torch.cat([pts[i][:, :3], pts_feats[i], sample_feats[i]], 1))
 
         voxels, num_points, coors = self.voxelize(concat_pts)  # voxels=(M, T=64, ndim=3+64+64); coors=(M, 4), 4:(batch_idx, z, y, x)
         voxel_features = self.pts_voxel_encoder(voxels, num_points, coors,
                                                 img_feats, img_metas)  # (M, C=64); M=num of non-empty voxels
         batch_size = coors[-1, 0] + 1
         x = self.pts_middle_encoder(voxel_features, coors, batch_size)  # (N, C, H, W) = (4, 64, 200, 400)
-        x = self.pts_backbone(x)  # tuple of tensor: ((4, 192, 100, 200), (4, 432, 50, 100), (4, 1008, 25, 50))
+        x = self.pts_backbone(x)  
+        # tuple of tensor: 
+        # ((4, 192, 100, 200), (4, 432, 50, 100), (4, 1008, 25, 50)) for regnetx_3.2gf
+        # ((4, 168, 100, 200), (4, 408, 50, 100), (4, 912, 25, 50)) for regnetx_1.6gf
         if self.with_pts_neck:    # FPN
             x = self.pts_neck(x)  # tuple of tensor: ((4, 256, 100, 200), (4, 256, 50, 100), (4, 256, 25, 50))
         return x
