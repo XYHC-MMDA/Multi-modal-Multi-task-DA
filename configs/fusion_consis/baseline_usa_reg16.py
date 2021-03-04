@@ -276,7 +276,7 @@ lr_config = dict(
     warmup_iters=1000,
     warmup_ratio=1.0 / 1000,
     step=lr_step)
-optimizer_config = None 
+optimizer_config = dict()
 # optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 momentum_config = None
 
