@@ -76,8 +76,6 @@ class FusionConsisRunner(BaseRunner):
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
-        self.seg_disc.train()
-        self.det_disc.train()
         self.mode = 'train'
         self.data_loader = src_data_loader
         tgt_data_iter = iter(tgt_data_loader)
@@ -109,9 +107,9 @@ class FusionConsisRunner(BaseRunner):
             # train Discriminators
             # ------------------------
 
-            set_requires_grad([self.disc], requires_grad=True)
+            # set_requires_grad([self.disc], requires_grad=True)
             for _ in range(self.patch_pairs):
-                pts_indices_list = src_data_batch['pts_indices'].data
+                pts_indices_list = src_data_batch['pts_indices'].data[0]
                 r1, c1, r2, c2 = generate_patch_pair(src_img_feats.shape[-2:], self.patch_size)
                 pts_feats_list1, pts_feats_list2 = [], []
                 for i, pts_idx in enumerate(pts_indices_list):
@@ -129,7 +127,7 @@ class FusionConsisRunner(BaseRunner):
             # ------------------------
             # train network on source: task loss + GANLoss
             # ------------------------
-            set_requires_grad([self.seg_disc, self.det_disc], requires_grad=False)
+            set_requires_grad([self.disc], requires_grad=False)
             losses, seg_src_feats, det_src_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
 
             seg_disc_logits = self.seg_disc(seg_src_feats)  # (N, 2)

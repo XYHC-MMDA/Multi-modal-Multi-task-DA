@@ -135,7 +135,7 @@ def main():
     cfg.seed = args.seed
     meta['seed'] = args.seed
 
-    model = build_detector(cfg.model)
+    model = build_detector(cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
     logger.info(f'Model:\n{model}')
     datasets = [build_dataset(cfg.data.source_train), build_dataset(cfg.data.target_train)]
     # if len(cfg.workflow) == 2:

@@ -30,7 +30,7 @@ pts_feat_dim = 64
 voxel_feat_dim = 128
 det_pts_dim = 3  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
 
-backbone_arch = 'regnetx_3.2gf'
+backbone_arch = 'regnetx_1.6gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
 FPN_in_channels = arch_map[backbone_arch]
 
