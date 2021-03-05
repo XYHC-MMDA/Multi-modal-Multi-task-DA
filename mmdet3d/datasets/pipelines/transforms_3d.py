@@ -601,7 +601,7 @@ class PointsSensorFilter(object):
         pts_indices = pts_img[:, :2][mask]
         if self.resize:
             pts_indices = pts_indices * self.resize / self.img_size
-        pts_indices = np.fliplr(pts_indices).astype(np.int64)
+        pts_indices = np.fliplr(pts_indices).astype(np.int64)  # (row, col)
 
         results['points'] = pts_lidar
         results['pts_indices'] = pts_indices

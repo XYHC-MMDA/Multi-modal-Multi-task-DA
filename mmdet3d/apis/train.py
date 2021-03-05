@@ -238,3 +238,55 @@ def train_tc_detector(model, dataset, cfg, distributed=False, timestamp=None, me
     # elif cfg.load_from:
     #     runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
+
+
+def train_general_detector(model, dataset, cfg, distributed=False, timestamp=None, meta=None):
+    # dataset: [src_dataset, tgt_dataset]
+    logger = get_root_logger(cfg.log_level)
+    data_loaders = [
+        build_dataloader(
+            ds,
+            cfg.data.samples_per_gpu,
+            cfg.data.workers_per_gpu,
+            # cfg.gpus will be ignored if distributed
+            len(cfg.gpu_ids),
+            dist=distributed,
+            seed=cfg.seed) for ds in dataset
+    ]
+
+    # put model on gpus
+    model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+
+    # build runner
+    runner_kwargs = dict()
+    for disc_key, opt_key in [('discriminator', 'disc_optimizer'),
+                              ('lidar_disc', 'lidar_opt')]:
+        if not hasattr(cfg, disc_key):
+            continue
+        disc = build_discriminator(getattr(cfg, disc_key)).cuda()
+        opt = build_optimizer(disc, getattr(cfg, opt_key))
+        runner_kwargs[disc_key] = disc
+        runner_kwargs[opt_key] = opt
+
+    optimizer = build_optimizer(model, cfg.optimizer)
+    PRunner = RUNNERS.get(cfg.runner)
+    for key in ['lambda_GANLoss', 'src_acc_threshold', 'tgt_acc_threshold', 'return_fusion_feats',
+                'lambda_img', 'lambda_lidar']:
+        if not hasattr(cfg, key):
+            continue
+        runner_kwargs[key] = getattr(cfg, key)
+    runner = PRunner(model, **runner_kwargs,
+                     optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
+    runner.timestamp = timestamp
+
+    # register hooks; no opimizer_config & momentum_config
+    runner.register_training_hooks(cfg.lr_config, checkpoint_config=cfg.checkpoint_config, log_config=cfg.log_config)
+
+    # if distributed:
+    #     runner.register_hook(DistSamplerSeedHook())
+    if cfg.resume_from:
+        runner.resume(cfg.resume_from)
+    # elif cfg.load_from:
+    #     runner.load_checkpoint(cfg.load_from)
+    runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
+
