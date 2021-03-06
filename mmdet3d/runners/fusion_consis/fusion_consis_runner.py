@@ -8,12 +8,9 @@ import torch
 import numpy as np
 
 import mmcv
-from mmcv.runner import BaseRunner, RUNNERS, save_checkpoint, get_host_info
-# from .base_runner import BaseRunner
-# from .builder import RUNNERS
-# from .checkpoint import save_checkpoint
-# from .utils import get_host_info
+from mmcv.runner import BaseRunner, RUNNERS, save_checkpoint, get_host_info, build_optimizer
 from mmdet3d.apis import parse_losses, set_requires_grad
+from mmdet3d.models import build_discriminator
 
 
 def generate_patch_pair(img_size, patch_size):
@@ -48,11 +45,7 @@ def pts_in_patch(pts_idx, r, c, patch_size):
 class FusionConsisRunner(BaseRunner):
     def __init__(self,
                  model,
-                 discriminator=None,
-                 disc_optimizer=None,
-                 lambda_GANLoss=1.0,
-                 patch_size=[25, 25],
-                 patch_pairs=5,
+                 cfg,
                  batch_processor=None,
                  optimizer=None,
                  work_dir=None,
@@ -68,11 +61,11 @@ class FusionConsisRunner(BaseRunner):
                                                  meta,
                                                  max_iters,
                                                  max_epochs)
-        self.disc = discriminator
-        self.disc_opt = disc_optimizer
-        self.lambda_GANLoss = lambda_GANLoss  # L = L_task + self.lambda_GANLoss * L_GAN
-        self.patch_size = patch_size
-        self.patch_pairs = patch_pairs
+        self.disc = build_discriminator(cfg.disc).to(model.device)
+        self.disc_opt = build_optimizer(self.disc, cfg.disc_opt)
+        self.lambda_consistency = cfg.lambda_consistency
+        self.patch_size = cfg.patch_size
+        self.patch_pairs = cfg.patch_pairs
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
@@ -99,20 +92,21 @@ class FusionConsisRunner(BaseRunner):
             # ------------------------
             # forward source & target
             # ------------------------
-            losses, src_img_feats, src_pts_feats = self.model(**src_data_batch)
-            tgt_img_feats, tgt_pts_feats = self.model(**tgt_data_batch, target=True)
+            losses, src_img_feats, src_pts_feats, src_pts_indices = self.model(**src_data_batch)
+            tgt_img_feats, tgt_pts_feats, tgt_pts_indices = self.model(**tgt_data_batch, target=True)
             # img_feats: (N, C, H, W)=(4, 64, 225, 400); pts_feats: list of (N, C)
 
             # ------------------------
-            # train Discriminators
+            # consistency loss
             # ------------------------
 
             # set_requires_grad([self.disc], requires_grad=True)
+            disc_src_losses = []
             for _ in range(self.patch_pairs):
-                pts_indices_list = src_data_batch['pts_indices'].data[0]
+                # pts_indices_list = src_data_batch['pts_indices'].data[0]
                 r1, c1, r2, c2 = generate_patch_pair(src_img_feats.shape[-2:], self.patch_size)
                 pts_feats_list1, pts_feats_list2 = [], []
-                for i, pts_idx in enumerate(pts_indices_list):
+                for i, pts_idx in enumerate(src_pts_indices):
                     mask1 = pts_in_patch(pts_idx, r1, c1, self.patch_size)
                     pts_feats_list1.append(src_pts_feats[i][mask1])
                     mask2 = pts_in_patch(pts_idx, r2, c2, self.patch_size)
@@ -123,74 +117,42 @@ class FusionConsisRunner(BaseRunner):
                 src_img_patch2 = src_img_feats[:, :,
                              r2 * self.patch_size[0]:(r2 + 1) * self.patch_size[0],
                              c2 * self.patch_size[1]:(c2 + 1) * self.patch_size[1]]
+                disc_src_losses.extend(self.disc.loss(pts_feats_list1, src_img_patch1, attract=True))
+                disc_src_losses.extend(self.disc.loss(pts_feats_list2, src_img_patch2, attract=True))
+                disc_src_losses.extend(self.disc.loss(pts_feats_list1, src_img_patch2, attract=False))
+                disc_src_losses.extend(self.disc.loss(pts_feats_list2, src_img_patch1, attract=False))
 
-            # ------------------------
-            # train network on source: task loss + GANLoss
-            # ------------------------
-            set_requires_grad([self.disc], requires_grad=False)
-            losses, seg_src_feats, det_src_feats = self.model(**src_data_batch)  # forward; losses: {'seg_loss'=}
+            disc_tgt_losses = []
+            for _ in range(self.patch_pairs):
+                r1, c1, r2, c2 = generate_patch_pair(tgt_img_feats.shape[-2:], self.patch_size)
+                pts_feats_list1, pts_feats_list2 = [], []
+                for i, pts_idx in enumerate(tgt_pts_indices):
+                    mask1 = pts_in_patch(pts_idx, r1, c1, self.patch_size)
+                    pts_feats_list1.append(tgt_pts_feats[i][mask1])
+                    mask2 = pts_in_patch(pts_idx, r2, c2, self.patch_size)
+                    pts_feats_list2.append(tgt_pts_feats[i][mask2])
+                tgt_img_patch1 = tgt_img_feats[:, :,
+                                 r1 * self.patch_size[0]:(r1 + 1) * self.patch_size[0],
+                                 c1 * self.patch_size[1]:(c1 + 1) * self.patch_size[1]]
+                tgt_img_patch2 = tgt_img_feats[:, :,
+                                 r2 * self.patch_size[0]:(r2 + 1) * self.patch_size[0],
+                                 c2 * self.patch_size[1]:(c2 + 1) * self.patch_size[1]]
+                disc_tgt_losses.extend(self.disc.loss(pts_feats_list1, tgt_img_patch1, attract=True))
+                disc_tgt_losses.extend(self.disc.loss(pts_feats_list2, tgt_img_patch2, attract=True))
+                disc_tgt_losses.extend(self.disc.loss(pts_feats_list1, tgt_img_patch2, attract=False))
+                disc_tgt_losses.extend(self.disc.loss(pts_feats_list2, tgt_img_patch1, attract=False))
 
-            seg_disc_logits = self.seg_disc(seg_src_feats)  # (N, 2)
-            seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
-            seg_label = torch.ones_like(seg_disc_pred, dtype=torch.long).cuda()
-            seg_acc = (seg_disc_pred == seg_label).float().mean()
-            acc_threshold = 0.6
-            if seg_acc > acc_threshold:
-                losses['seg_src_GANloss'] = self.lambda_GANLoss * self.seg_disc.loss(seg_disc_logits, src=False)
-
-            det_disc_logits = self.det_disc(det_src_feats)  # (4, 2, 49, 99)
-            det_disc_pred = det_disc_logits.max(1)[1]  # (4, 49, 99); cuda
-            det_label = torch.ones_like(det_disc_pred, dtype=torch.long).cuda()
-            det_acc = (det_disc_pred == det_label).float().mean()
-            if det_acc > acc_threshold:
-                losses['det_src_GANloss'] = self.lambda_GANLoss * self.det_disc.loss(det_disc_logits, src=False)
+            disc_loss = self.lambda_consistency * torch.mean(torch.tensor(disc_src_losses + disc_tgt_losses))
+            losses['disc_loss'] = disc_loss
 
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
-            log_vars['seg_src_Dloss'] = log_seg_src_Dloss
-            log_vars['det_src_Dloss'] = log_det_src_Dloss
-            log_vars['seg_tgt_Dloss'] = log_seg_tgt_Dloss
-            log_vars['det_tgt_Dloss'] = log_det_tgt_Dloss
-            log_vars['seg_src_acc'] = seg_acc.item()
-            log_vars['det_src_acc'] = det_acc.item()
 
+            self.disc_opt.zero_grad()
             self.optimizer.zero_grad()
             loss.backward()
+            self.disc_opt.step()
             self.optimizer.step()
-
-            # ------------------------
-            # train network on target: only GANLoss
-            # ------------------------
-            self.optimizer.zero_grad()
-            seg_tgt_feats, det_tgt_feats = self.model.forward_fusion(**tgt_data_batch)
-
-            seg_disc_logits = self.seg_disc(seg_tgt_feats)  # (N, 2)
-            seg_disc_pred = seg_disc_logits.max(1)[1]  # (N, ); cuda
-            seg_label = torch.zeros_like(seg_disc_pred, dtype=torch.long).cuda()
-            seg_acc = (seg_disc_pred == seg_label).float().mean()
-            tgt_GANloss = None
-            if seg_acc > acc_threshold:
-                seg_tgt_loss = self.lambda_GANLoss * self.seg_disc.loss(seg_disc_logits, src=True)
-                tgt_GANloss = seg_tgt_loss
-                log_vars['seg_tgt_GANloss'] = seg_tgt_loss.item()
-
-            det_disc_logits = self.det_disc(det_tgt_feats)  # (4, 2, 49, 99)
-            det_disc_pred = det_disc_logits.max(1)[1]  # (4, 49, 99); cuda
-            det_label = torch.zeros_like(det_disc_pred, dtype=torch.long).cuda()
-            det_acc = (det_disc_pred == det_label).float().mean()
-            if det_acc > acc_threshold:
-                det_tgt_loss = self.lambda_GANLoss * self.det_disc.loss(det_disc_logits, src=True)
-                log_vars['det_tgt_GANloss'] = det_tgt_loss.item()
-                if tgt_GANloss is None:
-                    tgt_GANloss = det_tgt_loss
-                else:
-                    tgt_GANloss += det_tgt_loss
-
-            log_vars['seg_tgt_acc'] = seg_acc.item()
-            log_vars['det_tgt_acc'] = det_acc.item()
-            if tgt_GANloss is not None:
-                tgt_GANloss.backward()
-                self.optimizer.step()
 
             # after_train_iter callback
             self.log_buffer.update(log_vars, num_samples)

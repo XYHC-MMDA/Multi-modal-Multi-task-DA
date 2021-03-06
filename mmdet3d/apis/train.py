@@ -257,25 +257,12 @@ def train_general_detector(model, dataset, cfg, distributed=False, timestamp=Non
     # put model on gpus
     model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
-    # build runner
-    runner_kwargs = dict()
-    for disc_key, opt_key in [('discriminator', 'disc_optimizer'),
-                              ('lidar_disc', 'lidar_opt')]:
-        if not hasattr(cfg, disc_key):
-            continue
-        disc = build_discriminator(getattr(cfg, disc_key)).cuda()
-        opt = build_optimizer(disc, getattr(cfg, opt_key))
-        runner_kwargs[disc_key] = disc
-        runner_kwargs[opt_key] = opt
-
+    # build model optimizer
     optimizer = build_optimizer(model, cfg.optimizer)
+
+    # build runner
     PRunner = RUNNERS.get(cfg.runner)
-    for key in ['lambda_GANLoss', 'src_acc_threshold', 'tgt_acc_threshold', 'return_fusion_feats',
-                'lambda_img', 'lambda_lidar']:
-        if not hasattr(cfg, key):
-            continue
-        runner_kwargs[key] = getattr(cfg, key)
-    runner = PRunner(model, **runner_kwargs,
+    runner = PRunner(model, cfg,
                      optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     runner.timestamp = timestamp
 

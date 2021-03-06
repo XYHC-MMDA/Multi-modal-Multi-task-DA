@@ -149,7 +149,7 @@ class FusionConsis(Base3DDetector):
         det_feats = self.extract_det_feat(points, pts_feats, img_feats, pts_indices, img_feats)  # output of FPN
         # img_feats, det_feats = self.extract_feat(points, pts_indices, img, img_metas)
         if target:
-            return img_feats, pts_feats
+            return img_feats, pts_feats, pts_indices
 
         losses = dict()
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_pts_feats, seg_pts_indices=seg_pts_indices)
@@ -161,7 +161,7 @@ class FusionConsis(Base3DDetector):
                                             gt_labels_3d, img_metas,
                                             gt_bboxes_ignore)
         losses.update(losses_pts)
-        return losses, img_feats, pts_feats
+        return losses, img_feats, pts_feats, pts_indices
 
     def forward_pts_train(self,
                           pts_feats,
