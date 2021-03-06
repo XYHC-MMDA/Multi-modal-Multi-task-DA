@@ -36,7 +36,9 @@ def pts_in_patch(pts_idx, r, c, patch_size):
     '''
     x1, x2 = r * patch_size[0], (r + 1) * patch_size[0]
     y1, y2 = c * patch_size[1], (c + 1) * patch_size[1]
-    mask = (torch.tensor([x1, y1]) <= pts_idx) & (pts_idx < torch.tensor([x2, y2]))
+    top_left = torch.tensor([x1, y1]).to(pts_idx.device)
+    bot_right = torch.tensor([x2, y2]).to(pts_idx.device)
+    mask = (top_left <= pts_idx) & (pts_idx < bot_right)
     mask = mask[:, 0] & mask[:, 1]
     return mask
 
@@ -117,10 +119,10 @@ class FusionConsisRunner(BaseRunner):
                 src_img_patch2 = src_img_feats[:, :,
                              r2 * self.patch_size[0]:(r2 + 1) * self.patch_size[0],
                              c2 * self.patch_size[1]:(c2 + 1) * self.patch_size[1]]
-                disc_src_losses.extend(self.disc.loss(pts_feats_list1, src_img_patch1, attract=True))
-                disc_src_losses.extend(self.disc.loss(pts_feats_list2, src_img_patch2, attract=True))
-                disc_src_losses.extend(self.disc.loss(pts_feats_list1, src_img_patch2, attract=False))
-                disc_src_losses.extend(self.disc.loss(pts_feats_list2, src_img_patch1, attract=False))
+                disc_src_losses.extend(self.disc.losses(pts_feats_list1, src_img_patch1, attract=True))
+                disc_src_losses.extend(self.disc.losses(pts_feats_list2, src_img_patch2, attract=True))
+                disc_src_losses.extend(self.disc.losses(pts_feats_list1, src_img_patch2, attract=False))
+                disc_src_losses.extend(self.disc.losses(pts_feats_list2, src_img_patch1, attract=False))
 
             disc_tgt_losses = []
             for _ in range(self.patch_pairs):
@@ -137,10 +139,10 @@ class FusionConsisRunner(BaseRunner):
                 tgt_img_patch2 = tgt_img_feats[:, :,
                                  r2 * self.patch_size[0]:(r2 + 1) * self.patch_size[0],
                                  c2 * self.patch_size[1]:(c2 + 1) * self.patch_size[1]]
-                disc_tgt_losses.extend(self.disc.loss(pts_feats_list1, tgt_img_patch1, attract=True))
-                disc_tgt_losses.extend(self.disc.loss(pts_feats_list2, tgt_img_patch2, attract=True))
-                disc_tgt_losses.extend(self.disc.loss(pts_feats_list1, tgt_img_patch2, attract=False))
-                disc_tgt_losses.extend(self.disc.loss(pts_feats_list2, tgt_img_patch1, attract=False))
+                disc_tgt_losses.extend(self.disc.losses(pts_feats_list1, tgt_img_patch1, attract=True))
+                disc_tgt_losses.extend(self.disc.losses(pts_feats_list2, tgt_img_patch2, attract=True))
+                disc_tgt_losses.extend(self.disc.losses(pts_feats_list1, tgt_img_patch2, attract=False))
+                disc_tgt_losses.extend(self.disc.losses(pts_feats_list2, tgt_img_patch1, attract=False))
 
             disc_loss = self.lambda_consistency * torch.mean(torch.tensor(disc_src_losses + disc_tgt_losses))
             losses['disc_loss'] = disc_loss
