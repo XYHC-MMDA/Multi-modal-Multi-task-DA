@@ -22,14 +22,14 @@ class ConsistencyDisc(nn.Module):
         ret = []
         if isinstance(img_feats, torch.Tensor):
             B, C, H, W = img_feats.shape
-            img_avg_feats = torch.mean(img_feats.view(B, C, -1), dim=-1)
+            img_avg_feats = torch.mean(img_feats.reshape(B, C, -1), dim=-1)
             if attract:
                 labels = torch.ones([1, ], dtype=torch.long).to(img_feats.device)
             else:
                 labels = torch.zeros([1, ], dtype=torch.long).to(img_feats.device)
             for i, pts in enumerate(pts_feats):
                 if len(pts) >= self.min_pts_threshold:
-                    pts_avg = torch.mean(pts, dim=1)  # (C_pts, )
+                    pts_avg = torch.mean(pts, dim=0)  # (C_pts, )
                     img_avg = img_avg_feats[i]  # (C_img, )
                     cat_avg = torch.cat([img_avg, pts_avg]).unsqueeze(0)
                     logits = self.fc_layers(cat_avg)  # (1, 2)
