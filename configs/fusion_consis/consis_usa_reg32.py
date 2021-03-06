@@ -7,7 +7,7 @@
 runner = 'FusionConsisRunner'
 model_type = 'FusionConsis'
 lambda_consistency = 0.01
-disc = 'ConsistencyDisc'
+disc = dict(type='ConsistencyDisc')
 disc_opt = dict(type='AdamW', lr=0.001, weight_decay=0.01)
 patch_size = [25, 25]
 patch_pairs = 5
