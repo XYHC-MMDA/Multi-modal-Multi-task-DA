@@ -61,7 +61,7 @@ class FusionConsisRunner(BaseRunner):
                                                  meta,
                                                  max_iters,
                                                  max_epochs)
-        self.disc = build_discriminator(cfg.disc).to(model.device)
+        self.disc = build_discriminator(cfg.disc).cuda()
         self.disc_opt = build_optimizer(self.disc, cfg.disc_opt)
         self.lambda_consistency = cfg.lambda_consistency
         self.patch_size = cfg.patch_size
