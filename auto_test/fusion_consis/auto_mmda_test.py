@@ -4,8 +4,8 @@ import os
 import time 
 
 # variants
-ckpt = 'baseline2_usa_reg32'
-cfg = 'baseline2_usa_reg32'
+ckpt = 'baseline3_usa_reg32'
+cfg = 'baseline3_usa_reg32'
 l, r = 1, 24  # [l, r]
 
 
