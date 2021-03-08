@@ -39,7 +39,7 @@ FPN_in_channels = arch_map[backbone_arch]
 
 model = dict(
     type=model_type,
-    vfes=[3, 64, pts_feat_dim],
+    pts_fc=[3, 64, pts_feat_dim],
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
