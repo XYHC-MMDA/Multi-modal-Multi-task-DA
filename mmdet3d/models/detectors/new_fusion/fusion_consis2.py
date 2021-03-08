@@ -14,7 +14,7 @@ from mmdet3d.models.voxel_encoders.utils import VFELayer
 
 
 @DETECTORS.register_module()
-class FusionBaseline4(Base3DDetector):
+class FusionConsis2(Base3DDetector):
     # vfe -> fc
     def __init__(self,
                  pts_voxel_layer=None,
@@ -29,7 +29,7 @@ class FusionBaseline4(Base3DDetector):
                  test_cfg=None,
                  pretrained=None,
                  pts_fc=[]):
-        super(FusionBaseline4, self).__init__()
+        super(FusionConsis2, self).__init__()
 
         if img_backbone:
             self.img_backbone = builder.build_backbone(img_backbone)
@@ -74,13 +74,6 @@ class FusionBaseline4(Base3DDetector):
         img_feats = self.img_backbone(img)
         return img_feats
 
-    def extract_pts_feat(self, pts):
-        pts_feats = []
-        for p in pts:
-            pts_feats.append(self.fc_layers(p[:, :3]))
-        return pts_feats
-
-
     def extract_det_feat(self, pts, pts_feats, img_feats, pts_indices, img_metas):
         '''
 
@@ -121,6 +114,12 @@ class FusionBaseline4(Base3DDetector):
         det_feats = self.extract_det_feat(points, pts_feats, img_feats, pts_indices, img_feats)  # output of FPN
         return img_feats, det_feats
 
+    def extract_pts_feat(self, pts):
+        pts_feats = []
+        for p in pts:
+            pts_feats.append(self.fc_layers(p[:, :3]))
+        return pts_feats
+
     def forward_train(self,
                       img=None,
                       seg_points=None,
@@ -131,7 +130,8 @@ class FusionBaseline4(Base3DDetector):
                       gt_bboxes_3d=None,
                       gt_labels_3d=None,
                       img_metas=None,
-                      gt_bboxes_ignore=None):
+                      gt_bboxes_ignore=None,
+                      target=False):
         '''
         Args:
             img: (4, 3, 225, 400)
@@ -147,8 +147,13 @@ class FusionBaseline4(Base3DDetector):
 
         Returns: losses
         '''
+        img_feats = self.extract_img_feat(img, img_metas)  # (N, 64, 225, 400)
         seg_pts_feats = self.extract_pts_feat(seg_points)
-        img_feats, det_feats = self.extract_feat(points, pts_indices, img, img_metas)
+        pts_feats = self.extract_pts_feat(points)
+        det_feats = self.extract_det_feat(points, pts_feats, img_feats, pts_indices, img_feats)  # output of FPN
+        # img_feats, det_feats = self.extract_feat(points, pts_indices, img, img_metas)
+        if target:
+            return img_feats, pts_feats, pts_indices
 
         losses = dict()
         seg_logits = self.img_seg_head(img_feats=img_feats, seg_pts=seg_pts_feats, seg_pts_indices=seg_pts_indices)
@@ -160,7 +165,7 @@ class FusionBaseline4(Base3DDetector):
                                             gt_labels_3d, img_metas,
                                             gt_bboxes_ignore)
         losses.update(losses_pts)
-        return losses
+        return losses, img_feats, pts_feats, pts_indices
 
     def forward_pts_train(self,
                           pts_feats,
@@ -233,7 +238,7 @@ class FusionBaseline4(Base3DDetector):
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
-        super(FusionBaseline4, self).init_weights(pretrained)
+        super(FusionConsis2, self).init_weights(pretrained)
         if pretrained is None:
             img_pretrained = None
             pts_pretrained = None

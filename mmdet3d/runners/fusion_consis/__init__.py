@@ -1,1 +1,1 @@
-from .fusion_consis_runner import FusionConsisRunner
+from .patch_runner import PatchRunner

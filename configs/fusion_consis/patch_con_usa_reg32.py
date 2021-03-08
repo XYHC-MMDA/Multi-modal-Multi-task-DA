@@ -1,11 +1,9 @@
-# baseline; no consistency
-
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'PatchRunner'  # FusionConsisRunner
-model_type = 'FusionConsis'
+runner = 'PatchRunner'
+model_type = 'FusionConsis2'
 lambda_consistency = 0.01
 disc = dict(type='ConsistencyDisc')
 disc_opt = dict(type='AdamW', lr=0.001, weight_decay=0.01)
@@ -33,6 +31,7 @@ img_feat_channels = 64
 pts_feat_dim = 64
 voxel_feat_dim = 128
 det_pts_dim = 3  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
+voxel_in_channels = det_pts_dim + pts_feat_dim + img_feat_channels
 
 backbone_arch = 'regnetx_3.2gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
@@ -60,7 +59,7 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=det_pts_dim + pts_feat_dim + img_feat_channels,
+        in_channels=voxel_in_channels,
         feat_channels=[128, voxel_feat_dim],
         with_distance=False,
         voxel_size=voxel_size,

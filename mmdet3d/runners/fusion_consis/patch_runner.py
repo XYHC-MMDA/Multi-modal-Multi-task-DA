@@ -44,7 +44,7 @@ def pts_in_patch(pts_idx, r, c, patch_size):
 
 
 @RUNNERS.register_module()
-class FusionConsisRunner(BaseRunner):
+class PatchRunner(BaseRunner):
     def __init__(self,
                  model,
                  cfg,
@@ -55,7 +55,7 @@ class FusionConsisRunner(BaseRunner):
                  meta=None,
                  max_iters=None,
                  max_epochs=None):
-        super(FusionConsisRunner, self).__init__(model,
+        super(PatchRunner, self).__init__(model,
                                                  batch_processor,
                                                  optimizer,
                                                  work_dir,
