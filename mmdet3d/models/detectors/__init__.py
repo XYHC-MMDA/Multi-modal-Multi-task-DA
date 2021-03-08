@@ -19,13 +19,12 @@ from .single_seg_xyz import SingleSegXYZ
 from .sep_disc import SepDisc
 from .target_consistency import TargetConsistency
 from .target_consistency_no_bg import TargetConsistencyNoBG
-from .new_fusion import FusionBaseline, SepBaseline
+from .new_fusion import *
 
 __all__ = [
     'Base3DDetector', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni',
     'SepSegDet', 'FusionDisc', 'FusionDisc01', 'FusionDisc02', 'SingleSegXYZ',
     'SepDisc', 'TargetConsistency', 'TargetConsistencyNoBG',
-    'FusionBaseline', 'SepBaseline'
 ]
 
 # __all__ = [
