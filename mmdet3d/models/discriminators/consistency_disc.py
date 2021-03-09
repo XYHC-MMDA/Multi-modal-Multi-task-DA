@@ -38,13 +38,14 @@ class ConsistencyDisc(nn.Module):
         elif isinstance(img_feats, list):
             # pixel-wise
             for i, pts in enumerate(pts_feats):
-                if len(pts) >= self.min_pts_threshold:
+                num_pts = len(pts)
+                if num_pts >= self.min_pts_threshold:
                     if attract:
-                        labels = torch.ones([1, ], dtype=torch.long).to(pts.device)
+                        labels = torch.ones([num_pts, ], dtype=torch.long).to(pts.device)
                     else:
-                        labels = torch.zeros([1, ], dtype=torch.long).to(pts.device)
+                        labels = torch.zeros([num_pts, ], dtype=torch.long).to(pts.device)
                     concat_feats = torch.cat([img_feats[i], pts_feats[i]], dim=1)
-                    logits = self.fc_layers(concat_feats)  # (N, 2)
+                    logits = self.fc_layers(concat_feats)  # (num_pts, 2)
                     ret.append(self.criterion(logits, labels))
         return ret
 
