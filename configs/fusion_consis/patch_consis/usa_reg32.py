@@ -1,21 +1,24 @@
-# baseline; no consistency
-
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-# runner = 'TargetConsistencyRunner'
-model_type = 'SepBaseline'
-# lambda_consis = 1.0
+runner = 'PatchRunner'
+model_type = 'FusionConsis2'
+
+disc = dict(type='ConsistencyDisc')
+disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)
+lambda_consistency = 0.01
+patch_size = [25, 25]
+patch_pairs = 5
 
 src_train = 'mmda_xmuda_split/train_usa.pkl'
-# tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
+tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
 ann_val = 'mmda_xmuda_split/test_singapore.pkl'
 daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
 usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
-lr_step = [16, 22]
+lr_step = [14, 20]
 total_epochs = 24
 # target_start_epoch = lr_step[0]
 
@@ -29,6 +32,7 @@ img_feat_channels = 64
 pts_feat_dim = 64
 voxel_feat_dim = 128
 det_pts_dim = 3  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
+voxel_in_channels = det_pts_dim + pts_feat_dim + img_feat_channels
 
 backbone_arch = 'regnetx_3.2gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
@@ -36,15 +40,18 @@ FPN_in_channels = arch_map[backbone_arch]
 
 model = dict(
     type=model_type,
-    vfes=[3, 64, pts_feat_dim],
+    pts_fc=[3, 64, pts_feat_dim],
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
         pretrained=True),
     img_seg_head=dict(
-        type='ImageSegHeadWoFusion',
+        type='ImageSegHead',
         img_feat_dim=img_feat_channels,
+        seg_pts_dim=pts_feat_dim,  # concat_feats_dim 
         num_classes=5,
+        lidar_fc=[],  # no fc before fusion
+        concat_fc=[128, 64],
         class_weights=class_weights),
     pts_voxel_layer=dict(
         max_num_points=64,
@@ -53,8 +60,8 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=det_pts_dim + pts_feat_dim,
-        feat_channels=[voxel_feat_dim],
+        in_channels=voxel_in_channels,
+        feat_channels=[128, voxel_feat_dim],
         with_distance=False,
         voxel_size=voxel_size,
         with_cluster_center=True,
@@ -236,10 +243,19 @@ dataset_type = 'MMDAMergeCatDataset'
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
-    train=dict(
+    source_train=dict(
         type=dataset_type,
         data_root=data_root,
         ann_file=data_root + src_train,
+        pipeline=train_pipeline,
+        classes=class_names,
+        modality=input_modality,
+        test_mode=False,
+        box_type_3d='LiDAR'),
+    target_train=dict(
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + tgt_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,

@@ -2,13 +2,14 @@
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'PatchRunner'
+runner = 'PixelRunner'
 model_type = 'FusionConsis2'
-lambda_consistency = 0.01
+
 disc = dict(type='ConsistencyDisc')
-disc_opt = dict(type='AdamW', lr=0.001, weight_decay=0.01)
+disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)
+lambda_consistency = 0.01
 patch_size = [25, 25]
-patch_pairs = 5
+patch_pairs = 3
 
 src_train = 'mmda_xmuda_split/train_usa.pkl'
 tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
@@ -17,7 +18,7 @@ daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
 usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
-lr_step = [14, 20]
+lr_step = [16, 22]
 total_epochs = 24
 # target_start_epoch = lr_step[0]
 

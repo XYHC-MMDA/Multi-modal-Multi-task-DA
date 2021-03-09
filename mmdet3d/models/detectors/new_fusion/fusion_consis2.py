@@ -65,6 +65,12 @@ class FusionConsis2(Base3DDetector):
         self.test_cfg = test_cfg
         self.init_weights(pretrained=pretrained)
 
+    def extract_pts_feat(self, pts):
+        pts_feats = []
+        for p in pts:
+            pts_feats.append(self.fc_layers(p[:, :3]))
+        return pts_feats
+
     def extract_img_feat(self, img, img_metas):
         """Extract features of images."""
         input_shape = img.shape[-2:]
@@ -113,12 +119,6 @@ class FusionConsis2(Base3DDetector):
         pts_feats = self.extract_pts_feat(points)
         det_feats = self.extract_det_feat(points, pts_feats, img_feats, pts_indices, img_feats)  # output of FPN
         return img_feats, det_feats
-
-    def extract_pts_feat(self, pts):
-        pts_feats = []
-        for p in pts:
-            pts_feats.append(self.fc_layers(p[:, :3]))
-        return pts_feats
 
     def forward_train(self,
                       img=None,
