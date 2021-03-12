@@ -171,7 +171,7 @@ file_client_args = dict(backend='disk')
 img_size = (400, 225)
 train_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',  # new 'points'
+        type='LoadPointsFromFile',  # new 'points'
         load_dim=5,
         use_dim=5),
     dict(
