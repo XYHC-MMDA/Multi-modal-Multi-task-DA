@@ -614,3 +614,116 @@ class LoadAnnotations3D(LoadAnnotations):
         repr_str += f'{indent_str}with_seg={self.with_seg}, '
         repr_str += f'{indent_str}poly2mask={self.poly2mask})'
         return repr_str
+
+
+@PIPELINES.register_module()
+class LoadImgSegLabel(object):
+    def __init__(self):
+        self.classmap = [10] * 32
+        idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
+                  [22, 3], [23, 1]]
+        for k, v in idxmap:
+            self.classmap[k] = v
+
+    def __call__(self, results):
+        # img
+        filepath = results['img_filename'][0]  # front image
+        img = Image.open(filepath)
+
+        # seg_label
+        seglabel_filename = results['seglabel_filename']
+        seg_label = np.fromfile(seglabel_filename, dtype=np.uint8).astype(np.int64)
+        for i in range(len(seg_label)):
+            seg_label[i] = self.classmap[seg_label[i]]
+
+        results['img'] = img
+        results['seg_label'] = seg_label
+        assert len(seg_label) == results['num_seg_pts']
+
+        return results
+
+
+@PIPELINES.register_module()
+class LoadMaskedMultiSweeps(object):
+    """
+    Load points from multiple sweeps & len_seg_pts
+    """
+
+    def __init__(self,
+                 sweeps_num=10,
+                 load_dim=5,
+                 use_dim=[0, 1, 2, 4],
+                 file_client_args=dict(backend='disk'),
+                 pad_empty_sweeps=False,
+                 remove_close=False,
+                 test_mode=False):
+        self.load_dim = load_dim
+        self.sweeps_num = sweeps_num
+        self.use_dim = use_dim
+        self.file_client_args = file_client_args.copy()
+        self.file_client = None
+        self.pad_empty_sweeps = pad_empty_sweeps
+        self.remove_close = remove_close
+        self.test_mode = test_mode
+
+    def _load_points(self, pts_filename):
+        if self.file_client is None:
+            self.file_client = mmcv.FileClient(**self.file_client_args)
+        try:
+            pts_bytes = self.file_client.get(pts_filename)
+            points = np.frombuffer(pts_bytes, dtype=np.float32)
+        except ConnectionError:
+            mmcv.check_file_exist(pts_filename)
+            if pts_filename.endswith('.npy'):
+                points = np.load(pts_filename)
+            else:
+                points = np.fromfile(pts_filename, dtype=np.float32)
+        return points
+
+    def _remove_close(self, points, radius=1.0):
+        x_filt = np.abs(points[:, 0]) < radius
+        y_filt = np.abs(points[:, 1]) < radius
+        not_close = np.logical_not(np.logical_and(x_filt, y_filt))
+        return points[not_close, :]
+
+    def __call__(self, results):
+        points = results['points']
+        num_seg_pts = len(points)
+        points[:, 4] = 0
+        sweep_points_list = [points]
+        ts = results['timestamp']
+        if self.pad_empty_sweeps and len(results['sweeps']) == 0:
+            for i in range(self.sweeps_num):
+                if self.remove_close:
+                    sweep_points_list.append(self._remove_close(points))
+                else:
+                    sweep_points_list.append(points)
+        else:
+            if len(results['sweeps']) <= self.sweeps_num:
+                choices = np.arange(len(results['sweeps']))
+            elif self.test_mode:
+                choices = np.arange(self.sweeps_num)
+            else:
+                choices = np.random.choice(
+                    len(results['sweeps']), self.sweeps_num, replace=False)
+            for idx in choices:
+                sweep = results['sweeps'][idx]
+                points_sweep = self._load_points(sweep['data_path'])
+                points_sweep = np.copy(points_sweep).reshape(-1, self.load_dim)
+                if self.remove_close:
+                    points_sweep = self._remove_close(points_sweep)
+                sweep_ts = sweep['timestamp'] / 1e6
+                points_sweep[:, :3] = points_sweep[:, :3] @ sweep[
+                    'sensor2lidar_rotation'].T
+                points_sweep[:, :3] += sweep['sensor2lidar_translation']
+                points_sweep[:, 4] = ts - sweep_ts
+                sweep_points_list.append(points_sweep)
+
+        points = np.concatenate(sweep_points_list, axis=0)[:, self.use_dim]
+        results['points'] = points
+        results['num_seg_pts'] = num_seg_pts
+        return results
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        return f'{self.__class__.__name__}(sweeps_num={self.sweeps_num})'

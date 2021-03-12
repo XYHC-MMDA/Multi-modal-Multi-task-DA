@@ -1,26 +1,21 @@
-# baseline: baseline4_usa_reg32.py
+# new train_pipeline; Augmentaion on points; seg_points = points[mask]
 
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'PatchRunner'
-model_type = 'FusionConsis2'
-
-disc = dict(type='ConsistencyDisc')
-disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)
-lambda_consistency = 0.01
-patch_size = [25, 25]
-patch_pairs = 5
+# runner = 'TargetConsistencyRunner'
+model_type = 'FusionBaseline4'
+# lambda_consis = 1.0
 
 src_train = 'mmda_xmuda_split/train_usa.pkl'
-tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
+# tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
 ann_val = 'mmda_xmuda_split/test_singapore.pkl'
 daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
 usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
-lr_step = [14, 20]
+lr_step = [16, 22]
 total_epochs = 24
 # target_start_epoch = lr_step[0]
 
@@ -34,7 +29,6 @@ img_feat_channels = 64
 pts_feat_dim = 64
 voxel_feat_dim = 128
 det_pts_dim = 3  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
-voxel_in_channels = det_pts_dim + pts_feat_dim + img_feat_channels
 
 backbone_arch = 'regnetx_3.2gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
@@ -62,7 +56,7 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=voxel_in_channels,
+        in_channels=det_pts_dim + pts_feat_dim + img_feat_channels,
         feat_channels=[128, voxel_feat_dim],
         with_distance=False,
         voxel_size=voxel_size,
@@ -177,18 +171,18 @@ file_client_args = dict(backend='disk')
 img_size = (400, 225)
 train_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',  # new 'points', 'seg_points', 'seg_label'
+        type='LoadSegDetPointsFromFile',  # new 'points'
         load_dim=5,
         use_dim=5),
     dict(
-        type='LoadPointsFromMultiSweeps',  # modify 'points'
+        type='LoadMaskedMultiSweeps',  # modify 'points'; new 'num_seg_pts'
         sweeps_num=10,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
-    dict(type='FrontImageFilter', resize=img_size),  # new 'img', 'seg_pts_indices'; filter 'seg_points', 'seg_label'
-    dict(type='PointsSensorFilter', resize=img_size),  # filter 'points'; new 'pts_indices'
+    dict(type='LoadImgSegLabel'),  # new 'img'(PIL.Image), 'seg_label'
+    dict(type='PointsSensorFilterVer2', resize=img_size),  # filter 'points'; new 'pts_indices'
     dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
-    # fliplr & color jitter; 'img': PIL.Image to np.array; modify 'seg_pts_indices', 'pts_indices' accordingly;
+    # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
     dict(
         type='GlobalRotScaleTrans',
         rot_range=[-0.7854, 0.7854],
@@ -198,11 +192,11 @@ train_pipeline = [
         type='RandomFlip3D',
         # flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5),  # do nothing; to read further
-    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
-    # filter 'points', 'pts_indices', 'seg_points', 'seg_label', 'seg_pts_indices'
+    dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
+    # filter 'points', 'pts_indices', 'seg_label'; new 'seg_points', 'seg_pts_indices'
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='DetLabelFilter'),  # Filter labels == -1; not in TEN_CLASSES
-    dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'
+    dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
     dict(type='MergeCat'),  # merge 'seg_label', 'gt_labels_3d'
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
@@ -245,19 +239,10 @@ dataset_type = 'MMDAMergeCatDataset'
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
-    source_train=dict(
+    train=dict(
         type=dataset_type,
         data_root=data_root,
         ann_file=data_root + src_train,
-        pipeline=train_pipeline,
-        classes=class_names,
-        modality=input_modality,
-        test_mode=False,
-        box_type_3d='LiDAR'),
-    target_train=dict(
-        type=dataset_type,
-        data_root=data_root,
-        ann_file=data_root + tgt_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,

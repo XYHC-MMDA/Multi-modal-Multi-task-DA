@@ -577,7 +577,7 @@ class FrontImageFilter(object):
 
 @PIPELINES.register_module()
 class PointsSensorFilter(object):
-    """Currently only implement front camera.
+    """Currently only implement front camera. Filter points inside front camera
     """
 
     def __init__(self, img_size=(1600, 900), resize=(400, 225)):
@@ -605,6 +605,52 @@ class PointsSensorFilter(object):
 
         results['points'] = pts_lidar
         results['pts_indices'] = pts_indices
+        return results
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += '(point_cloud_range={})'.format(self.pcd_range.tolist())
+        return repr_str
+
+
+@PIPELINES.register_module()
+class PointsSensorFilterVer2(object):
+    """Currently only implement front camera. Filter points inside front camera
+    """
+
+    def __init__(self, img_size=(1600, 900), resize=(400, 225)):
+        self.img_size = img_size
+        self.resize = resize
+
+    def __call__(self, results):
+        rot = results['lidar2img'][0]
+        pts_lidar = results['points']
+        num_points = pts_lidar.shape[0]
+        num_seg_pts = results['num_seg_pts']
+        seg_label = results['seg_label']
+
+        pts_cam = np.concatenate([pts_lidar[:, :3], np.ones((num_points, 1))], axis=1) @ rot.T
+        pts_img = pts_cam[:, :3]
+        pts_img[:, 0] /= pts_img[:, 2]
+        pts_img[:, 1] /= pts_img[:, 2]
+        mask = ((0, 0) < pts_img[:, :2]) & (pts_img[:, :2] < self.img_size)
+        # mask = mask[:, 0] & mask[:, 1]
+        mask = mask[:, 0] & mask[:, 1] & (pts_img[:, 2] > 0)
+        seg_label = seg_label[mask[:num_seg_pts]]
+        num_seg_pts = np.sum(mask[:num_seg_pts])
+        assert num_seg_pts == len(seg_label)
+
+        pts_lidar = pts_lidar[mask]
+        pts_indices = pts_img[:, :2][mask]
+        if self.resize:
+            pts_indices = pts_indices * self.resize / self.img_size
+        pts_indices = np.fliplr(pts_indices).astype(np.int64)  # (row, col)
+
+        results['points'] = pts_lidar
+        results['pts_indices'] = pts_indices
+        results['num_seg_pts'] = num_seg_pts
+        results['seg_label'] = seg_label
         return results
 
     def __repr__(self):
@@ -655,6 +701,49 @@ class SegDetPointsRangeFilter(object):
 
 
 @PIPELINES.register_module()
+class PointsRangeFilterVer2(object):
+    """Filter points by the range; generate 'seg_pts', 'seg_pts_indices'; update 'seg_label'
+
+    Args:
+        point_cloud_range (list[float]): Point cloud range.
+    """
+
+    def __init__(self, point_cloud_range):
+        self.pcd_range = np.array(point_cloud_range, dtype=np.float32)[np.newaxis, :]
+
+    def __call__(self, input_dict):
+        points = input_dict['points']
+        num_seg_pts = input_dict['num_seg_pts']
+        seg_label = input_dict['seg_label']  # assert len(seg_label) == num_seg_pts
+
+        # points_mask
+        points_mask = ((points[:, :3] >= self.pcd_range[:, :3]) &
+                       (points[:, :3] < self.pcd_range[:, 3:]))
+        points_mask = points_mask[:, 0] & points_mask[:, 1] & points_mask[:, 2]
+        input_dict['points'] = points[points_mask]
+        input_dict['pts_indices'] = input_dict['pts_indices'][points_mask]
+
+        # seg_pts_mask, seg_label
+        seg_pts_mask = points_mask[:num_seg_pts]
+        seg_label = seg_label[seg_pts_mask]
+        num_seg_pts = np.sum(seg_pts_mask)  # assert num_seg_pts == len(seg_label)
+        input_dict['seg_label'] = seg_label
+        input_dict['num_seg_pts'] = num_seg_pts
+
+        # seg_points, seg_pts_indices
+        input_dict['seg_points'] = input_dict['points'][:num_seg_pts]
+        input_dict['seg_pts_indices'] = input_dict['pts_indices'][:num_seg_pts]
+
+        return input_dict
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += '(point_cloud_range={})'.format(self.pcd_range.tolist())
+        return repr_str
+
+
+@PIPELINES.register_module()
 class MergeCat(object):
     def __init__(self):
         # order according to config.class_names
@@ -693,22 +782,20 @@ class Aug2D(object):
     def __call__(self, input_dict):
         # 2D augmentation
         image = input_dict['img']  # PIL.Image
-        seg_pts_indices = input_dict['seg_pts_indices']
-        pts_indices = input_dict['pts_indices']
-
         if self.color_jitter is not None:
             image = self.color_jitter(image)
-
-        image = np.array(image, dtype=np.float32) / 255.  # shape=(225, 400, 3)
+        image = np.array(image, dtype=np.float32) / 255.  # shape=(225, 400, 3); RGB in [0, 1]
 
         if np.random.rand() < self.fliplr:
             image = np.ascontiguousarray(np.fliplr(image))
-            seg_pts_indices[:, 1] = image.shape[1] - 1 - seg_pts_indices[:, 1]
-            pts_indices[:, 1] = image.shape[1] - 1 - pts_indices[:, 1]
+            for key in ['seg_pts_indices', 'pts_indices']:
+                if key not in input_dict.keys():
+                    continue
+                pts_indices = input_dict[key]
+                pts_indices[:, 1] = image.shape[1] - 1 - pts_indices[:, 1]
+                input_dict[key] = pts_indices
 
         input_dict['img'] = image
-        input_dict['seg_pts_indices'] = seg_pts_indices
-        input_dict['pts_indices'] = pts_indices
         return input_dict
 
 
