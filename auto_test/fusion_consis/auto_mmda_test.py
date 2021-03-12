@@ -4,8 +4,8 @@ import os
 import time 
 
 # variants
-ckpt = 'baseline4_usa_reg32'
-cfg = 'baseline4_usa_reg32'
+ckpt = 'patch_consis/usa_reg32_0'
+cfg = 'patch_consis/usa_reg32_0'
 l, r = 1, 24  # [l, r]
 
 
@@ -15,7 +15,7 @@ filename = f'checkpoints/fusion_consis/{ckpt}/result.txt'
 f = open(filename, 'a')
 for i in range(l, r+1):
     model_path = os.path.join(ckpt_path, f'epoch_{i}.pth')
-    if not os.path.exists(model_path):
+    while not os.path.exists(model_path):
         time.sleep(1800)
     start = time.time()
     proc = Popen(['python', './tools/mmda_test.py',
