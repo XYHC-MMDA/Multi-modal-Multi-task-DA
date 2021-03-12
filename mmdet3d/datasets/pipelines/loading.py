@@ -618,7 +618,8 @@ class LoadAnnotations3D(LoadAnnotations):
 
 @PIPELINES.register_module()
 class LoadImgSegLabel(object):
-    def __init__(self):
+    def __init__(self, resize=(400, 225)):
+        self.resize = resize
         self.classmap = [10] * 32
         idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
                   [22, 3], [23, 1]]
@@ -629,6 +630,8 @@ class LoadImgSegLabel(object):
         # img
         filepath = results['img_filename'][0]  # front image
         img = Image.open(filepath)
+        if self.resize:
+            img = img.resize(self.resize, Image.BILINEAR)
 
         # seg_label
         seglabel_filename = results['seglabel_filename']

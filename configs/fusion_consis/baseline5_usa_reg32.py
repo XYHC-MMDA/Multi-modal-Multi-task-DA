@@ -168,7 +168,8 @@ input_modality = dict(
     use_external=False)
 file_client_args = dict(backend='disk')
 
-img_size = (400, 225)
+img_size = (1600, 900)
+resize = (400, 225)
 train_pipeline = [
     dict(
         type='LoadPointsFromFile',  # new 'points'
@@ -179,8 +180,8 @@ train_pipeline = [
         sweeps_num=10,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
-    dict(type='LoadImgSegLabel'),  # new 'img'(PIL.Image), 'seg_label'
-    dict(type='PointsSensorFilterVer2', resize=img_size),  # filter 'points'; new 'pts_indices'
+    dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
+    dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),  # filter 'points'; new 'pts_indices'
     dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
     # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
     dict(
