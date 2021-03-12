@@ -731,8 +731,8 @@ class PointsRangeFilterVer2(object):
         input_dict['num_seg_pts'] = num_seg_pts
 
         # seg_points, seg_pts_indices
-        input_dict['seg_points'] = input_dict['points'][:num_seg_pts]
-        input_dict['seg_pts_indices'] = input_dict['pts_indices'][:num_seg_pts]
+        input_dict['seg_points'] = input_dict['points'][:num_seg_pts].copy()
+        input_dict['seg_pts_indices'] = input_dict['pts_indices'][:num_seg_pts].copy()
 
         return input_dict
 
