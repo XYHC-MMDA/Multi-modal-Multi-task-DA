@@ -205,15 +205,15 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(
-        type='LoadSegDetPointsFromFile',
+        type='LoadPointsFromFile',
         load_dim=5,
         use_dim=5),
     dict(
-        type='LoadPointsFromMultiSweeps',
+        type='LoadMaskedMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
-    dict(type='FrontImageFilter', resize=img_size),  # 'seg_pts_indices'
-    dict(type='PointsSensorFilter', resize=img_size),  # 'pts_indices'
+    dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
+    dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),  # filter 'points'; new 'pts_indices'
     dict(type='Aug2D'),  # No Aug2D in test
     dict(
         type='MultiScaleFlipAug3D',
@@ -221,13 +221,7 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            # dict(
-            #     type='GlobalRotScaleTrans',
-            #     rot_range=[0, 0],
-            #     scale_ratio_range=[1., 1.],
-            #     translation_std=[0, 0, 0]),
-            # dict(type='RandomFlip3D'),
-            dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
+            dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
             dict(type='MergeCat'),
             dict(type='SegDetFormatBundle'),
             dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
