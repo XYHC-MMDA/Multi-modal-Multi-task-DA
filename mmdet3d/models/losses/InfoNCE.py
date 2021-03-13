@@ -16,7 +16,9 @@ class InfoNCE(nn.Module):
             features: (N, 64)
         '''
         num_pts = len(pts_feats)
-        logits = torch.matmul(pts_feats, img_feats.T) / self.T  # (num_pts, num_pts)
+        pts_norm = F.normalize(pts_feats, dim=1)
+        img_norm = F.normalize(img_feats, dim=1)
+        logits = torch.matmul(pts_norm, img_norm.T) / self.T  # (num_pts, num_pts)
         if self.contrast_mode == 'cross_entropy':
             labels = torch.arange(num_pts).to(pts_feats.device)
             contrast_loss = F.cross_entropy(logits, labels)
