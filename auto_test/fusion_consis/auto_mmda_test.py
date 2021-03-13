@@ -4,9 +4,9 @@ import os
 import time 
 
 # variants
-ckpt = 'patch_consis/usa_reg32_0'
-cfg = 'patch_consis/usa_reg32_0'
-l, r = 1, 24  # [l, r]
+ckpt = 'baseline5_usa_reg16'
+cfg = 'baseline5_usa_reg16'
+l, r = 12, 24  # [l, r]
 
 
 cfg_path = f'configs/fusion_consis/{cfg}.py'

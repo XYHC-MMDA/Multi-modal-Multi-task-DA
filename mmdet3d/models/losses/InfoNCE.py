@@ -5,7 +5,7 @@ from mmdet.models.builder import LOSSES
 
 
 @LOSSES.register_module()
-class InfoNCE(nn.module):
+class InfoNCE(nn.Module):
     def __init__(self, temperature, contrast_mode='cross_entropy', reduction='mean'):
         self.contrast_mode = contrast_mode
         self.T = temperature
