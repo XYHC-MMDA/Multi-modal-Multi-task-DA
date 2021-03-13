@@ -5,46 +5,19 @@ import time
 import warnings
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 
 import mmcv
 from mmcv.runner import BaseRunner, RUNNERS, save_checkpoint, get_host_info, build_optimizer
+from mmdet3d.models.builder import build_loss
 from mmdet3d.apis import parse_losses, set_requires_grad
 from mmdet3d.models import build_discriminator
 
 
-def generate_patch_pair(img_size, patch_size):
-    h = img_size[0] // patch_size[0]
-    w = img_size[1] // patch_size[1]
-    p1, p2 = np.random.choice(h * w, 2, replace=False)
-    r1, c1 = p1 // w, p1 % w
-    r2, c2 = p2 // w, p2 % w
-    return r1, c1, r2, c2
-
-
-def pts_in_patch(pts_idx, r, c, patch_size):
-    '''
-
-    Args:
-        pts_idx: tensor (N, 2); (row, col)
-        r1: int
-        c1: int
-        patch_size: [a, b]
-
-    Returns:
-
-    '''
-    x1, x2 = r * patch_size[0], (r + 1) * patch_size[0]
-    y1, y2 = c * patch_size[1], (c + 1) * patch_size[1]
-    top_left = torch.tensor([x1, y1]).to(pts_idx.device)
-    bot_right = torch.tensor([x2, y2]).to(pts_idx.device)
-    mask = (top_left <= pts_idx) & (pts_idx < bot_right)
-    mask = mask[:, 0] & mask[:, 1]
-    return mask
-
-
 @RUNNERS.register_module()
-class PixelRunner(BaseRunner):
+class ContrastRunnerV0(BaseRunner):
     def __init__(self,
                  model,
                  cfg,
@@ -55,7 +28,7 @@ class PixelRunner(BaseRunner):
                  meta=None,
                  max_iters=None,
                  max_epochs=None):
-        super(PixelRunner, self).__init__(model,
+        super(ContrastRunnerV0, self).__init__(model,
                                                  batch_processor,
                                                  optimizer,
                                                  work_dir,
@@ -63,11 +36,10 @@ class PixelRunner(BaseRunner):
                                                  meta,
                                                  max_iters,
                                                  max_epochs)
-        self.disc = build_discriminator(cfg.disc).cuda()
-        self.disc_opt = build_optimizer(self.disc, cfg.disc_opt)
-        self.lambda_consistency = cfg.lambda_consistency
-        self.patch_size = cfg.patch_size
-        self.patch_pairs = cfg.patch_pairs
+        self.lambda_contrast = cfg.lambda_contrast
+        self.max_pts = cfg.max_pts
+        self.T = cfg.T
+        self.contrast_criterion = build_loss(cfg.contrast_criterion)
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
@@ -96,66 +68,60 @@ class PixelRunner(BaseRunner):
             # ------------------------
             losses, src_img_feats, src_pts_feats, src_pts_indices = self.model(**src_data_batch)
             tgt_img_feats, tgt_pts_feats, tgt_pts_indices = self.model(**tgt_data_batch, target=True)
-            # img_feats: (N, C, H, W)=(4, 64, 225, 400); pts_feats: list of (N, C)
+            # img_feats: (N, C, H, W)=(4, 64, 225, 400); pts_feats: list of (N, C); pts_indices: list of (N, 2)
 
             # ------------------------
             # consistency loss
             # ------------------------
-
             # set_requires_grad([self.disc], requires_grad=True)
-            disc_src_losses = []
-            src_x = src_img_feats.permute(0, 2, 3, 1)
-            for _ in range(self.patch_pairs):
-                # pts_indices_list = src_data_batch['pts_indices'].data[0]
-                r1, c1, r2, c2 = generate_patch_pair(src_img_feats.shape[-2:], self.patch_size)
-                pts_feats_list1, pts_feats_list2 = [], []
-                img_feats_list1, img_feats_list2 = [], []
-                for i, pts_idx in enumerate(src_pts_indices):
-                    # patch_1
-                    mask1 = pts_in_patch(pts_idx, r1, c1, self.patch_size)
-                    pts_feats_list1.append(src_pts_feats[i][mask1])
-                    img_feats_list1.append(src_x[i][pts_idx[mask1][:, 0], pts_idx[mask1][:, 1]])
 
-                    # patch_2
-                    mask2 = pts_in_patch(pts_idx, r2, c2, self.patch_size)
-                    pts_feats_list2.append(src_pts_feats[i][mask2])
-                    img_feats_list2.append(src_x[i][pts_idx[mask2][:, 0], pts_idx[mask2][:, 1]])
-                disc_src_losses.extend(self.disc.losses(pts_feats_list1, img_feats_list1, attract=True))
-                disc_src_losses.extend(self.disc.losses(pts_feats_list2, img_feats_list2, attract=True))
-                disc_src_losses.extend(self.disc.losses(pts_feats_list1, img_feats_list2, attract=False))
-                disc_src_losses.extend(self.disc.losses(pts_feats_list2, img_feats_list1, attract=False))
+            # source consistency
+            x = src_img_feats.permute(0, 2, 3, 1)
+            src_contrast_losses = []
+            for batch_id in range(len(src_img_feats)):
+                # pts_feats
+                pts_feats = src_pts_feats[batch_id]  # (N, 64)
 
-            disc_tgt_losses = []
-            tgt_x = tgt_img_feats.permute(0, 2, 3, 1)
-            for _ in range(self.patch_pairs):
-                r1, c1, r2, c2 = generate_patch_pair(tgt_img_feats.shape[-2:], self.patch_size)
-                pts_feats_list1, pts_feats_list2 = [], []
-                img_feats_list1, img_feats_list2 = [], []
-                for i, pts_idx in enumerate(tgt_pts_indices):
-                    # patch_1
-                    mask1 = pts_in_patch(pts_idx, r1, c1, self.patch_size)
-                    pts_feats_list1.append(tgt_pts_feats[i][mask1])
-                    img_feats_list1.append(tgt_x[i][pts_idx[mask1][:, 0], pts_idx[mask1][:, 1]])
+                # img_feats
+                pts_indices = src_pts_indices[batch_id]
+                img_feats = x[batch_id][pts_indices[:, 0], pts_indices[: 1]]  # (N, 64)
 
-                    # patch_2
-                    mask2 = pts_in_patch(pts_idx, r2, c2, self.patch_size)
-                    pts_feats_list2.append(tgt_pts_feats[i][mask2])
-                    img_feats_list2.append(tgt_x[i][pts_idx[mask2][:, 0], pts_idx[mask2][:, 1]])
-                disc_tgt_losses.extend(self.disc.losses(pts_feats_list1, img_feats_list1, attract=True))
-                disc_tgt_losses.extend(self.disc.losses(pts_feats_list2, img_feats_list2, attract=True))
-                disc_tgt_losses.extend(self.disc.losses(pts_feats_list1, img_feats_list2, attract=False))
-                disc_tgt_losses.extend(self.disc.losses(pts_feats_list2, img_feats_list1, attract=False))
+                num_pts = len(pts_feats)
+                if num_pts > self.max_pts:
+                    idx = np.random.choice(num_pts, self.max_pts, replace=False)
+                    pts_feats = pts_feats[idx]
+                    img_feats = img_feats[idx]
 
-            disc_loss = self.lambda_consistency * torch.mean(torch.tensor(disc_src_losses + disc_tgt_losses))
-            losses['disc_loss'] = disc_loss
+                src_loss = self.contrast_criterion(pts_feats, img_feats)
+                src_contrast_losses.append(src_loss)
 
+            # target consistency
+            x = tgt_img_feats.permute(0, 2, 3, 1)
+            tgt_contrast_losses = []
+            for batch_id in range(len(tgt_img_feats)):
+                pts_feats = tgt_pts_feats[batch_id]
+
+                pts_indices = tgt_pts_indices[batch_id]
+                img_feats = x[batch_id][pts_indices[:, 0], pts_indices[:, 1]]
+
+                num_pts = len(pts_feats)
+                if num_pts > self.max_pts:
+                    idx = np.random.choice(num_pts, self.max_pts, replace=False)
+                    pts_feats = pts_feats[idx]
+                    img_feats = img_feats[idx]
+
+                tgt_loss = self.contrast_criterion(pts_feats, img_feats)
+                tgt_contrast_losses.append(tgt_loss)
+
+            src_contrast_loss = self.lambda_contrast * torch.mean(torch.tensor(src_contrast_losses))
+            tgt_contrast_loss = self.lambda_contrast * torch.mean(torch.tensor(tgt_contrast_losses))
+            losses['src_contrast_loss'] = src_contrast_loss
+            losses['tgt_contrast_loss'] = tgt_contrast_loss
             loss, log_vars = parse_losses(losses)
             num_samples = len(src_data_batch['img_metas'])
 
-            self.disc_opt.zero_grad()
             self.optimizer.zero_grad()
             loss.backward()
-            self.disc_opt.step()
             self.optimizer.step()
 
             # after_train_iter callback
