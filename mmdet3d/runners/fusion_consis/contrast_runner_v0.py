@@ -38,7 +38,6 @@ class ContrastRunnerV0(BaseRunner):
                                                  max_epochs)
         self.lambda_contrast = cfg.lambda_contrast
         self.max_pts = cfg.max_pts
-        self.T = cfg.T
         self.contrast_criterion = build_loss(cfg.contrast_criterion)
 
     def train(self, src_data_loader, tgt_data_loader):
