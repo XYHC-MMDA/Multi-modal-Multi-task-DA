@@ -9,7 +9,7 @@ model_type = 'FusionContrast'
 
 # disc = dict(type='ConsistencyDisc')
 # disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)
-criterion_contrast = dict(type='InfoNCE', contrast_mode='cross_entropy')
+contrast_criterion = dict(type='InfoNCE', contrast_mode='cross_entropy')
 lambda_contrast = 0.1
 max_pts = 4096
 T = 0.1  # temperature
