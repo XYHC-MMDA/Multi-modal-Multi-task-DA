@@ -83,7 +83,7 @@ class ContrastRunnerV0(BaseRunner):
 
                 # img_feats
                 pts_indices = src_pts_indices[batch_id]
-                img_feats = x[batch_id][pts_indices[:, 0], pts_indices[: 1]]  # (N, 64)
+                img_feats = x[batch_id][pts_indices[:, 0], pts_indices[:, 1]]  # (N, 64)
 
                 num_pts = len(pts_feats)
                 if num_pts > self.max_pts:
