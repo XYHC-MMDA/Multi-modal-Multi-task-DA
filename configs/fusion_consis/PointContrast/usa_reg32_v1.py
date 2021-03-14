@@ -4,7 +4,7 @@
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'ContrastRunnerV1'
+runner = 'ContrastRunnerV1'  # bug: no backprop for contrast loss
 model_type = 'FusionContrastV2'
 
 # disc = dict(type='ConsistencyDisc')
