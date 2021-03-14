@@ -5,3 +5,4 @@ from .fusion_baseline2 import FusionBaseline2
 from .fusion_baseline4 import FusionBaseline4
 from .fusion_consis2 import FusionConsis2
 from .fusion_contrast import FusionContrast
+from .fusion_contrast_v2 import FusionContrastV2
