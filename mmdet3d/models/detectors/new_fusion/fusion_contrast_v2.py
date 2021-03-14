@@ -178,16 +178,16 @@ class FusionContrastV2(Base3DDetector):
 
         return losses
 
-    def forward_contrast(self, img_feats, pts_feats, pts_indices, target=False):
+    def forward_contrast(self, img_feats, pts_feats_list, pts_indices_list, target=False):
         x = img_feats.permute(0, 2, 3, 1)
         contrast_losses = []
         for batch_id in range(len(img_feats)):
             # pts_feats
-            pts_feats = pts_feats[batch_id]  # (N, 64)
+            pts_feats = pts_feats_list[batch_id]  # (N, 64)
 
             # img_feats
-            pts_indices = pts_indices[batch_id]
-            img_feats = x[batch_id][pts_indices[:, 0], pts_indices[:, 1]]  # (N, 64)
+            pts_idx = pts_indices_list[batch_id]
+            img_feats = x[batch_id][pts_idx[:, 0], pts_idx[:, 1]]  # (N, 64)
 
             num_pts = len(pts_feats)
             if num_pts > self.max_pts:
