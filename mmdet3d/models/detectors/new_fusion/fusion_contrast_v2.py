@@ -197,7 +197,8 @@ class FusionContrastV2(Base3DDetector):
 
             loss = self.contrast_criterion(pts_feats, img_feats)
             contrast_losses.append(loss)
-        contrast_loss = self.lambda_contrast * torch.mean(torch.tensor(contrast_losses))
+        # contrast_loss = self.lambda_contrast * torch.mean(torch.tensor(contrast_losses))  # bug !!!!
+        contrast_loss = self.lambda_contrast * sum(contrast_losses) / len(contrast_losses)
         loss_name = 'tgt_contrast_loss' if target else 'src_contrast_loss'
         return {loss_name: contrast_loss}
 
