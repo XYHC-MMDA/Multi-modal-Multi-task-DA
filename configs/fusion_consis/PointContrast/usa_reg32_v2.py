@@ -4,7 +4,7 @@
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'ContrastRunnerV1'
+runner = 'ContrastRunnerV2'
 model_type = 'FusionContrastV2'
 lambda_contrast = 1.0
 
@@ -19,7 +19,7 @@ usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
 lr_step = [14, 20]
-total_epochs = 24
+total_epochs = 36 
 # target_start_epoch = lr_step[0]
 
 ##########################################################
