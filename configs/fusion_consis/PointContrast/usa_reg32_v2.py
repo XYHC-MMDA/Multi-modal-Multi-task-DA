@@ -6,6 +6,7 @@
 ##############################################
 runner = 'ContrastRunnerV1'
 model_type = 'FusionContrastV2'
+lambda_contrast = 1.0
 
 # disc = dict(type='ConsistencyDisc')
 # disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)
@@ -42,7 +43,7 @@ model = dict(
     pts_fc=[3, 64, pts_feat_dim],
     contrast_criterion=dict(type='InfoNCE', temperature=0.1, contrast_mode=''),
     max_pts=4096,
-    lambda_contrast=0.1,
+    lambda_contrast=lambda_contrast,
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
