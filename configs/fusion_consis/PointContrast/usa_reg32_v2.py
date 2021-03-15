@@ -1,4 +1,4 @@
-# same as usa_reg32_v1.py, except for contrast_mode 
+# resume from pretrained model with only contrastive loss 
 
 ##############################################
 # variants: Runner, model
@@ -6,7 +6,7 @@
 ##############################################
 runner = 'ContrastRunnerV2'
 model_type = 'FusionContrastV2'
-lambda_contrast = 1.0
+lambda_contrast = 0.1
 
 # disc = dict(type='ConsistencyDisc')
 # disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)

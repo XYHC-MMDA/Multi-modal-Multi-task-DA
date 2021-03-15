@@ -1,11 +1,13 @@
 # baseline: baseline5_usa_reg32.py
+# train from scratch with both task losses and contrastive loss
 
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'ContrastRunnerV1'  # bug: no backprop for contrast loss
+runner = 'ContrastRunnerV1'  # bug: no backprop for contrast loss because of torch.mean(list)
 model_type = 'FusionContrastV2'
+lambda_contrast = 0.1
 
 # disc = dict(type='ConsistencyDisc')
 # disc_opt = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.01)
@@ -18,7 +20,7 @@ usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
 lr_step = [14, 20]
-total_epochs = 24
+total_epochs = 36 
 # target_start_epoch = lr_step[0]
 
 ##########################################################
@@ -42,7 +44,7 @@ model = dict(
     pts_fc=[3, 64, pts_feat_dim],
     contrast_criterion=dict(type='InfoNCE', temperature=0.1, contrast_mode='cross_entropy'),
     max_pts=4096,
-    lambda_contrast=0.1,
+    lambda_contrast=lambda_contrast,
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
