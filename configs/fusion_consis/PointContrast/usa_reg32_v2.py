@@ -1,11 +1,12 @@
-# resume from pretrained model with only contrastive loss 
+# contrast_mode = ''
 
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-runner = 'ContrastRunnerV2'
+runner = 'ContrastRunnerV1'
 model_type = 'FusionContrastV2'
+contrast_mode = ''
 lambda_contrast = 0.1
 
 # disc = dict(type='ConsistencyDisc')
@@ -19,7 +20,7 @@ usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
 lr_step = [14, 20]
-total_epochs = 36 
+total_epochs = 24
 # target_start_epoch = lr_step[0]
 
 ##########################################################
@@ -41,7 +42,7 @@ FPN_in_channels = arch_map[backbone_arch]
 model = dict(
     type=model_type,
     pts_fc=[3, 64, pts_feat_dim],
-    contrast_criterion=dict(type='InfoNCE', temperature=0.1, contrast_mode=''),
+    contrast_criterion=dict(type='InfoNCE', temperature=0.1, contrast_mode=contrast_mode),
     max_pts=4096,
     lambda_contrast=lambda_contrast,
     img_backbone=dict(
