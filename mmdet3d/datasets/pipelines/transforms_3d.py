@@ -874,6 +874,8 @@ class XmudaAug3D(object):
         scn_coords = scn_coords[idxs]
 
         input_dict['scn_coords'] = scn_coords
+        input_dict['seg_label'] = input_dict['seg_label'][idxs]
+        input_dict['num_seg_pts'] = len(scn_coords)
         # input_dict['scn_feats'] = np.ones([len(scn_coords), 1], np.float32)  # simply use 1 as feature
         return input_dict
 
