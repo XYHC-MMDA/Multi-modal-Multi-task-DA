@@ -90,6 +90,7 @@ train_pipeline = [
     #     flip_ratio_bev_vertical=0.5),  # do nothing; to read further
     # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
     # # filter 'points', 'pts_indices', 'seg_label'; new 'seg_points', 'seg_pts_indices'
+    dict(type='GetSegFromPoints'),  # new 'seg_points', 'seg_pts_indices'
     # dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     # dict(type='DetLabelFilter'),  # Filter labels == -1; not in TEN_CLASSES
     dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
