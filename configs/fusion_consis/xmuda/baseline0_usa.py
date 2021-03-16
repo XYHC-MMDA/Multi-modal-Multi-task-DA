@@ -83,7 +83,7 @@ train_pipeline = [
     dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
     # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
     dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale,
-         noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, trasl=True),  # new 'scn_coords'
+         noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, transl=True),  # new 'scn_coords'
     # dict(
     #     type='GlobalRotScaleTrans',
     #     rot_range=[-0.7854, 0.7854],
