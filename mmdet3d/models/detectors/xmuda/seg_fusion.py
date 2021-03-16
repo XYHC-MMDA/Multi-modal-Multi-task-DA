@@ -2,8 +2,8 @@ from torch import nn as nn
 import torch
 import torch.nn.functional as F
 from mmdet.models import DETECTORS
-from .. import builder
-from .base import Base3DDetector
+from mmdet3d.models import builder
+from mmdet3d.models.detectors.base import Base3DDetector
 
 
 @DETECTORS.register_module()
