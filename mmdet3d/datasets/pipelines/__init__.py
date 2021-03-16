@@ -13,7 +13,7 @@ from .transforms_3d import (BackgroundPointsFilter, GlobalRotScaleTrans,
                             RandomFlip3D, VoxelBasedPointSampler,
                             SegDetPointsRangeFilter, PointsSensorFilter, MergeCat, DetLabelFilter,
                             FrontImageFilter, PointsRangeFilterVer2, PointsSensorFilterVer2,
-                            GetSegFromPoints)
+                            GetSegFromPoints, XmudaAug3D)
 
 # __all__ = [
 #     'ObjectSample', 'RandomFlip3D', 'ObjectNoise', 'GlobalRotScaleTrans',

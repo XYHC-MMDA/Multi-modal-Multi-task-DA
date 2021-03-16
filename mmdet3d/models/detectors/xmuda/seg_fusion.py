@@ -30,14 +30,14 @@ class SegFusion(Base3DDetector):
         self.class_weights = class_weights
         self.normalize = normalize
 
-    def get_scn_input(self, seg_points):
+    def get_scn_input(self, scn_coords):
         scn_input = []
-        for idx in range(len(seg_points)):
-            seg_pts = seg_points[idx]
-            num_pts = len(seg_pts)
-            batch_idxs = torch.zeros(num_pts, 1, dtype=torch.long).to(seg_pts.device)
-            locs = torch.cat([seg_pts, batch_idxs], dim=1)
-            feats = torch.ones(num_pts, 1).to(seg_pts.device)
+        for idx in range(len(scn_coords)):
+            coords = scn_coords[idx]
+            num_pts = len(coords)
+            batch_idxs = torch.zeros(num_pts, 1, dtype=torch.long).to(coords.device)
+            locs = torch.cat([coords, batch_idxs], dim=1)
+            feats = torch.ones(num_pts, 1).to(coords.device)
             scn_input.append([locs, feats])
         return scn_input
 
@@ -49,16 +49,16 @@ class SegFusion(Base3DDetector):
             sample_feats.append(x[i][seg_pts_indices[i][:, 0], seg_pts_indices[i][:, 1]])
         return sample_feats
 
-    def extract_pts_feat(self, seg_points):
-        scn_input = self.get_scn_input(seg_points)
+    def extract_pts_feat(self, scn_coords):
+        scn_input = self.get_scn_input(scn_coords)
         pts_feats = []
         for x in scn_input:
             pts_feats.append(self.pts_backbone(x))
         return pts_feats
 
-    def extract_feat(self, img, seg_points, seg_pts_indices):
+    def extract_feat(self, img, scn_coords, seg_pts_indices):
         img_feats = self.extract_img_feat(img, seg_pts_indices)
-        pts_feats = self.extract_pts_feat(seg_points)
+        pts_feats = self.extract_pts_feat(scn_coords)
         return img_feats, pts_feats
 
     def forward_logits(self, sample_feats, pts_feats):
@@ -74,6 +74,7 @@ class SegFusion(Base3DDetector):
     def forward_train(self,
                       img=None,
                       seg_points=None,
+                      scn_coords=None,
                       seg_pts_indices=None,
                       seg_label=None,
                       img_metas=None):
@@ -81,13 +82,14 @@ class SegFusion(Base3DDetector):
         Args:
             img: (4, 3, 225, 400)
             seg_points: list of tensor (N, 4); len == batch_size
+            seg_points: list of tensor (N, 3); len == batch_size; dtype=torch.long
             seg_pts_indices: list of tensor (N, 2); len == batch_size
             seg_label: list of tensor (N, ); len == batch_size
 
         Returns: losses
         '''
         # img, pts forward
-        sample_feats, pts_feats = self.extract_feat(img, seg_points, seg_pts_indices)
+        sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
 
         # forward logits
         seg_logits = self.forward_logits(sample_feats, pts_feats)
@@ -99,30 +101,26 @@ class SegFusion(Base3DDetector):
 
         return dict(seg_loss=seg_loss)
 
-    def simple_test(self, img, seg_points, seg_pts_indices):
-        sample_feats, pts_feats = self.extract_feat(img, seg_points, seg_pts_indices)
+    def simple_test(self, img, seg_points, seg_pts_indices, scn_coords):
+        sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
         seg_logits = self.forward_logits(sample_feats, pts_feats)
         return seg_logits
+
+    def forward_test(self,
+                     img=None,
+                     seg_points=None,
+                     seg_pts_indices=None,
+                     scn_coords=None,
+                     **kwargs):
+        assert len(img) == 1
+        return self.simple_test(img=img,
+                                seg_points=seg_points,
+                                seg_pts_indices=seg_pts_indices,
+                                scn_coords=scn_coords)
 
     def aug_test(self, imgs, img_metas, **kwargs):
         """Test function with test time augmentation."""
         pass
-
-    # def forward_test(self,
-    #                  img=None,
-    #                  seg_points=None,
-    #                  seg_pts_indices=None,
-    #                  **kwargs):
-    #     num_augs = len(img)
-    #     if num_augs == 1:
-    #         # img = [img] if img is None else img
-    #         # seg_pts_indices = [seg_pts_indices] if seg_pts_indices is None else seg_pts_indices
-    #         return self.simple_test(img=img,
-    #                                 seg_points=seg_points,
-    #                                 seg_pts_indices=seg_pts_indices)
-    #     else:
-    #         assert False, 'aug test error'
-    #         # return self.aug_test(points, img_metas, img, **kwargs)
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""

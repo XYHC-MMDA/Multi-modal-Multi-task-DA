@@ -824,6 +824,61 @@ class Aug2D(object):
 
 
 @PIPELINES.register_module()
+class XmudaAug3D(object):
+    # xmuda/data/utils/augmentation_3d.py
+    def __init__(self, scale, full_scale, noisy_rot=0.0, flip_x=0.0, flip_y=0.0, rot_z=0.0, transl=False):
+        self.scale = scale
+        self.full_scale = full_scale
+        self.noisy_rot = noisy_rot
+        self.flip_x = flip_x
+        self.flip_y = flip_y
+        self.rot_z = rot_z
+        self.transl = transl
+
+    def __call__(self, input_dict):
+        scn_coords = input_dict['points'][:, :3].copy()
+        rot_matrix = np.eye(3, dtype=np.float32)
+        if self.noisy_rot > 0:
+            # add noise to rotation matrix
+            rot_matrix += np.random.randn(3, 3) * self.noisy_rot
+        if self.flip_x > 0:
+            # flip x axis: multiply element at (0, 0) with 1 or -1
+            rot_matrix[0][0] *= np.random.randint(0, 2) * 2 - 1
+        if self.flip_y > 0:
+            # flip y axis: multiply element at (1, 1) with 1 or -1
+            rot_matrix[1][1] *= np.random.randint(0, 2) * 2 - 1
+        if self.rot_z > 0:
+            # rotate around z-axis (up-axis)
+            theta = np.random.rand() * self.rot_z
+            z_rot_matrix = np.array([[np.cos(theta), -np.sin(theta), 0],
+                                     [np.sin(theta), np.cos(theta), 0],
+                                     [0, 0, 1]], dtype=np.float32)
+            rot_matrix = rot_matrix.dot(z_rot_matrix)
+        scn_coords = scn_coords.dot(rot_matrix)
+
+        # scale with inverse voxel size (e.g. 20 corresponds to 5cm)
+        scn_coords = scn_coords * self.scale
+        # translate points to positive octant (receptive field of SCN in x, y, z coords is in interval [0, full_scale])
+        scn_coords -= scn_coords.min(0)
+
+        if self.transl:
+            # random translation inside receptive field of SCN
+            offset = np.clip(self.full_scale - scn_coords.max(0) - 0.001, a_min=0, a_max=None) * np.random.rand(3)
+            scn_coords += offset
+
+        # cast to integer
+        scn_coords = scn_coords.astype(np.int64)
+
+        # only use voxels inside receptive field
+        idxs = (scn_coords.min(1) >= 0) * (scn_coords.max(1) < self.full_scale)
+        scn_coords = scn_coords[idxs]
+
+        input_dict['scn_coords'] = scn_coords
+        # input_dict['scn_feats'] = np.ones([len(scn_coords), 1], np.float32)  # simply use 1 as feature
+        return input_dict
+
+
+@PIPELINES.register_module()
 class DetLabelFilter(object):
     def __call__(self, input_dict):
         gt_labels_3d = input_dict['gt_labels_3d']

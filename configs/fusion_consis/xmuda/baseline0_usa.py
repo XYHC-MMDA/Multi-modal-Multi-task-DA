@@ -12,6 +12,8 @@ img_feat_channels = 64
 pts_feat_dim = 16
 prelogits_dim = img_feat_channels + pts_feat_dim
 normalize = True
+scn_scale = 20
+scn_full_scale = 4096
 
 src_train = 'mmda_xmuda_split/train_usa.pkl'
 tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
@@ -35,7 +37,8 @@ model = dict(
         pretrained=True),
     pts_backbone=dict(
         type='UNetSCN',
-        in_channels=1),
+        in_channels=1,
+        full_scale=scn_full_scale),
     num_classes=5,
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
@@ -79,11 +82,13 @@ train_pipeline = [
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
     dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
     # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
-    dict(
-        type='GlobalRotScaleTrans',
-        rot_range=[-0.7854, 0.7854],
-        scale_ratio_range=[0.9, 1.1],
-        translation_std=[0.2, 0.2, 0.2]),  # 3D Rot, Scale, Trans for 'points'
+    dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale,
+         noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, trasl=True),  # new 'scn_coords'
+    # dict(
+    #     type='GlobalRotScaleTrans',
+    #     rot_range=[-0.7854, 0.7854],
+    #     scale_ratio_range=[0.9, 1.1],
+    #     translation_std=[0.2, 0.2, 0.2]),  # 3D Rot, Scale, Trans for 'points'
     # dict(
     #     type='RandomFlip3D',
     #     # flip_ratio_bev_horizontal=0.5,
@@ -93,10 +98,10 @@ train_pipeline = [
     dict(type='GetSegFromPoints'),  # new 'seg_points', 'seg_pts_indices'
     # dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     # dict(type='DetLabelFilter'),  # Filter labels == -1; not in TEN_CLASSES
-    dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
+    # dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
     dict(type='MergeCat'),  # merge 'seg_label'
     dict(type='SegDetFormatBundle'),
-    dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
+    dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
 ]
 test_pipeline = [
     dict(
@@ -110,18 +115,23 @@ test_pipeline = [
     dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
-    dict(type='Aug2D'),  # No Aug2D in test
-    dict(
-        type='MultiScaleFlipAug3D',
-        img_scale=(1333, 800),
-        pts_scale_ratio=1,
-        flip=False,
-        transforms=[
-            # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-            dict(type='MergeCat'),
-            dict(type='SegDetFormatBundle'),
-            dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
-        ])
+    dict(type='Aug2D'),  # No Aug2D in test; just PIL.Image to np.ndarray
+    dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale),  # new 'scn_coords'; no aug3d in test
+    dict(type='GetSegFromPoints'),  # new 'seg_points', 'seg_pts_indices'
+    dict(type='MergeCat'),  # merge 'seg_label'
+    dict(type='SegDetFormatBundle'),
+    dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
+    # dict(
+    #     type='MultiScaleFlipAug3D',
+    #     img_scale=(1333, 800),
+    #     pts_scale_ratio=1,
+    #     flip=False,
+    #     transforms=[
+    #         # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
+    #         dict(type='MergeCat'),
+    #         dict(type='SegDetFormatBundle'),
+    #         dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
+    #     ])
 ]
 
 # dataset
