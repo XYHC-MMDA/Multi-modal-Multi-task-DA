@@ -15,7 +15,9 @@ class SegFusion(Base3DDetector):
                  prelogits_dim=None,
                  class_weights=None,
                  pretrained=None,
-                 normalize=True):
+                 normalize=True,
+                 train_cfg=None,
+                 test_cfg=None):
         super(SegFusion, self).__init__()
 
         if img_backbone:
