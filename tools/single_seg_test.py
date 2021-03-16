@@ -27,22 +27,6 @@ def parse_args():
         action='store_true',
         help='Whether to fuse conv and bn, this will slightly increase'
         'the inference speed')
-    parser.add_argument(
-        '--format-only',
-        action='store_true',
-        help='Format the output results without perform evaluation. It is'
-        'useful when you want to format the result to a specific format and '
-        'submit it to the test server')
-    parser.add_argument(
-        '--eval',
-        type=str,
-        nargs='+',
-        help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
-        ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC')
-    parser.add_argument(
-        '--json',
-        type=str
-    )
     parser.add_argument('--show', action='store_true', help='show results')
     parser.add_argument(
         '--show-dir', help='directory where results will be saved')
@@ -76,9 +60,6 @@ def parse_args():
 def main():
     args = parse_args()
 
-    if args.eval and args.format_only:
-        raise ValueError('--eval and --format_only cannot be both specified')
-
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
 
@@ -109,17 +90,11 @@ def main():
         shuffle=False)
     dataset_last = time.time() - dataset_start_time
     print('dataset & dataloader time:', dataset_last)
-    # data_batch = iter(data_loader).next()
-    # print(len(data_batch['points'][0].data[0]))
-    # print(type(data_batch['seg_label'][0].data[0][0]))
-    # print(data_batch['seg_label'][0].data[0][0].shape)
 
     # build the model and load checkpoint
     model_start_time = time.time()
     model = build_detector(cfg.model, train_cfg=None, test_cfg=None)
-    # fp16_cfg = cfg.get('fp16', None)
-    # if fp16_cfg is not None:
-    #     wrap_fp16_model(model)
+
     checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
     if args.fuse_conv_bn:
         model = fuse_module(model)
