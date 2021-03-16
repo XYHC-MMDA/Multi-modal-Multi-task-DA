@@ -33,7 +33,7 @@ class SegFusion(Base3DDetector):
     def get_scn_input(self, seg_points):
         scn_input = []
         for idx in range(len(seg_points)):
-            seg_pts = seg_points[idx]
+            seg_pts = seg_points[idx][:, :3]
             num_pts = len(seg_pts)
             batch_idxs = torch.zeros(num_pts, 1, dtype=torch.long).to(seg_pts.device)
             locs = torch.cat([seg_pts, batch_idxs], dim=1)
