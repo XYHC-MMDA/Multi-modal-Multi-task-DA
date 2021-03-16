@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
-
 import sparseconvnet as scn
+from mmdet.models import BACKBONES
 
-DIMENSION = 3
+# DIMENSION = 3
 
 
+@BACKBONES.register_module()
 class UNetSCN(nn.Module):
     def __init__(self,
                  in_channels,
@@ -13,7 +14,8 @@ class UNetSCN(nn.Module):
                  block_reps=1,  # depth
                  residual_blocks=False,  # ResNet style basic blocks
                  full_scale=4096,
-                 num_planes=7
+                 num_planes=7,
+                 DIMENSION=3
                  ):
         super(UNetSCN, self).__init__()
 
@@ -35,6 +37,7 @@ class UNetSCN(nn.Module):
 
 def test():
     b, n = 2, 100
+    DIMENSION = 3
     coords = torch.randint(4096, [b, n, DIMENSION])
     batch_idxs = torch.arange(b).reshape(b, 1, 1).repeat(1, n, 1)
     coords = torch.cat([coords, batch_idxs], 2).reshape(-1, DIMENSION + 1)
