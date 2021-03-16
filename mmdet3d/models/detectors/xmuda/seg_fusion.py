@@ -27,7 +27,7 @@ class SegFusion(Base3DDetector):
         self.init_weights(pretrained=pretrained)
 
         self.seg_head = nn.Linear(prelogits_dim, num_classes)
-        self.class_weights = class_weights
+        self.class_weights = torch.tensor(class_weights)
         self.normalize = normalize
 
     def get_scn_input(self, scn_coords):

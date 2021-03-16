@@ -263,7 +263,7 @@ class SegDetFormatBundle(object):
     def __call__(self, results):
         # stack=False
         for key in [
-            'points', 'pts_indices', 'seg_points', 'seg_pts_indices', 'seg_label'
+            'points', 'pts_indices', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'
         ]:
             # assert key in results.keys(), f"key {key} does not exist."
             if key not in results.keys():
