@@ -872,9 +872,12 @@ class XmudaAug3D(object):
         # only use voxels inside receptive field
         idxs = (scn_coords.min(1) >= 0) * (scn_coords.max(1) < self.full_scale)
         scn_coords = scn_coords[idxs]
+        for key in ['seg_label', 'points', 'pts_indices']:
+            if key not in input_dict.keys():
+                continue
+            input_dict[key] = input_dict[key][idxs]
 
         input_dict['scn_coords'] = scn_coords
-        input_dict['seg_label'] = input_dict['seg_label'][idxs]
         input_dict['num_seg_pts'] = len(scn_coords)
         # input_dict['scn_feats'] = np.ones([len(scn_coords), 1], np.float32)  # simply use 1 as feature
         return input_dict
