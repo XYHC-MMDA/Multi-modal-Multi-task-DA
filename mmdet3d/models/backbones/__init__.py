@@ -5,8 +5,10 @@ from .pointnet2_sa_msg import PointNet2SAMSG
 from .pointnet2_sa_ssg import PointNet2SASSG
 from .second import SECOND
 from .resnet34_unet import UNetResNet34
+from .scn_unet import UNetSCN
 
 __all__ = [
     'ResNet', 'ResNetV1d', 'ResNeXt', 'SSDVGG', 'HRNet', 'NoStemRegNet',
-    'SECOND', 'PointNet2SASSG', 'PointNet2SAMSG', 'MultiBackbone', 'UNetResNet34'
+    'SECOND', 'PointNet2SASSG', 'PointNet2SAMSG', 'MultiBackbone',
+    'UNetResNet34', 'UNetSCN'
 ]

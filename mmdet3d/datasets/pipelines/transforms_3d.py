@@ -744,6 +744,30 @@ class PointsRangeFilterVer2(object):
 
 
 @PIPELINES.register_module()
+class GetSegFromPoints(object):
+    '''
+        new 'seg_points', 'seg_pts_indices'
+    '''
+
+    def __init__(self):
+        pass
+
+    def __call__(self, input_dict):
+        num_seg_pts = input_dict['num_seg_pts']
+
+        # seg_points, seg_pts_indices
+        input_dict['seg_points'] = input_dict['points'][:num_seg_pts].copy()
+        input_dict['seg_pts_indices'] = input_dict['pts_indices'][:num_seg_pts].copy()
+
+        return input_dict
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        return repr_str
+
+
+@PIPELINES.register_module()
 class MergeCat(object):
     def __init__(self):
         # order according to config.class_names

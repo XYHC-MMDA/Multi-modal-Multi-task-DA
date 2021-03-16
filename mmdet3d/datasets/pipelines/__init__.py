@@ -5,14 +5,15 @@ from .loading import (LoadAnnotations3D, LoadMultiViewImageFromFiles,
                       LoadPointsFromFile, LoadPointsFromMultiSweeps,
                       NormalizePointsColor, PointSegClassMapping,
                       LoadSegDetPointsFromFile, LoadFrontImage, LoadImgSegLabel,
-                      LoadMaskedMultiSweeps)
+                      LoadMaskedMultiSweeps, LoadPointsFromFileVer2)
 from .test_time_aug import MultiScaleFlipAug3D
 from .transforms_3d import (BackgroundPointsFilter, GlobalRotScaleTrans,
                             IndoorPointSample, ObjectNoise, ObjectRangeFilter,
                             ObjectSample, PointShuffle, PointsRangeFilter,
                             RandomFlip3D, VoxelBasedPointSampler,
                             SegDetPointsRangeFilter, PointsSensorFilter, MergeCat, DetLabelFilter,
-                            FrontImageFilter, PointsRangeFilterVer2, PointsSensorFilterVer2)
+                            FrontImageFilter, PointsRangeFilterVer2, PointsSensorFilterVer2,
+                            GetSegFromPoints)
 
 # __all__ = [
 #     'ObjectSample', 'RandomFlip3D', 'ObjectNoise', 'GlobalRotScaleTrans',

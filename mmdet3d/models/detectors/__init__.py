@@ -20,6 +20,7 @@ from .sep_disc import SepDisc
 from .target_consistency import TargetConsistency
 from .target_consistency_no_bg import TargetConsistencyNoBG
 from .new_fusion import *
+from .xmuda import *
 
 __all__ = [
     'Base3DDetector', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni',

@@ -414,6 +414,81 @@ class LoadPointsFromFile(object):
 
 
 @PIPELINES.register_module()
+class LoadPointsFromFileVer2(object):
+    def __init__(self,
+                 load_dim=6,
+                 use_dim=[0, 1, 2],
+                 shift_height=False,
+                 file_client_args=dict(backend='disk')):
+        self.shift_height = shift_height
+        if isinstance(use_dim, int):
+            use_dim = list(range(use_dim))
+        assert max(use_dim) < load_dim, \
+            f'Expect all used dimensions < {load_dim}, got {use_dim}'
+
+        self.load_dim = load_dim
+        self.use_dim = use_dim
+        self.file_client_args = file_client_args.copy()
+        self.file_client = None
+
+    def _load_points(self, pts_filename):
+        """Private function to load point clouds data.
+
+        Args:
+            pts_filename (str): Filename of point clouds data.
+
+        Returns:
+            np.ndarray: An array containing point clouds data.
+        """
+        if self.file_client is None:
+            self.file_client = mmcv.FileClient(**self.file_client_args)
+        try:
+            pts_bytes = self.file_client.get(pts_filename)
+            points = np.frombuffer(pts_bytes, dtype=np.float32)
+        except ConnectionError:
+            mmcv.check_file_exist(pts_filename)
+            if pts_filename.endswith('.npy'):
+                points = np.load(pts_filename)
+            else:
+                points = np.fromfile(pts_filename, dtype=np.float32)
+        return points
+
+    def __call__(self, results):
+        """Call function to load points data from file.
+
+        Args:
+            results (dict): Result dict containing point clouds data.
+
+        Returns:
+            dict: The result dict containing the point clouds data. \
+                Added key and value are described below.
+
+                - points (np.ndarray): Point clouds data.
+        """
+        pts_filename = results['pts_filename']
+        points = self._load_points(pts_filename)
+        points = points.reshape(-1, self.load_dim)
+        points = points[:, self.use_dim]
+
+        if self.shift_height:
+            floor_height = np.percentile(points[:, 2], 0.99)
+            height = points[:, 2] - floor_height
+            points = np.concatenate([points, np.expand_dims(height, 1)], 1)
+        results['points'] = points
+        results['num_seg_pts'] = len(points)
+        return results
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__ + '('
+        repr_str += 'shift_height={}, '.format(self.shift_height)
+        repr_str += 'file_client_args={}), '.format(self.file_client_args)
+        repr_str += 'load_dim={}, '.format(self.load_dim)
+        repr_str += 'use_dim={})'.format(self.use_dim)
+        return repr_str
+
+
+@PIPELINES.register_module()
 class LoadSegDetPointsFromFile(object):
     def __init__(self,
                  load_dim=6,
