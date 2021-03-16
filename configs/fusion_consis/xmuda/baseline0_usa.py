@@ -42,6 +42,9 @@ model = dict(
     normalize=normalize
 )
 
+train_cfg = None
+test_cfg = None
+
 class_names = [
     'vehicle',  # car, truck, bus, trailer, cv
     'pedestrian',  # pedestrian
