@@ -75,7 +75,8 @@ class SegFusion(Base3DDetector):
                       img=None,
                       seg_points=None,
                       seg_pts_indices=None,
-                      seg_label=None):
+                      seg_label=None,
+                      img_metas=None):
         '''
         Args:
             img: (4, 3, 225, 400)

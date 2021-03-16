@@ -4,14 +4,16 @@ import os
 import time 
 
 # variants
-ckpt = 'usa_reg32_v1'
-cfg = 'usa_reg32_v1'
-l, r = 11, 24  # [l, r]
+cfg = 'usa_reg32_v2'
+ckpt = 'usa_reg32_v2'
+l, r = 1, 24  # [l, r]
 
 
 cfg_path = f'configs/fusion_consis/PointContrast/{cfg}.py'
 ckpt_path = f'checkpoints/fusion_consis/PointContrast/{ckpt}'
 filename = f'checkpoints/fusion_consis/PointContrast/{ckpt}/result.txt'
+print('cfg_path:', cfg_path)
+print('ckpt_path:', ckpt_path)
 f = open(filename, 'a')
 for i in range(l, r+1):
     model_path = os.path.join(ckpt_path, f'epoch_{i}.pth')
