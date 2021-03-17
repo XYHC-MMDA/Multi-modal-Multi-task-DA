@@ -104,6 +104,8 @@ class SegFusionV2(Base3DDetector):
         if self.with_contrast:
             contrast_loss = self.forward_contrast(sample_feats, pts_feats)
             losses.update(contrast_loss)
+        elif only_contrast:
+            assert False
         if only_contrast:
             return losses
 
