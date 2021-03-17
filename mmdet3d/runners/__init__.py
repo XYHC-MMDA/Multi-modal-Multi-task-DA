@@ -25,4 +25,5 @@ from .target_consistency_runner import TargetConsistencyRunner
 from .target_consistency_runner_02 import TargetConsistencyRunner02
 
 from .fusion_consis import *
+from .xmuda import *
 
