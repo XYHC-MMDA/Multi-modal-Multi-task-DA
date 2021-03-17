@@ -66,7 +66,7 @@ class XmudaRunner(BaseRunner):
             src_losses = self.model(**src_data_batch, only_contrast=self.only_contrast)
             tgt_losses = self.model(**tgt_data_batch, only_contrast=True)
 
-            src_losses.update(tgt_losses)
+            src_losses.update(dict(tgt_contrast_loss=tgt_losses['contrast_loss']))
             loss, log_vars = parse_losses(src_losses)
             num_samples = len(src_data_batch['img_metas'])
 
