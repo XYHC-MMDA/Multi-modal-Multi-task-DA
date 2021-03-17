@@ -36,7 +36,7 @@ class XmudaRunner(BaseRunner):
                                                  meta,
                                                  max_iters,
                                                  max_epochs)
-        self.return_task_loss = cfg.return_task_loss
+        self.only_contrast = cfg.only_contrast
 
     def train(self, src_data_loader, tgt_data_loader):
         self.model.train()
