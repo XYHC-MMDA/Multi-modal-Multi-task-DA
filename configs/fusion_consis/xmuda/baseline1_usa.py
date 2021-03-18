@@ -1,3 +1,4 @@
+# normalize=False; vanilla fusion
 
 ##############################################
 # variants: Runner, model

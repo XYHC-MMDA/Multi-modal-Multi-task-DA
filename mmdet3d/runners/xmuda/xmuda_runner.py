@@ -61,7 +61,7 @@ class XmudaRunner(BaseRunner):
                 tgt_data_batch = next(tgt_data_iter)
 
             # ------------------------
-            # forward source & target
+            # source 
             # ------------------------
             src_losses = self.model(**src_data_batch, only_contrast=self.only_contrast)
             tgt_losses = self.model(**tgt_data_batch, only_contrast=True)
@@ -73,6 +73,17 @@ class XmudaRunner(BaseRunner):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
+            # ------------------------
+            # target 
+            # ------------------------
+            # tgt_losses = self.model(**tgt_data_batch, only_contrast=True)
+            # tgt_contrast_loss = tgt_losses['contrast_loss']
+            # log_vars['tgt_contrast_loss'] = tgt_contrast_loss.item()
+
+            # self.optimizer.zero_grad()
+            # tgt_contrast_loss.backward()
+            # self.optimizer.step()
 
             # after_train_iter callback
             self.log_buffer.update(log_vars, num_samples)

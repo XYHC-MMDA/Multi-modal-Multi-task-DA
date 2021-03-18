@@ -148,7 +148,7 @@ test_pipeline = [
 # dataset
 dataset_type = 'MMDAMergeCatDataset'
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=8,
     workers_per_gpu=4,
     source_train=dict(
         type=dataset_type,
