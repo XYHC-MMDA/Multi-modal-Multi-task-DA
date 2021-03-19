@@ -4,8 +4,8 @@ import os
 import time 
 
 # variants
-cfg = 'baseline1_usa'
-ckpt = 'baseline1_usa'
+cfg = 'contrast_usa_v1'
+ckpt = 'contrast_usa_v1'
 l, r = 1, 24  # [l, r]
 
 
