@@ -20,6 +20,8 @@ for i in range(l, r+1):
     while not os.path.exists(model_path):
         print('sleeping...')
         time.sleep(1800)
+
+    # test target
     start = time.time()
     cmd = ['python', './tools/single_seg_test.py',
            cfg_path, model_path]
