@@ -4,9 +4,9 @@ import os
 import time 
 
 # variants
-cfg = 'contrast_usa_v2'
-ckpt = 'contrast_usa_v2'
-l, r = 13, 24  # [l, r]
+cfg = 'baseline3_usa'
+ckpt = 'baseline3_usa'
+l, r = 1, 24  # [l, r]
 
 
 cfg_path = f'configs/fusion_consis/xmuda/{cfg}.py'
