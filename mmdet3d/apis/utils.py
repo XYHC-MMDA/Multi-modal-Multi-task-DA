@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import torch.distributed as dist
 import torch
+import torch.nn as nn
 
 
 def parse_losses(losses):
@@ -36,3 +37,19 @@ def set_requires_grad(models, requires_grad=False):
             continue
         for param in model.parameters():
             param.requires_grad = requires_grad
+
+
+def build_mlp(fcs):
+    # fcs: list of channels
+    mlp = []
+    for i, (in_dim, out_dim) in enumerate(zip(fcs[:-1], fcs[1:])):
+        mlp.append(nn.Linear(in_dim, out_dim))
+        if i == len(fcs) - 2:
+            break
+        mlp.append(nn.ReLU(inplace=True))
+    mlp = nn.Sequential(*mlp)
+    return mlp
+
+
+if __name__ == '__main__':
+    print(build_mlp([2, 3, 4]))
