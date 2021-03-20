@@ -133,15 +133,17 @@ class SegFusionV3(Base3DDetector):
             pts_feats = pts_feats_list[batch_id]  # (N, 16)
 
             num_pts = len(pts_feats)
-            if num_pts > self.max_pts:
-                idx = np.random.choice(num_pts, self.max_pts, replace=False)
-                img_feats = img_feats[idx]
-                pts_feats = pts_feats[idx]
+            for group_idx in range(self.groups):
+                if num_pts > self.max_pts:
+                    idx = np.random.choice(num_pts, self.max_pts, replace=False)
+                    img_feats = img_feats[idx]
+                    pts_feats = pts_feats[idx]
 
-            feats_1 = self.img_fc(img_feats)
-            feats_2 = self.pts_fc(pts_feats)
-            loss = self.contrast_criterion(feats_1, feats_2)
-            contrast_losses.append(loss)
+                feats_1 = self.img_fc(img_feats)
+                feats_2 = self.pts_fc(pts_feats)
+                loss = self.contrast_criterion(feats_1, feats_2)
+                contrast_losses.append(loss)
+        # len(contrast_losses) == self.groups * batch_size
         contrast_loss = self.lambda_contrast * sum(contrast_losses) / len(contrast_losses)
         return dict(contrast_loss=contrast_loss)
 
@@ -168,7 +170,7 @@ class SegFusionV3(Base3DDetector):
 
     def init_weights(self, pretrained=None):
         """Initialize model weights."""
-        super(SegFusionV2, self).init_weights(pretrained)
+        super(SegFusionV3, self).init_weights(pretrained)
         if pretrained is None:
             img_pretrained = None
         elif isinstance(pretrained, dict):
