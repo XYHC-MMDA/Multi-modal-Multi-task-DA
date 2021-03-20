@@ -8,7 +8,7 @@ font = {
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'baseline1_usa'
+sub_dir = 'baseline2_usa'
 tgt_test_file = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/filter.txt'  # to add: tgt_val, src_val
 
 accf = open(tgt_test_file, 'r')
@@ -24,6 +24,8 @@ x_range = np.arange(len(tgt_seg)) + 1
 
 
 if __name__ == '__main__':
+    print(f'{sub_dir}: {max(tgt_seg)}')
+
     plt.xlabel('epoch', font)
     plt.ylabel('Seg_mIOU', font)
     tgt_seg = np.array(tgt_seg)

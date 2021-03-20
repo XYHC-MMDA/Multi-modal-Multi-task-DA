@@ -9,7 +9,8 @@ font = {
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'baseline1_usa'
+plt_title = ''
+sub_dir = 'contrast_usa_v1'
 log_file = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/log.log'  # to add: tgt_val, src_val
 
 
@@ -32,7 +33,7 @@ x_range = np.arange(x_len) + 1
 
 
 if __name__ == '__main__':
-    # plt.title(plt_title)
+    plt.title(plt_title, font)
     # plt.xlabel('log_interval(every 25 batches)', font)
     plt.xlabel('epoch', font)
     plt.ylabel('loss', font)
