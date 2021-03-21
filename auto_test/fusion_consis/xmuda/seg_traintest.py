@@ -1,4 +1,4 @@
-# CUDA_VISIBLE_DEVICES=0 python auto_test/fusion_consis/xmuda/seg_valtest.py\
+# CUDA_VISIBLE_DEVICES=0 python auto_test/fusion_consis/xmuda/seg_traintest.py\
 # --cfg baseline2_usa_new --ckpt baseline2_usa
 # source_train/target_train
 
@@ -27,8 +27,8 @@ print('cfg_path:', cfg_path)
 print('ckpt_path:', ckpt_path)
 
 # create/append file
-src_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/source_test.txt'
-tgt_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/target_test.txt'
+src_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/source_train.txt'
+tgt_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/target_train.txt'
 src_file = open(src_path, 'a')
 tgt_file = open(tgt_path, 'a')
 
