@@ -277,3 +277,39 @@ def train_general_detector(model, dataset, cfg, distributed=False, timestamp=Non
     #     runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
 
+
+def train_source_detector(model, dataset, cfg, distributed=False, timestamp=None, meta=None):
+    # dataset: [src_dataset]
+    logger = get_root_logger(cfg.log_level)
+    data_loaders = [
+        build_dataloader(
+            ds,
+            cfg.data.samples_per_gpu,
+            cfg.data.workers_per_gpu,
+            # cfg.gpus will be ignored if distributed
+            len(cfg.gpu_ids),
+            dist=distributed,
+            seed=cfg.seed) for ds in dataset
+    ]
+
+    # put model on gpus
+    model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+
+    # build model optimizer
+    optimizer = build_optimizer(model, cfg.optimizer)
+
+    # build runner
+    runner = EpochBasedRunner(model, optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
+    runner.timestamp = timestamp
+
+    # register hooks; no opimizer_config & momentum_config
+    runner.register_training_hooks(cfg.lr_config, checkpoint_config=cfg.checkpoint_config, log_config=cfg.log_config)
+
+    # if distributed:
+    #     runner.register_hook(DistSamplerSeedHook())
+    if cfg.resume_from:
+        runner.resume(cfg.resume_from)
+    # elif cfg.load_from:
+    #     runner.load_checkpoint(cfg.load_from)
+    runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
+

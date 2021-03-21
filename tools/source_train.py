@@ -15,7 +15,7 @@ from mmdet3d import __version__
 from mmdet3d.datasets import build_dataset
 from mmdet3d.models import build_detector
 from mmdet3d.utils import collect_env, get_root_logger
-from mmdet.apis import set_random_seed, train_detector
+from mmdet3d.apis import set_random_seed, train_source_detector
 
 
 def parse_args():
@@ -153,14 +153,7 @@ def main():
             CLASSES=datasets[0].CLASSES)
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
-    train_detector(
-        model,
-        datasets,
-        cfg,
-        distributed=distributed,
-        validate=(not args.no_validate),
-        timestamp=timestamp,
-        meta=meta)
+    train_source_detector(model, datasets, cfg, distributed=distributed, timestamp=timestamp, meta=meta)
 
 
 if __name__ == '__main__':

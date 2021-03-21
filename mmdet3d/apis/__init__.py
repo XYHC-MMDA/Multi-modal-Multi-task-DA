@@ -2,7 +2,7 @@ from .utils import parse_losses, set_requires_grad, build_mlp
 from .inference import inference_detector, init_detector, show_result_meshlab
 from .test import single_gpu_test, mmda_single_gpu_test, single_seg_test
 from .train import set_random_seed, train_detector, rep_train_detector, train_single_seg_detector,\
-                   train_tc_detector, train_general_detector
+                   train_tc_detector, train_general_detector, train_source_detector
 from .seg_test_with_loss import seg_test_with_loss
 
 
