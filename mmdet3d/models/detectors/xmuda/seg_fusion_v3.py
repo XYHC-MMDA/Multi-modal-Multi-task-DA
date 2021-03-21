@@ -136,11 +136,14 @@ class SegFusionV3(Base3DDetector):
             for group_idx in range(self.groups):
                 if num_pts > self.max_pts:
                     idx = np.random.choice(num_pts, self.max_pts, replace=False)
-                    img_feats = img_feats[idx]
-                    pts_feats = pts_feats[idx]
+                    gi_img_feats = img_feats[idx]
+                    gi_pts_feats = pts_feats[idx]
+                else:
+                    gi_img_feats = img_feats
+                    gi_pts_feats = pts_feats
 
-                feats_1 = self.img_fc(img_feats)
-                feats_2 = self.pts_fc(pts_feats)
+                feats_1 = self.img_fc(gi_img_feats)
+                feats_2 = self.pts_fc(gi_pts_feats)
                 loss = self.contrast_criterion(feats_1, feats_2)
                 contrast_losses.append(loss)
         # len(contrast_losses) == self.groups * batch_size
