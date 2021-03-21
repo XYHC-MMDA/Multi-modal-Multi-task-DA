@@ -1,6 +1,6 @@
 # CUDA_VISIBLE_DEVICES=0 python auto_test/fusion_consis/xmuda/seg_valtest.py\
 # --cfg baseline2_usa_new --ckpt baseline2_usa
-# source_test/target_test
+# source_train/target_train
 
 from subprocess import Popen
 import argparse
@@ -43,7 +43,7 @@ for i in range(l, r+1):
     start = time.time()
     cmd = ['python', './tools/seg_valtest.py',
            cfg_path, model_path,
-           '--split', 'source_test']
+           '--split', 'source_train']
     print(' '.join(cmd))
     proc = Popen(cmd, stdout=src_file)
     proc.wait()
@@ -55,7 +55,7 @@ for i in range(l, r+1):
     start = time.time()
     cmd = ['python', './tools/seg_valtest.py',
            cfg_path, model_path,
-           '--split', 'target_test']
+           '--split', 'target_train']
     print(' '.join(cmd))
     proc = Popen(cmd, stdout=tgt_file)
     proc.wait()
