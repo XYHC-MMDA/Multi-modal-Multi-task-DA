@@ -1,14 +1,17 @@
-# new splits; train with baseline2_usa.py; this is just for new test(src/tgt test/val with loss)
+# new splits; train with baseline2_usa.py;
+# this is just for new test(SegFusionV3; tools/seg_valtest.py)
 
-# options: train-test split; class_weights
+# options: class_weights
 ##############################################
 # runner = 'ContrastRunnerV1'
-model_type = 'SegFusion'
+model_type = 'SegFusionV3'
 
-img_feat_channels = 64
-pts_feat_dim = 16
-prelogits_dim = img_feat_channels + pts_feat_dim
-normalize = False
+img_dim, pts_dim = 64, 16
+prelogits_dim = img_dim + pts_dim
+# normalize = False
+contrast_criterion = None
+
+# SCN
 scn_scale = 20
 scn_full_scale = 4096
 
@@ -27,7 +30,7 @@ model = dict(
     type=model_type,
     img_backbone=dict(
         type='UNetResNet34',
-        out_channels=img_feat_channels,
+        out_channels=img_dim,
         pretrained=True),
     pts_backbone=dict(
         type='UNetSCN',
@@ -36,7 +39,7 @@ model = dict(
     num_classes=5,
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
-    normalize=normalize
+    contrast_criterion=contrast_criterion
 )
 
 train_cfg = None

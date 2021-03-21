@@ -1,5 +1,6 @@
-# CUDA_VISIBLE_DEVICES=0 python auto_test/fusion_consis/xmuda/auto_mmda_test.py --cfg baseline2_usa [--ckpt baseline2_usa]
+# CUDA_VISIBLE_DEVICES=0 python auto_test/fusion_consis/xmuda/single_seg_test.py --cfg baseline2_usa [--ckpt baseline2_usa]
 
+from subprocess import Popen
 import argparse
 import os 
 import time

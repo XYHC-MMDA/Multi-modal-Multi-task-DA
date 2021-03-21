@@ -21,11 +21,6 @@ prelogits_dim = img_dim + pts_dim
 scn_scale = 20
 scn_full_scale = 4096
 
-# split
-src_train = 'mmda_xmuda_split/train_usa.pkl'
-tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
-ann_val = 'mmda_xmuda_split/test_singapore.pkl'
-
 # class_weights
 daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
 usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
@@ -86,11 +81,6 @@ train_pipeline = [
         type='LoadPointsFromFileVer2',  # new 'points', 'num_seg_pts'
         load_dim=5,
         use_dim=5),
-    # dict(
-    #     type='LoadMaskedMultiSweeps',  # modify 'points'; new 'num_seg_pts'
-    #     sweeps_num=10,
-    #     file_client_args=file_client_args),
-    # dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
     dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
@@ -98,21 +88,8 @@ train_pipeline = [
     # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
     dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale,
          noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, transl=True),  # new 'scn_coords'
-    # dict(
-    #     type='GlobalRotScaleTrans',
-    #     rot_range=[-0.7854, 0.7854],
-    #     scale_ratio_range=[0.9, 1.1],
-    #     translation_std=[0.2, 0.2, 0.2]),  # 3D Rot, Scale, Trans for 'points'
-    # dict(
-    #     type='RandomFlip3D',
-    #     # flip_ratio_bev_horizontal=0.5,
-    #     flip_ratio_bev_vertical=0.5),  # do nothing; to read further
-    # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
     # # filter 'points', 'pts_indices', 'seg_label'; new 'seg_points', 'seg_pts_indices'
     dict(type='GetSegFromPoints'),  # new 'seg_points', 'seg_pts_indices'
-    # dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    # dict(type='DetLabelFilter'),  # Filter labels == -1; not in TEN_CLASSES
-    # dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
     dict(type='MergeCat'),  # merge 'seg_label'
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
@@ -122,10 +99,6 @@ test_pipeline = [
         type='LoadPointsFromFileVer2',
         load_dim=5,
         use_dim=5),
-    # dict(
-    #     type='LoadMaskedMultiSweeps',
-    #     sweeps_num=10,
-    #     file_client_args=file_client_args),
     dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
@@ -135,18 +108,14 @@ test_pipeline = [
     dict(type='MergeCat'),  # merge 'seg_label'
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
-    # dict(
-    #     type='MultiScaleFlipAug3D',
-    #     img_scale=(1333, 800),
-    #     pts_scale_ratio=1,
-    #     flip=False,
-    #     transforms=[
-    #         # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-    #         dict(type='MergeCat'),
-    #         dict(type='SegDetFormatBundle'),
-    #         dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
-    #     ])
 ]
+
+# splits
+source_train = 'mmda_xmuda_split/train_usa.pkl'
+source_test = 'mmda_xmuda_split/test_usa.pkl'
+target_train = 'mmda_xmuda_split/train_singapore.pkl'
+target_test = 'mmda_xmuda_split/test_singapore.pkl'
+target_val = 'mmda_xmuda_split/val_singapore.pkl'
 
 # dataset
 dataset_type = 'MMDAMergeCatDataset'
@@ -156,7 +125,7 @@ data = dict(
     source_train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + src_train,
+        ann_file=data_root + source_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
@@ -166,31 +135,41 @@ data = dict(
     target_train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + tgt_train,
+        ann_file=data_root + target_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
         test_mode=False,
         filter_empty_gt=False,
         box_type_3d='LiDAR'),
-    val=dict(
+    source_test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + ann_val,
+        ann_file=data_root + source_test,
         pipeline=test_pipeline,
         classes=class_names,
         modality=input_modality,
         test_mode=True,
         box_type_3d='LiDAR'),
-    test=dict(
+    target_test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + ann_val,
+        ann_file=data_root + target_test,
         pipeline=test_pipeline,
         classes=class_names,
         modality=input_modality,
         test_mode=True,
-        box_type_3d='LiDAR'))
+        box_type_3d='LiDAR'),
+    target_val=dict(
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + target_val,
+        pipeline=test_pipeline,
+        classes=class_names,
+        modality=input_modality,
+        test_mode=True,
+        box_type_3d='LiDAR')
+)
 evaluation = dict(interval=100)
 
 # shedule_2x.py
