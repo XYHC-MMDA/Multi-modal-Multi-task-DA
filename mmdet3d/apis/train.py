@@ -302,8 +302,8 @@ def train_source_detector(model, dataset, cfg, distributed=False, timestamp=None
     runner = EpochBasedRunner(model, optimizer=optimizer, work_dir=cfg.work_dir, logger=logger, meta=meta)
     runner.timestamp = timestamp
 
-    # register hooks; no opimizer_config & momentum_config
-    runner.register_training_hooks(cfg.lr_config, checkpoint_config=cfg.checkpoint_config, log_config=cfg.log_config)
+    # register hooks; no momentum_config; optimizer_config is required by EpochBasedRunner
+    runner.register_training_hooks(cfg.lr_config, cfg.optimizer_config, checkpoint_config=cfg.checkpoint_config, log_config=cfg.log_config)
 
     # if distributed:
     #     runner.register_hook(DistSamplerSeedHook())
