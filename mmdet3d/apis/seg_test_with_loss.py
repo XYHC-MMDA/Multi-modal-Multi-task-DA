@@ -16,7 +16,7 @@ def seg_test_with_loss(model, data_loader):
             seg_logits, seg_loss = model(return_loss=False, with_loss=True, **data)
             # return_loss=False: forward_test; with_loss=True: return seg_loss
 
-        seg_losses.append(seg_loss)
+        seg_losses.append(seg_loss.item())
 
         # handle seg
         seg_label = data['seg_label'].data[0]  # list of tensor
