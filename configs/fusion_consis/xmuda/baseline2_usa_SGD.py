@@ -1,5 +1,4 @@
-# new splits; train with baseline2_usa.py;
-# this is just for new test(SegFusionV3; tools/seg_valtest.py)
+# the same as baseline2_usa_new except for SGD
 
 # options: class_weights
 ##############################################
