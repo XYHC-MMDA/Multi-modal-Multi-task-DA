@@ -43,4 +43,5 @@ def seg_test_with_loss(model, data_loader):
     print('overall_acc:', evaluator.overall_acc)
     print('overall_iou:', evaluator.overall_iou)
     print('seg_loss:', sum(seg_losses) / len(seg_losses))
+    print()
 

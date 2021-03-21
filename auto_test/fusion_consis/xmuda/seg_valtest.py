@@ -17,7 +17,7 @@ else:
     ckpt = cfg
 
 # start_epoch, end_epoch
-l, r = 20, 24  # [l, r]
+l, r = 1, 24  # [l, r]
 
 # cfg_path, ckpt_path
 cfg_path = f'configs/fusion_consis/xmuda/{cfg}.py'
@@ -27,7 +27,7 @@ print('ckpt_path:', ckpt_path)
 
 # create/append file
 src_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/source_test.txt'
-tgt_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/source_test.txt'
+tgt_path = f'checkpoints/fusion_consis/xmuda/{ckpt}/target_test.txt'
 src_file = open(src_path, 'a')
 tgt_file = open(tgt_path, 'a')
 
@@ -56,7 +56,7 @@ for i in range(l, r+1):
            cfg_path, model_path,
            '--split', 'target_test']
     print(' '.join(cmd))
-    proc = Popen(cmd, stdout=src_file)
+    proc = Popen(cmd, stdout=tgt_file)
     proc.wait()
     end = time.time()
     last = int(end - start)

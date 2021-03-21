@@ -33,6 +33,8 @@ def parse_args():
 
 def main():
     args = parse_args()
+    epoch = int(os.path.basename(args.checkpoint)[6:-4])
+    print(f'Epoch [{epoch}]')
 
     cfg_start_time = time.time()
     cfg = Config.fromfile(args.config)
@@ -50,7 +52,7 @@ def main():
         set_random_seed(args.seed, deterministic=args.deterministic)
 
     # build the dataloader
-    samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
+    samples_per_gpu = 1
     dataset_start_time = time.time()
     # dataset = build_dataset(cfg.data.test)
     dataset = build_dataset(cfg.data.get(args.split))
