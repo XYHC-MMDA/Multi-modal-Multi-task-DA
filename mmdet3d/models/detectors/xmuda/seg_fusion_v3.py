@@ -147,22 +147,31 @@ class SegFusionV3(Base3DDetector):
         contrast_loss = self.lambda_contrast * sum(contrast_losses) / len(contrast_losses)
         return dict(contrast_loss=contrast_loss)
 
-    def simple_test(self, img, seg_points, seg_pts_indices, scn_coords):
+    def simple_test(self, img, seg_label, seg_pts_indices, scn_coords, with_loss):
         sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
         seg_logits = self.forward_logits(sample_feats, pts_feats)
-        return seg_logits
+        if not with_loss:
+            return seg_logits
+        else:
+            seg_label = torch.cat(seg_label)
+            class_weights = self.class_weights.to(img.device)
+            seg_loss = F.cross_entropy(seg_logits, seg_label, weight=class_weights)
+            return seg_logits, seg_loss
 
     def forward_test(self,
                      img=None,
                      seg_points=None,
+                     seg_label=None,
                      seg_pts_indices=None,
                      scn_coords=None,
+                     with_loss=False,
                      **kwargs):
         assert len(img) == 1
         return self.simple_test(img=img,
-                                seg_points=seg_points,
+                                seg_label=seg_label,
                                 seg_pts_indices=seg_pts_indices,
-                                scn_coords=scn_coords)
+                                scn_coords=scn_coords,
+                                with_loss=with_loss)
 
     def aug_test(self, imgs, img_metas, **kwargs):
         """Test function with test time augmentation."""

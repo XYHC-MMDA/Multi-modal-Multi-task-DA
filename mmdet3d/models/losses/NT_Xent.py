@@ -6,7 +6,7 @@ from mmdet.models.builder import LOSSES
 
 @LOSSES.register_module()
 class NT_Xent(nn.Module):
-    def __init__(self, temperature=0.1, contrast_mode='cross_entropy', normalize='True', reduction='mean'):
+    def __init__(self, temperature=0.1, contrast_mode='cross_entropy', normalize=True, reduction='mean'):
         super(NT_Xent, self).__init__()
         self.T = temperature
         self.contrast_mode = contrast_mode
