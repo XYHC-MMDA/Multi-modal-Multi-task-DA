@@ -29,8 +29,8 @@ for idx in range(len(dataset)):
     points = data['points'].data[:, :3]
     seg_points = data['seg_points'].data[:, :3]  # (N, 4) -> (N, 3)
     seg_labels = data['seg_label'].data  # (N, ) 
-    gt_bboxes_3d = data['gt_bboxes_3d'].data  # tensor=(M, 9)
-    gt_labels_3d = data['gt_labels_3d'].data  # (M, )
+    # gt_bboxes_3d = data['gt_bboxes_3d'].data  # tensor=(M, 9)
+    # gt_labels_3d = data['gt_labels_3d'].data  # (M, )
 
 
     # LiDARInstance3DBoxes points_in_boxes
