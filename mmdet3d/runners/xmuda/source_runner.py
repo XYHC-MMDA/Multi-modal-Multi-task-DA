@@ -122,7 +122,7 @@ class SourceRunner(BaseRunner):
         self.call_hook('before_run')
 
         while self.epoch < self._max_epochs:
-            self.train(data_loaders[0], data_loaders[1])
+            self.train(data_loaders[0])
 
         time.sleep(1)  # wait for some hooks like loggers to finish
         self.call_hook('after_run')
