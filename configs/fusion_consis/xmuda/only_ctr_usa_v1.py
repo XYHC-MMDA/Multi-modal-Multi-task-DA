@@ -1,17 +1,17 @@
-# the same as contrast_usa_v1_new.py; source_train.py to observe acc on source_test
+# only contrast to observe loss curve; general_train.py (src & tgt)
 ##############################################
 # variants: Runner, model
 # options: class_weights
 ##############################################
 # runner
-# runner = 'XmudaRunner'  # for any customized runner, use general_train.py
-only_contrast = False  # default False
+runner = 'XmudaRunner'  # for any customized runner, use general_train.py
+only_contrast = True  # default False
 
 # model; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
 contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
 max_pts = 1024
-lambda_contrast = 0.01
+lambda_contrast = 1.
 
 img_feat_channels = 64
 pts_feat_dim = 16

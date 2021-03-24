@@ -1,4 +1,5 @@
 
+
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
@@ -20,11 +21,6 @@ prelogits_dim = img_feat_channels + pts_feat_dim
 # XmudaAug3D, UNetSCn
 scn_scale = 20
 scn_full_scale = 4096
-
-# split
-src_train = 'mmda_xmuda_split/train_usa.pkl'
-tgt_train = 'mmda_xmuda_split/train_singapore.pkl'
-ann_val = 'mmda_xmuda_split/test_singapore.pkl'
 
 # class_weights
 daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
@@ -145,6 +141,13 @@ test_pipeline = [
     #     ])
 ]
 
+# splits
+source_train = 'mmda_xmuda_split/train_usa.pkl'
+source_test = 'mmda_xmuda_split/test_usa.pkl'
+target_train = 'mmda_xmuda_split/train_singapore.pkl'
+target_test = 'mmda_xmuda_split/test_singapore.pkl'
+target_val = 'mmda_xmuda_split/val_singapore.pkl'
+
 # dataset
 dataset_type = 'MMDAMergeCatDataset'
 data = dict(
@@ -153,7 +156,7 @@ data = dict(
     source_train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + src_train,
+        ann_file=data_root + source_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
@@ -163,31 +166,41 @@ data = dict(
     target_train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + tgt_train,
+        ann_file=data_root + target_train,
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
         test_mode=False,
         filter_empty_gt=False,
         box_type_3d='LiDAR'),
-    val=dict(
+    source_test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + ann_val,
+        ann_file=data_root + source_test,
         pipeline=test_pipeline,
         classes=class_names,
         modality=input_modality,
         test_mode=True,
         box_type_3d='LiDAR'),
-    test=dict(
+    target_test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + ann_val,
+        ann_file=data_root + target_test,
         pipeline=test_pipeline,
         classes=class_names,
         modality=input_modality,
         test_mode=True,
-        box_type_3d='LiDAR'))
+        box_type_3d='LiDAR'),
+    target_val=dict(
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + target_val,
+        pipeline=test_pipeline,
+        classes=class_names,
+        modality=input_modality,
+        test_mode=True,
+        box_type_3d='LiDAR')
+)
 evaluation = dict(interval=100)
 
 # shedule_2x.py

@@ -1,4 +1,4 @@
-# the same as contrast_usa_v1_new.py; source_train.py to observe acc on source_test
+# the same as src_ctr_usa_v0.py except for lambda=0.1; run source_train.py to observe acc on source_test
 ##############################################
 # variants: Runner, model
 # options: class_weights
@@ -11,7 +11,7 @@ only_contrast = False  # default False
 model_type = 'SegFusionV3'
 contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
 max_pts = 1024
-lambda_contrast = 0.01
+lambda_contrast = 0.1
 
 img_feat_channels = 64
 pts_feat_dim = 16
