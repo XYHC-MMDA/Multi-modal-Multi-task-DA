@@ -4,7 +4,7 @@
 # options: class_weights
 ##############################################
 # runner
-# runner = 'XmudaRunner'  # for any customized runner, use general_train.py
+runner = 'SourceRunner'  # for any customized runner, use general_train.py
 only_contrast = True  # default False
 
 # model; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
