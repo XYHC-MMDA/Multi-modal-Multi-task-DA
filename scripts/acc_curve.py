@@ -9,27 +9,38 @@ font = {
 
 src_domain, tgt_domain = 'usa', 'sng'
 sub_dir = 'baseline2_usa'
-tgt_test_file = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/filter.txt'  # to add: tgt_val, src_val
 
-accf = open(tgt_test_file, 'r')
-lines = accf.readlines()
-accf.close()
-tgt_seg = []
-for line in lines:
-    if line.startswith('overall_iou'):
-        iou = float(line.split()[-1])
-        tgt_seg.append(iou)
-tgt_seg = tgt_seg[:24]
-x_range = np.arange(len(tgt_seg)) + 1
+test_files = []
+splits = ['source_test', 'target_test']
+for split in splits:
+    test_files.append((f'../checkpoints/fusion_consis/xmuda/{sub_dir}/{split}.log', split))
+
+
+def curves():
+    ret = []
+    for test_file, split in test_files:
+        accf = open(test_file, 'r')
+        lines = accf.readlines()
+        accf.close()
+        y_values = []
+        for line in lines:
+            if line.startswith('overall_iou'):
+                iou = float(line.split()[-1])
+                y_values.append(iou)
+        y_values = y_values[:24]
+        ret.append([np.array(y_values), split])
+    return ret
 
 
 if __name__ == '__main__':
-    print(f'{sub_dir}: {max(tgt_seg)}')
-
+    plt.title(sub_dir, font)
     plt.xlabel('epoch', font)
     plt.ylabel('Seg_mIOU', font)
-    tgt_seg = np.array(tgt_seg)
-    plt.plot(x_range, tgt_seg, label='target_val', color='b', linewidth=0.7)
+    y_list = curves()
+    x_range = np.arange(len(y_list[0][0])) + 1
+    for i, (y, split) in enumerate(y_list):
+        print(f'{sub_dir} - {split}: {max(y)}')
+        plt.plot(x_range, y, label=split, color=plt_colors[i], linewidth=0.7)
     plt.legend(loc='best', prop=font)
     plt.xticks(range(0, 25))
     plt.ylim(bottom=0, top=0.7)
