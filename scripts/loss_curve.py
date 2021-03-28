@@ -9,7 +9,7 @@ font = {
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'src_ctr_usa_v2'
+sub_dir = 'only_ctr_usa_v1'
 log_file = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/log.log'  # to add: tgt_val, src_val
 
 
@@ -27,12 +27,15 @@ for line in lines:
 if 'contrast_loss' in losses.keys():
     losses['src_contrast_loss'] = losses['contrast_loss']
     del losses['contrast_loss']
-x_len = len(losses['seg_loss'])
+for k, v in losses.items():
+    x_len = len(v)
+    break
+# x_len = len(losses['seg_loss'])
 x_range = np.arange(x_len) + 1
 
 
 if __name__ == '__main__':
-    # plt.title(sub_dir, font)
+    plt.title(sub_dir, font)
     # plt.xlabel('log_interval(every 25 batches)', font)
     plt.xlabel('epoch', font)
     plt.ylabel('loss', font)
