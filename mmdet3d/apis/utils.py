@@ -40,7 +40,7 @@ def set_requires_grad(models, requires_grad=False):
 
 
 def build_mlp(fcs):
-    # fcs: list of channels
+    # fcs: list/tuple of channels
     mlp = []
     for i, (in_dim, out_dim) in enumerate(zip(fcs[:-1], fcs[1:])):
         mlp.append(nn.Linear(in_dim, out_dim))
@@ -52,4 +52,4 @@ def build_mlp(fcs):
 
 
 if __name__ == '__main__':
-    print(build_mlp([2, 3, 4]))
+    print(build_mlp((2, 3, 4)))

@@ -21,8 +21,8 @@ class SegFusionV3(Base3DDetector):
                  max_pts=1024,  # max_pts_per_group
                  groups=1,  # number of groups per sample
                  lambda_contrast=0.1,
-                 img_fcs=[64, 64, 16],
-                 pts_fcs=[16, 16, 16],
+                 img_fcs=(64, 64, 16),
+                 pts_fcs=(16, 16, 16),
                  train_cfg=None,
                  test_cfg=None):
         super(SegFusionV3, self).__init__()
