@@ -1,4 +1,4 @@
-# the same as src_ctr_usa_v1.py except for max_pts = 512
+# the same as src_ctr_usa_v0.py except for 1.transformation before contrast; 2. pts_feat_dim
 ##############################################
 # variants: Runner, model
 # options: class_weights
@@ -10,7 +10,7 @@ only_contrast = False  # default False
 # model; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
 contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
-max_pts = 512 
+max_pts = 1024
 lambda_contrast = 0.1
 
 img_feat_channels = 64
@@ -42,13 +42,16 @@ model = dict(
     pts_backbone=dict(
         type='UNetSCN',
         in_channels=1,
+        m=pts_feat_dim,
         full_scale=scn_full_scale),
     num_classes=5,
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
     contrast_criterion=contrast_criterion,
     max_pts=max_pts,
-    lambda_contrast=lambda_contrast
+    lambda_contrast=lambda_contrast,
+    img_fcs=(img_feat_channels, pts_feat_dim),
+    pts_fcs=(pts_feat_dim, pts_feat_dim)
 )
 
 train_cfg = None
@@ -78,11 +81,6 @@ train_pipeline = [
         type='LoadPointsFromFileVer2',  # new 'points', 'num_seg_pts'
         load_dim=5,
         use_dim=5),
-    # dict(
-    #     type='LoadMaskedMultiSweeps',  # modify 'points'; new 'num_seg_pts'
-    #     sweeps_num=10,
-    #     file_client_args=file_client_args),
-    # dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
     dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
@@ -90,21 +88,7 @@ train_pipeline = [
     # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
     dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale,
          noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, transl=True),  # new 'scn_coords'
-    # dict(
-    #     type='GlobalRotScaleTrans',
-    #     rot_range=[-0.7854, 0.7854],
-    #     scale_ratio_range=[0.9, 1.1],
-    #     translation_std=[0.2, 0.2, 0.2]),  # 3D Rot, Scale, Trans for 'points'
-    # dict(
-    #     type='RandomFlip3D',
-    #     # flip_ratio_bev_horizontal=0.5,
-    #     flip_ratio_bev_vertical=0.5),  # do nothing; to read further
-    # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-    # # filter 'points', 'pts_indices', 'seg_label'; new 'seg_points', 'seg_pts_indices'
     dict(type='GetSegFromPoints'),  # new 'seg_points', 'seg_pts_indices'
-    # dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    # dict(type='DetLabelFilter'),  # Filter labels == -1; not in TEN_CLASSES
-    # dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
     dict(type='MergeCat'),  # merge 'seg_label'
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
@@ -114,10 +98,6 @@ test_pipeline = [
         type='LoadPointsFromFileVer2',
         load_dim=5,
         use_dim=5),
-    # dict(
-    #     type='LoadMaskedMultiSweeps',
-    #     sweeps_num=10,
-    #     file_client_args=file_client_args),
     dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
@@ -127,17 +107,6 @@ test_pipeline = [
     dict(type='MergeCat'),  # merge 'seg_label'
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
-    # dict(
-    #     type='MultiScaleFlipAug3D',
-    #     img_scale=(1333, 800),
-    #     pts_scale_ratio=1,
-    #     flip=False,
-    #     transforms=[
-    #         # dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-    #         dict(type='MergeCat'),
-    #         dict(type='SegDetFormatBundle'),
-    #         dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label'])
-    #     ])
 ]
 
 # splits
