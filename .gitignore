@@ -10,6 +10,7 @@ tmp/
 *.so
 
 # Distribution / packaging
+old_pre/
 debug/
 .Python
 build/
