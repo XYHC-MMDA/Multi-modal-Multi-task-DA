@@ -8,7 +8,7 @@ font = {
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'only_ctr_usa_v0'
+sub_dir = 'contrast_usa_v1'
 
 test_files = []
 splits = ['source_test', 'target_test']

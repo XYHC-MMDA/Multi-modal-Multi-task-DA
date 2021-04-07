@@ -3,14 +3,14 @@ import numpy as np
 from collections import defaultdict
 import os
 
-plt_colors = iter(['c', 'y', 'g', 'm', 'r', 'k', 'b', '#2A0134', '#FF00FF', '#800000'])
+plt_colors = iter(['b', 'y', 'k', 'm', 'r', 'g', 'c', '#2A0134', '#FF00FF', '#800000'])
 plt_markers = iter(['*', '.', 'o', '^', 'v', '<', '>', '1', '2', '3', '4', 's', 'p', ','])
 font = {
     'size': 18
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'src_ctr_usa_v3'
+sub_dir = 'contrast_usa_v0'
 log_train = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/log.log'  # to add: tgt_val, src_val
 log_src_test = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/source_test.log'
 log_tgt_test = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/target_test.log'
@@ -33,6 +33,9 @@ def plot_train(log_file, epochs=24):
     if 'contrast_loss' in losses.keys():
         losses['train_src_ctrloss'] = losses['contrast_loss']
         del losses['contrast_loss']
+    if 'tgt_contrast_loss' in losses.keys():
+        losses['train_tgt_ctrloss'] = losses['tgt_contrast_loss']
+        del losses['tgt_contrast_loss']
     if 'seg_loss' in losses.keys():
         losses['train_segloss'] = losses['seg_loss']
         del losses['seg_loss']

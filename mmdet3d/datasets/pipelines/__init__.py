@@ -4,7 +4,7 @@ from .formating import Collect3D, DefaultFormatBundle, DefaultFormatBundle3D, Se
 from .loading import (LoadAnnotations3D, LoadMultiViewImageFromFiles,
                       LoadPointsFromFile, LoadPointsFromMultiSweeps,
                       NormalizePointsColor, PointSegClassMapping,
-                      LoadSegDetPointsFromFile, LoadFrontImage, LoadImgSegLabel,
+                      LoadSegDetPointsFromFile, LoadFrontImage, LoadImgSegLabel, LoadImgSegLabelVer2,
                       LoadMaskedMultiSweeps, LoadPointsFromFileVer2)
 from .test_time_aug import MultiScaleFlipAug3D
 from .transforms_3d import (BackgroundPointsFilter, GlobalRotScaleTrans,

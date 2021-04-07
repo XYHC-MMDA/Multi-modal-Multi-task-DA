@@ -695,9 +695,44 @@ class LoadAnnotations3D(LoadAnnotations):
 class LoadImgSegLabel(object):
     def __init__(self, resize=(400, 225)):
         self.resize = resize
+        # Multi-task: 10 classes + 1 background
         self.classmap = [10] * 32
         idxmap = [[2, 5], [3, 5], [4, 5], [6, 5], [9, 9], [12, 8], [14, 7], [15, 2], [16, 2], [17, 0], [18, 4], [21, 6],
                   [22, 3], [23, 1]]
+        for k, v in idxmap:
+            self.classmap[k] = v
+
+    def __call__(self, results):
+        # img
+        filepath = results['img_filename'][0]  # front image
+        img = Image.open(filepath)
+        if self.resize:
+            img = img.resize(self.resize, Image.BILINEAR)
+
+        # seg_label
+        seglabel_filename = results['seglabel_filename']
+        seg_label = np.fromfile(seglabel_filename, dtype=np.uint8).astype(np.int64)
+        for i in range(len(seg_label)):
+            seg_label[i] = self.classmap[seg_label[i]]
+
+        results['img'] = img
+        results['seg_label'] = seg_label
+        assert len(seg_label) == results['num_seg_pts']
+
+        return results
+
+
+@PIPELINES.register_module()
+class LoadImgSegLabelVer2(object):
+    def __init__(self, resize=(400, 225)):
+        self.resize = resize
+        # contrastive learning 11 classes: 4 object classes + 6 background classes + 1 ignore
+        self.classmap = [10] * 32
+        idxmap = [[15, 0], [16, 0], [17, 0], [18, 0],
+                  [2, 1], [3, 1], [4, 1], [6, 1],
+                  [14, 2], [21, 2],
+                  [9, 3], [12, 3],
+                  [24, 4], [25, 5], [26, 6], [27, 7], [28, 8], [30, 9]]
         for k, v in idxmap:
             self.classmap[k] = v
 
