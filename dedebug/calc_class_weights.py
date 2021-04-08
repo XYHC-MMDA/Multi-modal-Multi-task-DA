@@ -1,4 +1,5 @@
 # usage: python dedebug/calc_class_weights.py --config config_file_path
+# usa-sng: [2.154, 3.298, 4.447, 2.855, 1., 2.841, 2.152, 2.758, 1.541, 1.845, 2.258]
 
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset
@@ -28,23 +29,33 @@ print()
 # v3d = o3d.utility.Vector3dVector
 
 num_classes = len(source_train.SEG_CLASSES)
-pts_per_class = np.zeros(num_classes, dtype=np.int64)
-for ds in dss[:2]:
-    k = len(ds)
-    print('len dataset:', k)  # 15695
-    for i in range(k):
-        # data_info = dataset.get_data_info(i)
-        # print(data_info['pts_filename'])
-        # print(data_info['img_filename'][0])
+source_train_count = np.zeros(num_classes, dtype=np.int64)
+source_test_count = np.zeros(num_classes, dtype=np.int64)
 
-        data = ds[i]
-        # seg_points = data['seg_points'].data[:, :3]
-        seg_label = data['seg_label'].data
-        import pdb
-        pdb.set_trace()
-        count = np.bincount(seg_label, minlength=num_classes)
-        pts_per_class += count
-        pdb.set_trace()
+k = len(source_train)
+print('source_train:', k)  # 15695
+for i in range(k):
+    data = source_train[i]
+    # seg_points = data['seg_points'].data[:, :3]
+    seg_label = data['seg_label'].data
+    count = np.bincount(seg_label, minlength=num_classes)
+    source_train_count += count
+    if i % 100 == 99:
+        print(f'[{i}] -', source_train_count)
+    
+k = len(source_test)
+print('source_test:', k)  # 15695
+for i in range(k):
+    data = source_test[i]
+    seg_label = data['seg_label'].data
+    count = np.bincount(seg_label, minlength=num_classes)
+    source_test_count += count
+    if i % 100 == 99:
+        print(f'[{i}] -', source_test_count)
 
+print('source_train_count:', source_train_count)
+print('source_test_count:', source_test_count)
+pts_per_class = source_train_count + source_test_count
+print('total:', pts_per_class)
 class_weights = np.log(5 * pts_per_class.sum() / pts_per_class)
 print('log smoothed class weights: ', class_weights / class_weights.min())

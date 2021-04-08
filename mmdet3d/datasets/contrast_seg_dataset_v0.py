@@ -35,7 +35,7 @@ class ContrastSegDatasetV0(Custom3DDataset):
             # classes=classes,
             modality=modality,
             # box_type_3d=box_type_3d,
-            # filter_empty_gt=filter_empty_gt,
+            filter_empty_gt=False,
             test_mode=test_mode)
 
     def load_annotations(self, ann_file):
