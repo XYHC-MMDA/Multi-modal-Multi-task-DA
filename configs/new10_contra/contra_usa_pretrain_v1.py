@@ -14,7 +14,7 @@ contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contr
 max_pts, groups = 2048, 1
 lambda_contrast = 1.
 
-img_dim, pts_dim = 64, 32
+img_dim, pts_dim = 64, 16 
 prelogits_dim = img_dim + pts_dim
 
 # XmudaAug3D, UNetSCN
