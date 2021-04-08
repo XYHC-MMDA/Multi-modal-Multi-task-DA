@@ -1,4 +1,4 @@
-# usage: python tmp/visual_point_cloud.py --config config_file_path
+# usage: python dedebug/calc_class_weights.py --config config_file_path
 
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset

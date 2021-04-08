@@ -68,12 +68,12 @@ test_cfg = None
 #     # background
 # ]
 
-# input_modality = dict(
-#     use_lidar=True,
-#     use_camera=True,
-#     use_radar=False,
-#     use_map=False,
-#     use_external=False)
+input_modality = dict(
+    use_lidar=True,
+    use_camera=True,
+    use_radar=False,
+    use_map=False,
+    use_external=False)
 file_client_args = dict(backend='disk')
 
 img_size = (1600, 900)
@@ -128,7 +128,7 @@ data = dict(
         ann_file=data_root + source_train,
         pipeline=train_pipeline,
         # classes=class_names,
-        # modality=input_modality,
+        modality=input_modality,
         test_mode=False),
     target_train=dict(
         type=dataset_type,
@@ -136,7 +136,7 @@ data = dict(
         ann_file=data_root + target_train,
         pipeline=train_pipeline,
         # classes=class_names,
-        # modality=input_modality,
+        modality=input_modality,
         test_mode=False),
     source_test=dict(
         type=dataset_type,
@@ -144,7 +144,7 @@ data = dict(
         ann_file=data_root + source_test,
         pipeline=test_pipeline,
         # classes=class_names,
-        # modality=input_modality,
+        modality=input_modality,
         test_mode=True),
     target_test=dict(
         type=dataset_type,
@@ -152,7 +152,7 @@ data = dict(
         ann_file=data_root + target_test,
         pipeline=test_pipeline,
         # classes=class_names,
-        # modality=input_modality,
+        modality=input_modality,
         test_mode=True),
     target_val=dict(
         type=dataset_type,
@@ -160,7 +160,7 @@ data = dict(
         ann_file=data_root + target_val,
         pipeline=test_pipeline,
         # classes=class_names,
-        # modality=input_modality,
+        modality=input_modality,
         test_mode=True)
 )
 evaluation = dict(interval=100)

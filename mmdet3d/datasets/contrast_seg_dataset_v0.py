@@ -25,7 +25,7 @@ class ContrastSegDatasetV0(Custom3DDataset):
                  pipeline=None,
                  data_root=None,
                  # classes=None,
-                 # modality=None,
+                 modality=None,
                  # box_type_3d='LiDAR',
                  test_mode=False):
         super().__init__(
@@ -33,7 +33,7 @@ class ContrastSegDatasetV0(Custom3DDataset):
             ann_file=ann_file,
             pipeline=pipeline,
             # classes=classes,
-            # modality=modality,
+            modality=modality,
             # box_type_3d=box_type_3d,
             # filter_empty_gt=filter_empty_gt,
             test_mode=test_mode)
