@@ -23,15 +23,25 @@ prelogits_dim = img_dim + pts_dim
 scn_scale = 20
 scn_full_scale = 4096
 
-# class_weights
-daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
-usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
-class_weights = usasng_weights
+# source/target domain
+# src, tgt = 'day', 'night'
+src, tgt = 'usa', 'singapore'
 
 # lr_scheduler
 lr_step = [16, 22]
 total_epochs = 24
 
+# class_weights
+daynight_weights = [2.167, 3.196, 4.054, 2.777, 1., 2.831, 2.089, 2.047, 1.534, 1.534, 2.345]
+usasng_weights = [2.154, 3.298, 4.447, 2.855, 1., 2.841, 2.152, 2.758, 1.541, 1.845, 2.257]
+class_weights = usasng_weights if src == 'usa' else daynight_weights
+
+# splits' paths
+source_train = f'mmda_xmuda_split/train_{src}.pkl'
+source_test = f'mmda_xmuda_split/test_{src}.pkl'
+target_train = f'mmda_xmuda_split/train_{tgt}.pkl'
+target_test = f'mmda_xmuda_split/test_{tgt}.pkl'
+target_val = f'mmda_xmuda_split/val_{tgt}.pkl'
 #######################################################
 # model
 #######################################################
@@ -109,16 +119,10 @@ test_pipeline = [
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
 ]
 
-# splits' paths
-data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
-source_train = 'mmda_xmuda_split/train_usa.pkl'
-source_test = 'mmda_xmuda_split/test_usa.pkl'
-target_train = 'mmda_xmuda_split/train_singapore.pkl'
-target_test = 'mmda_xmuda_split/test_singapore.pkl'
-target_val = 'mmda_xmuda_split/val_singapore.pkl'
 
 # dataset
 dataset_type = 'ContrastSegDatasetV0'
+data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 data = dict(
     samples_per_gpu=8,
     workers_per_gpu=4,

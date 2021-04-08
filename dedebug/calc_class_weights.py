@@ -1,5 +1,6 @@
 # usage: python dedebug/calc_class_weights.py --config config_file_path
-# usa-sng: [2.154, 3.298, 4.447, 2.855, 1., 2.841, 2.152, 2.758, 1.541, 1.845, 2.258]
+# usa-sng: [2.15420616, 3.2978224, 4.44739869, 2.85514612, 1., 2.84083026, 2.15164313, 2.75812384, 1.54123938, 1.84512741, 2.25738817]
+# usa-sng: [2.154, 3.298, 4.447, 2.855, 1., 2.841, 2.152, 2.758, 1.541, 1.845, 2.257]
 
 from mmdet3d.datasets import NuScenesDataset
 from mmdet3d.datasets import build_dataset
