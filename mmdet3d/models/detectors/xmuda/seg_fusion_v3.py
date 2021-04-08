@@ -34,7 +34,10 @@ class SegFusionV3(Base3DDetector):
         self.init_weights(pretrained=pretrained)
 
         self.seg_head = nn.Linear(prelogits_dim, num_classes)
-        self.class_weights = torch.tensor(class_weights)
+        if class_weights:
+            self.class_weights = torch.tensor(class_weights)
+        else:
+            self.class_weights = None
         if contrast_criterion:
             self.contrast_criterion = builder.build_loss(contrast_criterion)
             self.max_pts = max_pts
@@ -119,7 +122,10 @@ class SegFusionV3(Base3DDetector):
 
         # seg loss
         seg_label = torch.cat(seg_label)
-        class_weights = self.class_weights.to(img.device)
+        if self.class_weights:
+            class_weights = self.class_weights.to(img.device)
+        else:
+            class_weights = None
         seg_loss = F.cross_entropy(seg_logits, seg_label, weight=class_weights)
         seg_loss_dict = dict(seg_loss=seg_loss)
         losses.update(seg_loss_dict)

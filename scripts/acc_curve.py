@@ -8,7 +8,9 @@ font = {
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'contrast_usa_v1'
+# sub_dir = 'contrast_usa_v0'
+# sub_dir = 'src_ctr_usa_v1'
+sub_dir = 'baseline2_usa'
 
 test_files = []
 splits = ['source_test', 'target_test']
@@ -33,6 +35,7 @@ def curves():
 
 
 if __name__ == '__main__':
+    plt.figure(figsize=(12, 8))
     plt.title(sub_dir, font)
     plt.xlabel('epoch', font)
     plt.ylabel('Seg_mIOU', font)
@@ -40,8 +43,8 @@ if __name__ == '__main__':
     x_range = np.arange(len(y_list[0][0])) + 1
     for i, (y, split) in enumerate(y_list):
         print(f'{sub_dir} - {split}: {max(y)}')
-        plt.plot(x_range, y, label=split, color=plt_colors[i], linewidth=0.7)
+        plt.plot(x_range, y, label=split, color=plt_colors[i], linewidth=1.5)
     plt.legend(loc='best', prop=font)
     plt.xticks(range(0, 25))
-    plt.ylim(bottom=0, top=0.7)
+    plt.ylim(bottom=0.2, top=0.8)
     plt.show()

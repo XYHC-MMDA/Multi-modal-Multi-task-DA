@@ -3,22 +3,26 @@ import numpy as np
 from collections import defaultdict
 import os
 
-plt_colors = iter(['b', 'y', 'k', 'm', 'r', 'g', 'c', '#2A0134', '#FF00FF', '#800000'])
+plt_colors = iter(['b', 'y', 'c', 'm', 'r', 'g', 'k', '#2A0134', '#FF00FF', '#800000'])
 plt_markers = iter(['*', '.', 'o', '^', 'v', '<', '>', '1', '2', '3', '4', 's', 'p', ','])
 font = {
     'size': 18
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'contrast_usa_v0'
-log_train = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/log.log'  # to add: tgt_val, src_val
-log_src_test = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/source_test.log'
-log_tgt_test = f'../checkpoints/fusion_consis/xmuda/{sub_dir}/target_test.log'
+sub_dir = 'new10_contra'
+# sub_dir = 'fusion_consis/xmuda/baseline2_usa'
+# sub_dir = 'fusion_consis/xmuda/contrast_usa_v0'
+# sub_dir = 'fusion_consis/xmuda/src_ctr_usa_v1'
+log_train = f'../checkpoints/{sub_dir}/log.log'
+log_src_test = f'../checkpoints/{sub_dir}/source_test.log'
+log_tgt_test = f'../checkpoints/{sub_dir}/target_test.log'
 
 
-def plot_train(log_file, epochs=24):
+def plot_train(log_file, epochs=16):
     if not os.path.exists(log_file):
-        print(f'\'{log_file}\' not exists!')
+        print(f'File \'{log_file}\' does not exist!')
+        return
     accf = open(log_file, 'r')
     lines = accf.readlines()
     accf.close()
@@ -52,7 +56,8 @@ def plot_train(log_file, epochs=24):
 
 def plot_test(log_file, iters=1872, curve_name='src'):
     if not os.path.exists(log_file):
-        print(f'\'{log_file}\' not exists!')
+        print(f'File \'{log_file}\' does not exist!')
+        return
     accf = open(log_file, 'r')
     lines = accf.readlines()
     accf.close()
@@ -71,8 +76,8 @@ def plot_test(log_file, iters=1872, curve_name='src'):
 
 
 if __name__ == '__main__':
+    plt.figure(figsize=(12, 8))
     plt.title(sub_dir, font)
-    # plt.xlabel('log_interval(every 25 batches)', font)
     plt.xlabel('epoch', font)
     plt.ylabel('loss', font)
     iters = plot_train(log_train)
@@ -81,4 +86,5 @@ if __name__ == '__main__':
 
     plt.legend(loc='best', prop=font)
     plt.ylim(bottom=0)
+    # plt.ylim(bottom=0, top=0.4)
     plt.show()

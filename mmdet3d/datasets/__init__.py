@@ -4,6 +4,7 @@ from .custom_3d import Custom3DDataset
 from .nuscenes_dataset import NuScenesDataset
 from .nusc_multi_modal_dataset import NuscMultiModalDataset
 from .mmda_merge_cat_dataset import MMDAMergeCatDataset
+from .contrast_seg_dataset_v0 import ContrastSegDatasetV0
 
 from .pipelines import (BackgroundPointsFilter, GlobalRotScaleTrans,
                         IndoorPointSample, LoadAnnotations3D,
