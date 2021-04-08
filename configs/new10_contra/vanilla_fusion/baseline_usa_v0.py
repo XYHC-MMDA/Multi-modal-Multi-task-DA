@@ -12,8 +12,8 @@ only_contrast = False  # default False
 # model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
 # contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
-# max_pts, groups = 2048, 1
-# lambda_contrast = 0.01
+max_pts, groups = 2048, 1
+lambda_contrast = 0.01
 contrast_criterion = None
 
 img_dim, pts_dim = 64, 16 
