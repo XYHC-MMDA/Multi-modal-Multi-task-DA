@@ -42,7 +42,8 @@ for ds in dss[:2]:
         seg_label = data['seg_label'].data
         import pdb
         pdb.set_trace()
-        pts_per_class += np.bincount(seg_label, minlength=num_classes)
+        count = np.bincount(seg_label, minlength=num_classes)
+        pts_per_class += count
         pdb.set_trace()
 
 class_weights = np.log(5 * pts_per_class.sum() / pts_per_class)
