@@ -16,10 +16,10 @@ cfg = Config.fromfile(args.config)
 print('cfg loaded')
 source_train = build_dataset(cfg.data.source_train)
 source_test = build_dataset(cfg.data.source_test)
-target_train = build_dataset(cfg.data.target_train)
-target_test = build_dataset(cfg.data.target_test)
-target_val = build_dataset(cfg.data.target_val)
-dss = [source_train, source_test, target_train, target_test, target_val]
+# target_train = build_dataset(cfg.data.target_train)
+# target_test = build_dataset(cfg.data.target_test)
+# target_val = build_dataset(cfg.data.target_val)
+dss = [source_train, source_test]
 print('dataset splits loaded')
 print()
 
