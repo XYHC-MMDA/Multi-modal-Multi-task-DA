@@ -9,10 +9,12 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument('--cfg', type=str)
 parser.add_argument('--ckpt', type=str)
+parser.add_argument('--start', type=int, default=1)
+parser.add_argument('--end', type=int, default=24)
 args = parser.parse_args()
 
 # start_epoch, end_epoch
-l, r = 1, 24  # [l, r]
+l, r = args.start, args.end  # [l, r]
 
 # cfg_path, ckpt_path
 cfg_path = args.cfg  # f'configs/new10_contra/{cfg}.py'
