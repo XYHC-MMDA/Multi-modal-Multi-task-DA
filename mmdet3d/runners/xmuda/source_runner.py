@@ -37,6 +37,7 @@ class SourceRunner(BaseRunner):
                                                  max_iters,
                                                  max_epochs)
         self.only_contrast = cfg.only_contrast
+        self.freeze = cfg.freeze
 
     def train(self, src_data_loader):
         self.model.train()
@@ -55,7 +56,7 @@ class SourceRunner(BaseRunner):
             # ------------------------
             # source 
             # ------------------------
-            src_losses = self.model(**src_data_batch, only_contrast=self.only_contrast)
+            src_losses = self.model(**src_data_batch, only_contrast=self.only_contrast, freeze=self.freeze)
 
             loss, log_vars = parse_losses(src_losses)
             num_samples = len(src_data_batch['img_metas'])

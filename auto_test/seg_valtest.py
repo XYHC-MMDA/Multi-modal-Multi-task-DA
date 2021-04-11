@@ -21,6 +21,7 @@ cfg_path = args.cfg  # f'configs/new10_contra/{cfg}.py'
 ckpt_path = args.ckpt  # f'checkpoints/new10_contra/{ckpt}'
 print('cfg_path:', cfg_path)
 print('ckpt_path:', ckpt_path)
+print(f'[start, end] = [{l}, {r}]')
 
 # create/append file
 src_path = os.path.join(ckpt_path, 'source_test.txt')  # f'{ckpt}/source_test.txt'

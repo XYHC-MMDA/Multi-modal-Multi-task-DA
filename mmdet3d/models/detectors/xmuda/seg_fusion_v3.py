@@ -74,11 +74,14 @@ class SegFusionV3(Base3DDetector):
         pts_feats = self.extract_pts_feat(scn_coords)
         return img_feats, pts_feats
 
-    def forward_logits(self, sample_feats, pts_feats):
+    def forward_logits(self, sample_feats, pts_feats, freeze=False):
         sample_feats = torch.cat(sample_feats)
         pts_feats = torch.cat(pts_feats)
         fusion_feats = torch.cat([sample_feats, pts_feats], dim=1)
-        seg_logits = self.seg_head(fusion_feats)
+        if freeze:
+            seg_logits = self.seg_head(fusion_feats.detach())
+        else:
+            seg_logits = self.seg_head(fusion_feats)
         return seg_logits
 
     def forward_train(self,
@@ -88,7 +91,8 @@ class SegFusionV3(Base3DDetector):
                       seg_pts_indices=None,
                       seg_label=None,
                       img_metas=None,
-                      only_contrast=False):
+                      only_contrast=False,
+                      freeze=False):
         '''
         Args:
             img: (4, 3, 225, 400)
@@ -115,7 +119,7 @@ class SegFusionV3(Base3DDetector):
             return losses
 
         # forward logits
-        seg_logits = self.forward_logits(sample_feats, pts_feats)
+        seg_logits = self.forward_logits(sample_feats, pts_feats, freeze=freeze)
 
         # seg loss
         seg_label = torch.cat(seg_label)
