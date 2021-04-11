@@ -28,7 +28,7 @@ usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
 class_weights = usasng_weights
 
 # load_from
-load_from = './checkpoints/fusion_consis/pretrain/contrast_usa_pretrain_v0/epoch_36.pth'
+load_from = './checkpoints/fusion_consis/pretrain/contrast_usa_pretrain_v0/epoch_24.pth'
 
 # optimizer
 optimizer = dict(type='AdamW', lr=0.0005, weight_decay=0.01)
