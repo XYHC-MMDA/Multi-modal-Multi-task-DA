@@ -137,7 +137,15 @@ def main():
 
     model = build_detector(cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
     logger.info(f'Model:\n{model}')
-    datasets = [build_dataset(cfg.data.source_train), build_dataset(cfg.data.target_train)]
+
+    train_sets = cfg.get('train_sets', None)
+    if train_sets is None:
+        train_sets = ['source_train', 'target_train']
+    datasets = [build_dataset(cfg.data.get(k)) for k in train_sets]
+
+    # old build_dataset
+    # datasets = [build_dataset(cfg.data.source_train), build_dataset(cfg.data.target_train)]
+
     # if len(cfg.workflow) == 2:
     #     val_dataset = copy.deepcopy(cfg.data.val)
     #     val_dataset.pipeline = cfg.data.train.pipeline

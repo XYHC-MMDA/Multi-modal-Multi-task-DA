@@ -4,8 +4,9 @@
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
-# runner
-runner = 'XmudaRunner'  # for any customized runner, use general_train.py
+# runner & train_sets
+runner = 'SourceRunner'  # for any customized runner, use general_train.py
+train_sets = ['source_train']
 only_contrast = False  # default False
 
 # model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast

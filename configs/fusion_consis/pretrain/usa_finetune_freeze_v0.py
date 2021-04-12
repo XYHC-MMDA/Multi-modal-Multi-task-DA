@@ -5,7 +5,8 @@
 # options: train-test split; class_weights
 ##############################################
 # runner
-runner = 'XmudaRunner'  # for any customized runner, use general_train.py
+runner = 'SourceRunner'  # for any customized runner, use general_train.py
+train_sets = ['source_train']
 only_contrast = False  # default False
 freeze = True
 
