@@ -1,18 +1,24 @@
-# pretrain: contrastive loss on both src & tgt domains
+# finetune without freezing; optimizer steps
 
 ##############################################
 # variants: Runner, model
-# options: train-test split; class_weights
+# options: train_sets; domain
 ##############################################
 # runner
-runner = 'XmudaRunner'  # for any customized runner, use general_train.py
+runner = 'SourceRunner'  # for any customized runner, use general_train.py
+train_sets = ['source_train']
 only_contrast = True  # default False
+freeze = False
 
-# model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
+#####################
+# model config & args
+#####################
+# if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
-contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
-max_pts, groups = 2048, 1
-lambda_contrast = 1.
+# contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
+contrast_criterion = None
+max_pts, groups = 100000, 1
+lambda_contrast = 0.1
 
 img_dim, pts_dim = 64, 16 
 prelogits_dim = img_dim + pts_dim
@@ -21,15 +27,33 @@ prelogits_dim = img_dim + pts_dim
 scn_scale = 20
 scn_full_scale = 4096
 
+# load_from
+load_from = './checkpoints/fusion_consis/pretrain/contrast_usa_pretrain_v0/epoch_24.pth'
+
+##########################
+# optimizer & lr_scheduler
+###########################
+optimizer = dict(type='Adam', lr=0.005, weight_decay=0.01)
+lr_step = [8]  # init lr is half the lr of pretrain(0.001)
+total_epochs = 12
+
+########################
+# source/target domain
+########################
+# src, tgt = 'day', 'night'
+src, tgt = 'usa', 'singapore'
+
 # class_weights
-daynight_weights = [2.68678412, 4.36182969, 5.47896839, 3.89026883, 1.]
-usasng_weights = [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
-class_weights = usasng_weights
+daynight_weights = [2.167, 3.196, 4.054, 2.777, 1., 2.831, 2.089, 2.047, 1.534, 1.534, 2.345]
+usasng_weights = [2.154, 3.298, 4.447, 2.855, 1., 2.841, 2.152, 2.758, 1.541, 1.845, 2.257]
+class_weights = usasng_weights if src == 'usa' else daynight_weights
 
-# lr_scheduler
-lr_step = [16, 22]
-total_epochs = 24
-
+# splits' paths
+source_train = f'mmda_xmuda_split/train_{src}.pkl'
+source_test = f'mmda_xmuda_split/test_{src}.pkl'
+target_train = f'mmda_xmuda_split/train_{tgt}.pkl'
+target_test = f'mmda_xmuda_split/test_{tgt}.pkl'
+target_val = f'mmda_xmuda_split/val_{tgt}.pkl'
 #######################################################
 # model
 #######################################################
@@ -58,15 +82,14 @@ model = dict(
 train_cfg = None
 test_cfg = None
 
-class_names = [
-    'vehicle',  # car, truck, bus, trailer, cv
-    'pedestrian',  # pedestrian
-    'bike',  # motorcycle, bicycle
-    'traffic_boundary'  # traffic_cone, barrier
-    # background
-]
+# class_names = [
+#     'vehicle',  # car, truck, bus, trailer, cv
+#     'pedestrian',  # pedestrian
+#     'bike',  # motorcycle, bicycle
+#     'traffic_boundary'  # traffic_cone, barrier
+#     # background
+# ]
 
-data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 input_modality = dict(
     use_lidar=True,
     use_camera=True,
@@ -108,15 +131,10 @@ test_pipeline = [
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label', 'scn_coords'])
 ]
 
-# splits
-source_train = 'mmda_xmuda_split/train_usa.pkl'
-source_test = 'mmda_xmuda_split/test_usa.pkl'
-target_train = 'mmda_xmuda_split/train_singapore.pkl'
-target_test = 'mmda_xmuda_split/test_singapore.pkl'
-target_val = 'mmda_xmuda_split/val_singapore.pkl'
 
 # dataset
-dataset_type = 'MMDAMergeCatDataset'
+dataset_type = 'ContrastSegDatasetV0'
+data_root = '/home/xyyue/xiangyu/nuscenes_unzip/'
 data = dict(
     samples_per_gpu=8,
     workers_per_gpu=4,
@@ -125,53 +143,45 @@ data = dict(
         data_root=data_root,
         ann_file=data_root + source_train,
         pipeline=train_pipeline,
-        classes=class_names,
+        # classes=class_names,
         modality=input_modality,
-        test_mode=False,
-        filter_empty_gt=False,
-        box_type_3d='LiDAR'),
+        test_mode=False),
     target_train=dict(
         type=dataset_type,
         data_root=data_root,
         ann_file=data_root + target_train,
         pipeline=train_pipeline,
-        classes=class_names,
+        # classes=class_names,
         modality=input_modality,
-        test_mode=False,
-        filter_empty_gt=False,
-        box_type_3d='LiDAR'),
+        test_mode=False),
     source_test=dict(
         type=dataset_type,
         data_root=data_root,
         ann_file=data_root + source_test,
         pipeline=test_pipeline,
-        classes=class_names,
+        # classes=class_names,
         modality=input_modality,
-        test_mode=True,
-        box_type_3d='LiDAR'),
+        test_mode=True),
     target_test=dict(
         type=dataset_type,
         data_root=data_root,
         ann_file=data_root + target_test,
         pipeline=test_pipeline,
-        classes=class_names,
+        # classes=class_names,
         modality=input_modality,
-        test_mode=True,
-        box_type_3d='LiDAR'),
+        test_mode=True),
     target_val=dict(
         type=dataset_type,
         data_root=data_root,
         ann_file=data_root + target_val,
         pipeline=test_pipeline,
-        classes=class_names,
+        # classes=class_names,
         modality=input_modality,
-        test_mode=True,
-        box_type_3d='LiDAR')
+        test_mode=True)
 )
 evaluation = dict(interval=100)
 
 # shedule_2x.py
-optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)
 lr_config = dict(
     policy='step',
     warmup='linear',
