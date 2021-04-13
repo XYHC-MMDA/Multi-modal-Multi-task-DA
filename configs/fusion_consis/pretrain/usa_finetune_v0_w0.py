@@ -8,6 +8,7 @@
 runner = 'SourceRunner'  # for any customized runner, use general_train.py
 train_sets = ['source_train']
 only_contrast = False  # default False
+freeze = False
 
 # model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
