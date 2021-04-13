@@ -40,6 +40,9 @@ for i in range(k):
     # seg_points = data['seg_points'].data[:, :3]
     seg_label = data['seg_label'].data
     count = np.bincount(seg_label, minlength=num_classes)
+    print(count)
+    import pdb
+    pdb.set_trace()
     source_train_count += count
     if i % 100 == 99:
         print(f'[{i}] -', source_train_count)

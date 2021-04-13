@@ -8,7 +8,7 @@
 runner = 'SourceRunner'  # for any customized runner, use general_train.py
 train_sets = ['source_train']
 only_contrast = False  # default False
-freeze = False
+freeze = True 
 
 #####################
 # model config & args
