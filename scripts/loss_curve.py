@@ -9,17 +9,21 @@ font = {
     'size': 18
 }
 
-src_domain, tgt_domain = 'usa', 'sng'
-sub_dir = 'new10_contra'
 # sub_dir = 'fusion_consis/xmuda/baseline2_usa'
 # sub_dir = 'fusion_consis/xmuda/contrast_usa_v0'
 # sub_dir = 'fusion_consis/xmuda/src_ctr_usa_v1'
-log_train = f'../checkpoints/{sub_dir}/log.log'
-log_src_test = f'../checkpoints/{sub_dir}/source_test.log'
-log_tgt_test = f'../checkpoints/{sub_dir}/target_test.log'
+src_domain, tgt_domain = 'usa', 'sng'
+log_dir = '../checkpoints/fusion_consis/xmuda/baseline2_usa'
+# log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_v0'
 
 
-def plot_train(log_file, epochs=16):
+log_train = os.path.join(log_dir, 'log.log')
+log_src_test = os.path.join(log_dir, 'source_test.log')
+log_tgt_test = os.path.join(log_dir, 'target_test.log')
+
+
+def plot_train(log_file):
+    epochs = 0
     if not os.path.exists(log_file):
         print(f'File \'{log_file}\' does not exist!')
         return
@@ -34,6 +38,8 @@ def plot_train(log_file, epochs=16):
                 for loss_type in ['contrast_loss', 'seg_loss', 'tgt_contrast_loss']:
                     if token.startswith(loss_type):
                         losses[loss_type].append(float(token.split(': ')[1]))
+        if 'Saving' in line:
+            epochs = max(epochs, int(line.split()[-2]))
     if 'contrast_loss' in losses.keys():
         losses['train_src_ctrloss'] = losses['contrast_loss']
         del losses['contrast_loss']
@@ -51,10 +57,10 @@ def plot_train(log_file, epochs=16):
         ys = np.array(val)
         plt.plot(xs, ys, label=key, color=next(plt_colors), linewidth=0.9)
     plt.xticks(range(0, x_len, x_len // epochs), labels=range(1, epochs+1))
-    return x_len
+    return x_len, epochs
 
 
-def plot_test(log_file, iters=1872, curve_name='src'):
+def plot_test(log_file, iters, curve_name='src'):
     if not os.path.exists(log_file):
         print(f'File \'{log_file}\' does not exist!')
         return
@@ -77,14 +83,15 @@ def plot_test(log_file, iters=1872, curve_name='src'):
 
 if __name__ == '__main__':
     plt.figure(figsize=(12, 8))
-    plt.title(sub_dir, font)
+    cfg_name = os.path.basename(log_dir)
+    plt.title(cfg_name, font)
     plt.xlabel('epoch', font)
     plt.ylabel('loss', font)
-    iters = plot_train(log_train)
+    iters, epochs = plot_train(log_train)  # 78 per epoch if log_interval is 25;  1872 for 24 epochs
     plot_test(log_src_test, iters, curve_name='src')
     plot_test(log_tgt_test, iters, curve_name='tgt')
 
     plt.legend(loc='best', prop=font)
-    plt.ylim(bottom=0)
-    # plt.ylim(bottom=0, top=0.4)
+    # plt.ylim(bottom=0)
+    plt.ylim(bottom=0, top=0.5)
     plt.show()
