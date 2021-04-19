@@ -1,4 +1,4 @@
-# new class set(11 classes) baseline
+# the same as baseline_usa_v0.py, except for epochs and lr_scheduler
 
 ##############################################
 # variants: Runner, model
@@ -10,13 +10,19 @@ only_contrast = False  # default False
 
 # model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
-# contrast_criterion = dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy')
-max_pts, groups = 2048, 1
-lambda_contrast = 0.01
-contrast_criterion = None
-
-img_dim, pts_dim = 64, 16 
+img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
+# contrast_dict = dict(
+#     contrast_criterion=dict(type='NT_Xent', temperature=0.1, normalize=True, contrast_mode='cross_entropy'),
+#     max_pts=100000,
+#     groups=1,
+#     lambda_contrast=0.01,
+#     img_fcs=(img_dim, img_dim, pts_dim),
+#     pts_fcs=(pts_dim, pts_dim, pts_dim)
+# )
+contrast_dict = dict(
+    contrast_criterion=None
+)
 
 # XmudaAug3D, UNetSCN
 scn_scale = 20
@@ -27,8 +33,8 @@ scn_full_scale = 4096
 src, tgt = 'usa', 'singapore'
 
 # lr_scheduler
-lr_step = [16, 22]
-total_epochs = 24
+lr_step = [16, 24]
+total_epochs = 32
 
 # class_weights
 daynight_weights = [2.167, 3.196, 4.054, 2.777, 1., 2.831, 2.089, 2.047, 1.534, 1.534, 2.345]
@@ -58,12 +64,13 @@ model = dict(
     num_classes=11,
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
-    contrast_criterion=contrast_criterion,
-    max_pts=max_pts,
-    groups=groups,
-    lambda_contrast=lambda_contrast,
-    img_fcs=(img_dim, img_dim, pts_dim),
-    pts_fcs=(pts_dim, pts_dim, pts_dim)
+    **contrast_dict
+    # contrast_criterion=contrast_criterion,
+    # max_pts=max_pts,
+    # groups=groups,
+    # lambda_contrast=lambda_contrast,
+    # img_fcs=img_fcs,
+    # pts_fcs=pts_fcs
 )
 
 train_cfg = None
