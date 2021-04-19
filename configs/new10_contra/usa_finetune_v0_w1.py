@@ -1,8 +1,8 @@
-# the same as baseline_usa_v0.py, except for epochs and lr_scheduler
+# the same as usa_finetune_v0.py, except for epochs and lr_scheduler
 
 ##############################################
 # variants: Runner, model
-# options: train-test split; class_weights
+# options: train_sets; domain
 ##############################################
 # runner
 runner = 'SourceRunner'  # for any customized runner, use general_train.py
@@ -10,7 +10,10 @@ train_sets = ['source_train']
 only_contrast = False  # default False
 freeze = False  # default False
 
-# model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
+#####################
+# model config & args
+#####################
+# if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV3'
 img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
@@ -30,13 +33,21 @@ contrast_dict = dict(
 scn_scale = 20
 scn_full_scale = 4096
 
+# load_from
+load_from = './checkpoints/fusion_consis/pretrain/contrast_usa_pretrain_v0/epoch_24.pth'
+
+##########################
+# optimizer & lr_scheduler
+###########################
+optimizer = dict(type='Adam', lr=0.001, weight_decay=0.01)
+lr_step = [16, 22]  # init lr is half the lr of pretrain(0.001)
+total_epochs = 24
+
+########################
 # source/target domain
+########################
 # src, tgt = 'day', 'night'
 src, tgt = 'usa', 'singapore'
-
-# lr_scheduler
-lr_step = [16, 24]
-total_epochs = 32
 
 # class_weights
 daynight_weights = [2.167, 3.196, 4.054, 2.777, 1., 2.831, 2.089, 2.047, 1.534, 1.534, 2.345]
@@ -67,12 +78,6 @@ model = dict(
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
     **contrast_dict
-    # contrast_criterion=contrast_criterion,
-    # max_pts=max_pts,
-    # groups=groups,
-    # lambda_contrast=lambda_contrast,
-    # img_fcs=img_fcs,
-    # pts_fcs=pts_fcs
 )
 
 train_cfg = None
@@ -178,7 +183,6 @@ data = dict(
 evaluation = dict(interval=100)
 
 # shedule_2x.py
-optimizer = dict(type='Adam', lr=0.001, weight_decay=0.01)
 lr_config = dict(
     policy='step',
     warmup='linear',
