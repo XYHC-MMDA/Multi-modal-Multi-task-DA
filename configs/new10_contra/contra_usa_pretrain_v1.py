@@ -27,8 +27,8 @@ scn_full_scale = 4096
 src, tgt = 'usa', 'singapore'
 
 # lr_scheduler
-lr_step = [16, 22]
-total_epochs = 24
+lr_step = [16, 24]
+total_epochs = 32
 
 # class_weights
 daynight_weights = [2.167, 3.196, 4.054, 2.777, 1., 2.831, 2.089, 2.047, 1.534, 1.534, 2.345]
