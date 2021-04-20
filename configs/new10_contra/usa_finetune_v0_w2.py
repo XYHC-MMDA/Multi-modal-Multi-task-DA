@@ -40,8 +40,8 @@ load_from = './checkpoints/fusion_consis/pretrain/contrast_usa_pretrain_v0/epoch
 # optimizer & lr_scheduler
 ###########################
 optimizer = dict(type='Adam', lr=0.001, weight_decay=0.01)
-lr_step = [16, 22]
-total_epochs = 24
+lr_step = [16, 24]
+total_epochs = 32
 
 ########################
 # source/target domain
