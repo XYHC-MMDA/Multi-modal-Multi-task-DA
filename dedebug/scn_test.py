@@ -35,27 +35,31 @@ if __name__ == '__main__':
     b, DIMENSION = 1, 3
     # coords = torch.LongTensor([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     # coords = torch.LongTensor([[0, 0, 0], [1, 1, 1], [2, 2, 2], [2, 0, 0]])
-    coords = torch.Tensor([[0, 0, 0], [2, 1.9, 2], [2, 2, 2], [2, 0, 0]])
+    coords = torch.Tensor([[0, 0, 0], [2, 2, 2], [2, 2, 2], [2, 0, 0]])
     n = coords.shape[0]
     coords = coords.view(1, n, DIMENSION)
     # batch_idxs = torch.arange(b).reshape(b, 1, 1).repeat(1, n, 1)
     batch_idxs = torch.ones((1, n, 1), dtype=torch.int64)
     coords = torch.cat([coords, batch_idxs], 2).reshape(-1, DIMENSION + 1)
 
-    in_channels = 1
+    in_channels, out_dim = 1, 5
     # feats = torch.rand(b * n, in_channels)
     feats = 0.5 * torch.ones((b * n, in_channels))
 
     # x = [coords, feats.cuda()]
     x = [coords, feats]
+
+    # separate layers
     input_layer = scn.InputLayer(DIMENSION, 10, mode=4)
     x1 = input_layer(x)
-    SC = scn.SubmanifoldConvolution(DIMENSION, in_channels, 5, 3, False)
+    SC = scn.SubmanifoldConvolution(DIMENSION, in_channels, out_dim, 3, False)
     x2 = SC(x1)
     output_layer = scn.OutputLayer(DIMENSION)
     x3 = output_layer(x2)
     import pdb
     pdb.set_trace()
 
-    net = UNetSCN(in_channels).cuda()
+    # Unet
+    net = UNetSCN(in_channels, m=out_dim)
     out_feats = net(x)
+    pdb.set_trace()

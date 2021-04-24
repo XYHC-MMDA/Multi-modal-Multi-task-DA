@@ -8,13 +8,13 @@ import os.path as osp
 import argparse
 import numpy as np
 parser = argparse.ArgumentParser()
-parser.add_argument('--config', help='train config file path')
+parser.add_argument('config', help='train config file path')
 args = parser.parse_args()
 np.random.seed(0)  # fix dataset items
 
 cfg = Config.fromfile(args.config)
 print('cfg loaded')
-dataset = build_dataset(cfg.data.train)
+dataset = build_dataset(cfg.data.source_train)
 print('dataset loaded')
 print()
 
@@ -31,5 +31,21 @@ for i in range(5):
 
     data = dataset[i]
     seg_points = data['seg_points'].data[:, :3]
-    print('b:', i, len(seg_points))
+    seg_pts_indices = data['seg_pts_indices']
+    scn_coords = data['scn_coords']
+    seg_label = data['seg_label']
+    s = []
+    c = []
+    cnt = 0
+    for i, x in enumerate(scn_coords.data):
+        x = list(x.numpy())
+        if x not in s:
+            s.append(x)
+            c.append(i)
+        else:
+            cnt += 1
+            print(c[s.index(x)], x)
+    import pdb
+    pdb.set_trace()
+    # print('b:', i, len(seg_points))
 
