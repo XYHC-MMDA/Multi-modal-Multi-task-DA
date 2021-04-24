@@ -35,8 +35,13 @@ source_test_count = np.zeros(num_classes, dtype=np.int64)
 
 k = len(source_train)
 print('source_train:', k)  # 15695
+shuffle = True
+if shuffle:
+    index = np.random.permutation(k)
+else:
+    index = np.arange(k)
 for i in range(k):
-    data = source_train[i]
+    data = source_train[index[i]]
     # seg_points = data['seg_points'].data[:, :3]
     seg_label = data['seg_label'].data
     count = np.bincount(seg_label, minlength=num_classes)
