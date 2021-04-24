@@ -16,9 +16,9 @@ def test():
     model2 = UNetSCNManual(in_channels, m=out_channels)
     out1 = model1(x)
     out2 = model2(x)
-    f = open('./dedebug/scn_manual.txt', 'w')
-    f.write(str(model2))
-    f.close()
+    # f = open('./dedebug/scn_manual_structure.txt', 'w')
+    # f.write(str(model2))
+    # f.close()
     import pdb
     pdb.set_trace()
 
