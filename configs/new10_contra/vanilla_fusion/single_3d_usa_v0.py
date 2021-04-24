@@ -1,4 +1,4 @@
-# the same as baseline_usa_v0.py, except for epochs and lr_scheduler
+# single 3d UNetSCN baseline; compare UNetSCNManual and UNetSCN
 
 ##############################################
 # variants: Runner, model
@@ -7,16 +7,10 @@
 # runner
 runner = 'SourceRunner'  # for any customized runner, use general_train.py
 train_sets = ['source_train']
-only_contrast = False  # default False
-freeze = False  # default False
 
-# model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
-model_type = 'SegFusionV3'
-img_dim, pts_dim = 64, 16
-prelogits_dim = img_dim + pts_dim
-contrast_dict = dict(
-    contrast_criterion=None
-)
+model_type = 'Single2D3D'  # single 3d
+pts_dim = 16
+prelogits_dim = pts_dim
 
 # XmudaAug3D, UNetSCN
 scn_scale = 20
@@ -46,10 +40,10 @@ target_val = f'mmda_xmuda_split/val_{tgt}.pkl'
 #######################################################
 model = dict(
     type=model_type,
-    img_backbone=dict(
-        type='UNetResNet34',
-        out_channels=img_dim,
-        pretrained=True),
+    # img_backbone=dict(
+    #     type='UNetResNet34',
+    #     out_channels=img_dim,
+    #     pretrained=True),
     pts_backbone=dict(
         type='UNetSCN',
         in_channels=1,
@@ -58,13 +52,6 @@ model = dict(
     num_classes=11,
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
-    **contrast_dict
-    # contrast_criterion=contrast_criterion,
-    # max_pts=max_pts,
-    # groups=groups,
-    # lambda_contrast=lambda_contrast,
-    # img_fcs=img_fcs,
-    # pts_fcs=pts_fcs
 )
 
 train_cfg = None
