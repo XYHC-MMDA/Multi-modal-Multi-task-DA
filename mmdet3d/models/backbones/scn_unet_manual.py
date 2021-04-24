@@ -23,6 +23,7 @@ class UNetSCNManual(nn.Module):
         # parameters
         self.in_channels = in_channels
         self.out_channels = m
+        self.block_reps = block_reps
         self.residual_blocks = residual_blocks
         self.full_scale = full_scale
         self.n_planes = [(n + 1) * m for n in range(num_planes)]
@@ -74,17 +75,18 @@ class UNetSCNManual(nn.Module):
             conv.add(scn.BatchNormLeakyReLU(n_planes_in, leakiness=self.leakiness))
             conv.add(scn.Convolution(self.dimension, n_planes_in, n_planes_out,
                                      self.downsample[0], self.downsample[1], False))
-            self.enc_convs.append((conv1x1, conv))
+            enc_convs.append((conv1x1, conv))
 
             # decode(corresponding stage of encode; symmetric with U)
             b_join = scn.Sequential()  # before_join
             b_join.add(scn.BatchNormLeakyReLU(n_planes_out, leakiness=self.leakiness))
-            b_join.add(scn.Deconvolution(self.dimension, n_planes_out, n_planes_in))
+            b_join.add(scn.Deconvolution(self.dimension, n_planes_out, n_planes_in,
+                                         self.downsample[0], self.downsample[1], False))
             join_table = scn.JoinTable()
             a_join = scn.Sequential()  # after_join
             for i in range(self.block_reps):
                 a_join.add(self.block(n_planes_in * (2 if i == 0 else 1), n_planes_in))
-            self.dec_convs.append((b_join, join_table, a_join))
+            dec_convs.append((b_join, join_table, a_join))
 
         middle_conv = scn.Sequential()
         for i in range(self.block_reps):
@@ -131,7 +133,7 @@ def test():
 
     x = [coords, feats]
 
-    from .scn_unet import UNetSCN
+    from mmdet3d.models import UNetSCN
     model1 = UNetSCN(in_channels, m=out_channels)
     model2 = UNetSCNManual(in_channels, m=out_channels)
     out1 = model1(x)
