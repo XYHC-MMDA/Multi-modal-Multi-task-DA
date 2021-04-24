@@ -62,8 +62,8 @@ class UNetSCNManual(nn.Module):
 
     def iter_unet(self, n_input_planes):
         # different from scn implementation, which is a recursive function
-        enc_convs = []
-        dec_convs = []
+        enc_convs = scn.Sequential()
+        dec_convs = scn.Sequential()
         for n_planes_in, n_planes_out in zip(self.n_planes[:-1], self.n_planes[1:]):
             # encode
             conv1x1 = scn.Sequential()
@@ -75,7 +75,10 @@ class UNetSCNManual(nn.Module):
             conv.add(scn.BatchNormLeakyReLU(n_planes_in, leakiness=self.leakiness))
             conv.add(scn.Convolution(self.dimension, n_planes_in, n_planes_out,
                                      self.downsample[0], self.downsample[1], False))
-            enc_convs.append((conv1x1, conv))
+            enc_conv = scn.Sequential()
+            enc_conv.add(conv1x1)
+            enc_conv.add(conv)
+            enc_convs.add(enc_conv)
 
             # decode(corresponding stage of encode; symmetric with U)
             b_join = scn.Sequential()  # before_join
@@ -86,7 +89,11 @@ class UNetSCNManual(nn.Module):
             a_join = scn.Sequential()  # after_join
             for i in range(self.block_reps):
                 a_join.add(self.block(n_planes_in * (2 if i == 0 else 1), n_planes_in))
-            dec_convs.append((b_join, join_table, a_join))
+            dec_conv = scn.Sequential()
+            dec_conv.add(b_join)
+            dec_conv.add(join_table)
+            dec_conv.add(a_join)
+            dec_convs.add(dec_conv)
 
         middle_conv = scn.Sequential()
         for i in range(self.block_reps):
@@ -102,7 +109,8 @@ class UNetSCNManual(nn.Module):
 
         # U-Net
         inter_features = []
-        for conv1x1, conv in self.enc_convs:
+        for convs in self.enc_convs:
+            conv1x1, conv = convs[0], convs[1]
             x = conv1x1(x)
             inter_features.append(x)
             x = conv(x)
@@ -110,7 +118,11 @@ class UNetSCNManual(nn.Module):
 
         x = self.middle_conv(x)
 
-        for inter_feat, (b_join, join_table, a_join) in zip(reversed(inter_features), reversed(self.dec_convs)):
+        for i in reversed(range(len(inter_features))):
+            inter_feat = inter_features[i]
+            deconvs = self.dec_convs[i]
+            b_join, join_table, a_join = deconvs[0], deconvs[1], deconvs[2]
+
             x = b_join(x)
             x = join_table([inter_feat, x])
             x = a_join(x)
