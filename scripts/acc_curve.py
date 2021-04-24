@@ -9,12 +9,12 @@ font = {
 }
 
 src_domain, tgt_domain = 'usa', 'sng'
-# log_dir = '../checkpoints/fusion_consis/xmuda/baseline2_usa'
-log_dir = '../checkpoints/new10_contra/usa_finetune_v1'
+log_dir = '../checkpoints/fusion_consis/xmuda/contrast_usa_v1'
+# log_dir = '../checkpoints/new10_contra/usa_finetune_v0_w2'
 # sub_dir = 'contrast_usa_v0'
 # sub_dir = 'src_ctr_usa_v1'
 # sub_dir = 'baseline2_usa'
-epochs = 24
+# epochs = 24
 
 test_files = []
 splits = ['source_test', 'target_test']
@@ -35,7 +35,7 @@ def curves():
             if line.startswith('overall_iou'):
                 iou = float(line.split()[-1])
                 y_values.append(iou)
-        y_values = y_values[:24]
+        # y_values = y_values[:24]
         ret.append([np.array(y_values), split])
     return ret
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         plt.plot(x_range, y, label=split, color=plt_colors[i], linewidth=1.5)
     plt.legend(loc='best', prop=font)
     # plt.xticks(range(0, 25))
-    plt.xticks(range(0, epochs + 1))
+    plt.xticks(range(1, len(x_range) + 1))
     # plt.ylim(bottom=0.2, top=0.8)
     plt.ylim(bottom=0., top=0.6)
     plt.show()
