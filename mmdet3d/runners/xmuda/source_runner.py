@@ -13,7 +13,6 @@ import mmcv
 from mmcv.runner import BaseRunner, RUNNERS, save_checkpoint, get_host_info, build_optimizer
 from mmdet3d.models.builder import build_loss
 from mmdet3d.apis import parse_losses, set_requires_grad
-from mmdet3d.models import build_discriminator
 
 
 @RUNNERS.register_module()
@@ -36,8 +35,10 @@ class SourceRunner(BaseRunner):
                                                  meta,
                                                  max_iters,
                                                  max_epochs)
-        self.only_contrast = cfg.only_contrast
-        self.freeze = cfg.freeze
+        self.forward_dict = dict()
+        for key in ['only_contrast', 'freeze']:
+            if hasattr(cfg, key):
+                self.forward_dict[key] = cfg.get(key)
 
     def train(self, src_data_loader):
         self.model.train()
@@ -56,7 +57,7 @@ class SourceRunner(BaseRunner):
             # ------------------------
             # source 
             # ------------------------
-            src_losses = self.model(**src_data_batch, only_contrast=self.only_contrast, freeze=self.freeze)
+            src_losses = self.model(**src_data_batch, **self.forward_dict)
 
             loss, log_vars = parse_losses(src_losses)
             num_samples = len(src_data_batch['img_metas'])

@@ -123,6 +123,7 @@ class UNetSCNManual(nn.Module):
 
 
 def test():
+    # see dedebug/scn_manual_test.py
     b, n, DIMENSION = 1, 10, 3
     coords = torch.randint(4096, [b, n, DIMENSION])
     batch_idxs = torch.arange(b).reshape(b, 1, 1).repeat(1, n, 1)
