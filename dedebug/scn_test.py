@@ -18,7 +18,6 @@ class UNetSCN(nn.Module):
         self.out_channels = m
         n_planes = [(n + 1) * m for n in range(num_planes)]
 
-        input_layer = scn.InputLayer(DIMENSION, full_scale, mode=4)
         self.sparseModel = scn.Sequential().add(
             scn.InputLayer(DIMENSION, full_scale, mode=4)).add(
             scn.SubmanifoldConvolution(DIMENSION, in_channels, m, 3, False)).add(
@@ -42,7 +41,7 @@ if __name__ == '__main__':
     batch_idxs = torch.ones((1, n, 1), dtype=torch.int64)
     coords = torch.cat([coords, batch_idxs], 2).reshape(-1, DIMENSION + 1)
 
-    in_channels, out_dim = 1, 5
+    in_channels, out_dim = 1, 16 
     # feats = torch.rand(b * n, in_channels)
     feats = 0.5 * torch.ones((b * n, in_channels))
 
@@ -63,3 +62,6 @@ if __name__ == '__main__':
     net = UNetSCN(in_channels, m=out_dim)
     out_feats = net(x)
     pdb.set_trace()
+    # f = open('./dedebug/xmuda_unet.txt', 'w')
+    # f.write(str(net))
+    # f.close()
