@@ -73,73 +73,58 @@ class UNetResNet34(nn.Module):
         pad_w = int((w + min_size - 1) / min_size) * min_size - w
         if pad_h > 0 or pad_w > 0:
             x = F.pad(x, [0, pad_w, 0, pad_h])
+        # x.shape=(B, 3, 240, 400)
 
         # ----------------------------------------------------------------------------- #
         # Encoder
         # ----------------------------------------------------------------------------- #
         inter_features = []
-        import pdb
-        pdb.set_trace()
-        # (3, 240, 400)
+
         x = self.conv1(x)
         x = self.bn1(x)
-        x = self.relu(x) # (64, 240, 400)
-        pdb.set_trace()
+        x = self.relu(x)  # (64, 240, 400)
         inter_features.append(x)
+
         x = self.maxpool(x)  # downsample
         x = self.layer1(x)  # (64, 120, 200)
-        pdb.set_trace()
         inter_features.append(x)
+
         x = self.layer2(x)  # downsample  # (128, 60, 100)
-        pdb.set_trace()
         inter_features.append(x)
+
         x = self.layer3(x)  # downsample
         x = self.dropout(x)  # (256, 30, 50)
-        pdb.set_trace()
         inter_features.append(x)
+
         x = self.layer4(x)  # downsample
         x = self.dropout(x)  # (512, 15, 25)
-        pdb.set_trace()
 
         # ----------------------------------------------------------------------------- #
         # Decoder
         # ----------------------------------------------------------------------------- #
         # upsample
         x = self.dec_t_conv_stage5(x)  # (256, 30, 50)
-        pdb.set_trace()
         x = torch.cat([inter_features[3], x], dim=1)  # (512, 30, 50)
-        pdb.set_trace()
         x = self.dec_conv_stage4(x)  # (256, 30, 50)
-        pdb.set_trace()
 
         # upsample
         x = self.dec_t_conv_stage4(x)  # (128, 60, 100)
-        pdb.set_trace()
         x = torch.cat([inter_features[2], x], dim=1)  # (256, 60, 100)
-        pdb.set_trace()
         x = self.dec_conv_stage3(x)  # (128, 60, 100)
-        pdb.set_trace()
 
         # upsample
         x = self.dec_t_conv_stage3(x)  # (64, 120, 200)
-        pdb.set_trace()
         x = torch.cat([inter_features[1], x], dim=1)  # (128, 120, 200)
-        pdb.set_trace()
         x = self.dec_conv_stage2(x)  # (64, 120, 200)
-        pdb.set_trace()
 
         # upsample
         x = self.dec_t_conv_stage2(x)  # (64, 240, 400)
-        pdb.set_trace()
         x = torch.cat([inter_features[0], x], dim=1)  # (128, 240, 400)
-        pdb.set_trace()
         x = self.dec_conv_stage1(x)  # (64, 240, 400)
-        pdb.set_trace()
 
         # crop padding
         if pad_h > 0 or pad_w > 0:
             x = x[:, :, 0:h, 0:w]
-        pdb.set_trace()
         # (64, 225, 400)
 
         return x
