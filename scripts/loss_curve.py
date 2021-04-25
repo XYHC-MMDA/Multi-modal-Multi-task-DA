@@ -14,7 +14,8 @@ font = {
 # sub_dir = 'fusion_consis/xmuda/src_ctr_usa_v1'
 src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/baseline2_usa'
-log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_v1'
+# log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_v1'
+log_dir = '../checkpoints/new10_contra/contra_usa_v1'
 
 
 log_train = os.path.join(log_dir, 'log.log')
@@ -92,6 +93,6 @@ if __name__ == '__main__':
     plot_test(log_tgt_test, iters, curve_name='tgt')
 
     plt.legend(loc='best', prop=font)
-    plt.ylim(bottom=0)
-    # plt.ylim(bottom=0, top=0.5)
+    # plt.ylim(bottom=0)
+    plt.ylim(bottom=0, top=1.6)
     plt.show()
