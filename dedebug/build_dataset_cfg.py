@@ -18,9 +18,9 @@ dataset = build_dataset(cfg.data.source_train)
 print('dataset loaded')
 print()
 
-import open3d as o3d
-pcd = o3d.geometry.PointCloud()
-v3d = o3d.utility.Vector3dVector
+# import open3d as o3d
+# pcd = o3d.geometry.PointCloud()
+# v3d = o3d.utility.Vector3dVector
 
 k = len(dataset)
 print('len dataset:', k) # 15695

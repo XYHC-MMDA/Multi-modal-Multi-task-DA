@@ -75,7 +75,6 @@ class Single2D3DV2(Base3DDetector):
             sample_feats = torch.cat(sample_feats)
             seg_logits = self.seg_head(sample_feats)
         elif self.with_pts_backbone:
-            pts_feats = torch.cat(pts_feats)
             seg_logits = self.seg_head(pts_feats)
         else:
             assert False
