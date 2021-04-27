@@ -1,5 +1,5 @@
 # single 3d UNetSCN baseline; compare UNetSCNManual and UNetSCN
-# weight_decay = 1e-4; model = Single2D3DV2
+# weight_decay = 0; model = Single2D3DV2
 
 ##############################################
 # variants: Runner, model
