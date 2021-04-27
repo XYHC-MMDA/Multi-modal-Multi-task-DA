@@ -116,7 +116,7 @@ class SegFusionV4(Base3DDetector):
             num_pts = len(label_i)
             pts_feats.append(concat_pts_feats[l:l+num_pts])
             l += num_pts
-        assert l == len(concat_pts_feats)
+        # assert l == len(concat_pts_feats)
 
         # forward fusion; assert self.with_contrast or not only_contrast
         if self.with_contrast:
@@ -164,7 +164,15 @@ class SegFusionV4(Base3DDetector):
         return dict(contrast_loss=contrast_loss)
 
     def simple_test(self, img, seg_label, seg_pts_indices, scn_coords, with_loss):
-        sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
+        sample_feats, concat_pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
+        pts_feats = []
+        l = 0
+        for label_i in seg_label:
+            num_pts = len(label_i)
+            pts_feats.append(concat_pts_feats[l:l+num_pts])
+            l += num_pts
+        assert l == len(concat_pts_feats)
+
         seg_logits = self.forward_logits(sample_feats, pts_feats)
         if not with_loss:
             return seg_logits
