@@ -51,7 +51,6 @@ class SegFusionV4(Base3DDetector):
             coords = scn_coords[idx]
             num_pts = len(coords)
             batch_idxs = torch.LongTensor(num_pts, 1).fill_(idx).to(coords.device)
-            # batch_idxs = torch.zeros(num_pts, 1, dtype=torch.long).to(coords.device)
             locs.append(torch.cat([coords, batch_idxs], dim=1))
             feats.append(torch.ones(num_pts, 1).to(coords.device))
         locs = torch.cat(locs, 0)
