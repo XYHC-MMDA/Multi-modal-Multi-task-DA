@@ -9,13 +9,10 @@ font = {
     'size': 18
 }
 
-# sub_dir = 'fusion_consis/xmuda/baseline2_usa'
-# sub_dir = 'fusion_consis/xmuda/contrast_usa_v0'
-# sub_dir = 'fusion_consis/xmuda/src_ctr_usa_v1'
 src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/baseline2_usa'
-# log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_v1'
-log_dir = '../checkpoints/new10_contra/contra_usa_v1'
+log_dir = '../checkpoints/new10_contra/vanilla_fusion/single_2d_usa_v0'
+# log_dir = '../checkpoints/new10_contra/contra_usa_v1'
 
 
 log_train = os.path.join(log_dir, 'log.log')

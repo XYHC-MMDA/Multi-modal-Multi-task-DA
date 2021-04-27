@@ -11,10 +11,8 @@ font = {
 src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/contrast_usa_v1'
 # log_dir = '../checkpoints/new10_contra/usa_finetune_v0_w2'
-log_dir = '../checkpoints/new10_contra/contra_usa_v1'
-# sub_dir = 'contrast_usa_v0'
-# sub_dir = 'src_ctr_usa_v1'
-# sub_dir = 'baseline2_usa'
+log_dir = '../checkpoints/new10_contra/vanilla_fusion/single_2d_usa_v0'
+# log_dir = '../checkpoints/new10_contra/contra_usa_v1'
 # epochs = 24
 
 test_files = []
