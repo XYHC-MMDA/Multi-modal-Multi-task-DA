@@ -14,7 +14,8 @@ np.random.seed(0)  # fix dataset items
 
 cfg = Config.fromfile(args.config)
 print('cfg loaded')
-dataset = build_dataset(cfg.data.source_train)
+# dataset = build_dataset(cfg.data.source_train)
+dataset = build_dataset(cfg.data.source_test)
 print('dataset loaded')
 print()
 
@@ -31,7 +32,7 @@ for i in range(5):
 
     data = dataset[i]
     seg_points = data['seg_points'].data[:, :3]
-    seg_pts_indices = data['seg_pts_indices']
+    si = data['seg_pts_indices'].data
     scn_coords = data['scn_coords']
     seg_label = data['seg_label']
     s = []
