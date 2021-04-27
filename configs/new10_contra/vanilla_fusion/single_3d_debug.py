@@ -81,10 +81,13 @@ train_pipeline = [
     dict(type='LoadImgSegLabelVer2', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
-    dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
+    # dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
+    dict(type='Aug2D', fliplr=0.0, color_jitter=(0.4, 0.4, 0.4)),
     # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
+    # dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale,
+    #      noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, transl=True),  # new 'scn_coords'
     dict(type='XmudaAug3D', scale=scn_scale, full_scale=scn_full_scale,
-         noisy_rot=0.1, flip_x=0.5, flip_y=0.5, rot_z=6.2831, transl=True),  # new 'scn_coords'
+         noisy_rot=0.0, flip_x=0.0, flip_y=0.0, rot_z=0, transl=False),  # new 'scn_coords'
     # filter 'points', 'pts_indices', 'seg_label'; new 'seg_points', 'seg_pts_indices'
     dict(type='GetSegFromPoints'),  # new 'seg_points', 'seg_pts_indices'
     dict(type='SegDetFormatBundle'),

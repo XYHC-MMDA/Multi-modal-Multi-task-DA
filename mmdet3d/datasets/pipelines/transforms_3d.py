@@ -639,7 +639,7 @@ class PointsSensorFilterVer2(object):
         mask = mask[:, 0] & mask[:, 1] & (pts_img[:, 2] > 0)
         seg_label = seg_label[mask[:num_seg_pts]]
         num_seg_pts = np.sum(mask[:num_seg_pts])
-        assert num_seg_pts == len(seg_label)
+        # assert num_seg_pts == len(seg_label)
 
         pts_lidar = pts_lidar[mask]
         pts_indices = pts_img[:, :2][mask]

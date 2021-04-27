@@ -751,7 +751,7 @@ class LoadImgSegLabelVer2(object):
 
         results['img'] = img
         results['seg_label'] = seg_label
-        assert len(seg_label) == results['num_seg_pts']
+        # assert len(seg_label) == results['num_seg_pts']
 
         return results
 
