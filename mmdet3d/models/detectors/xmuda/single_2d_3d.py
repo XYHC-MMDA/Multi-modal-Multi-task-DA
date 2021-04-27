@@ -117,7 +117,8 @@ class Single2D3D(Base3DDetector):
         return losses
 
     def simple_test(self, img, seg_label, seg_pts_indices, scn_coords, with_loss):
-        sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
+        # sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)  # huge bug!!!!!!!!!!!
+        sample_feats, pts_feats = self.extract_feat(img, seg_pts_indices, scn_coords)
         seg_logits = self.forward_logits(sample_feats, pts_feats)
         if not with_loss:
             return seg_logits
