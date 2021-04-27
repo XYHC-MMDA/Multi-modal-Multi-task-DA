@@ -93,7 +93,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadPointsFromFileVer2', load_dim=5, use_dim=5),
-    dict(type='LoadImgSegLabelVer2', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
+    dict(type='LoadImgSegLabelVer2', resize=resize, num_classes=5),  # new 'img'(PIL.Image), 'seg_label'
     dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),
     # filter 'points'; new 'pts_indices'; modify 'num_seg_pts', 'seg_label'
     dict(type='Aug2D'),  # No Aug2D in test; just PIL.Image to np.ndarray
