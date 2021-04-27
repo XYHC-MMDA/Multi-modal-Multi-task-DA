@@ -63,7 +63,7 @@ class_names = [
     'vehicle',  # car, truck, bus, trailer, cv
     'pedestrian',  # pedestrian
     'bike',  # motorcycle, bicycle
-    'traffic_boundary'  # traffic_cone, barrier
+    'traffic_boundary',  # traffic_cone, barrier
     'background'
 ]
 
