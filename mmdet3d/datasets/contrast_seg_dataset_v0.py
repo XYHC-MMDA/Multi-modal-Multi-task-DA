@@ -24,7 +24,7 @@ class ContrastSegDatasetV0(Custom3DDataset):
                  ann_file,
                  pipeline=None,
                  data_root=None,
-                 # classes=None,
+                 classes=None,
                  modality=None,
                  # box_type_3d='LiDAR',
                  test_mode=False):
@@ -37,6 +37,9 @@ class ContrastSegDatasetV0(Custom3DDataset):
             # box_type_3d=box_type_3d,
             filter_empty_gt=False,
             test_mode=test_mode)
+        if classes is not None:
+            ContrastSegDatasetV0.CLASSES = tuple(classes)
+            ContrastSegDatasetV0.SEG_CLASSES = tuple(classes)
 
     def load_annotations(self, ann_file):
         # init: self.data_infos = self.load_annotations()

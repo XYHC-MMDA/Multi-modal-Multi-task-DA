@@ -724,17 +724,27 @@ class LoadImgSegLabel(object):
 
 @PIPELINES.register_module()
 class LoadImgSegLabelVer2(object):
-    def __init__(self, resize=(400, 225)):
+    def __init__(self, resize=(400, 225), num_classes=11):
         self.resize = resize
         # contrastive learning 11 classes: 4 object classes + 6 background classes + 1 ignore
-        self.classmap = [10] * 32
-        idxmap = [[15, 0], [16, 0], [17, 0], [18, 0],
-                  [2, 1], [3, 1], [4, 1], [6, 1],
-                  [14, 2], [21, 2],
-                  [9, 3], [12, 3],
-                  [24, 4], [25, 5], [26, 6], [27, 7], [28, 8], [30, 9]]
-        for k, v in idxmap:
-            self.classmap[k] = v
+        assert num_classes in [5, 11]
+        if num_classes == 11:
+            self.classmap = [10] * 32
+            idxmap = [[15, 0], [16, 0], [17, 0], [18, 0],
+                      [2, 1], [3, 1], [4, 1], [6, 1],
+                      [14, 2], [21, 2],
+                      [9, 3], [12, 3],
+                      [24, 4], [25, 5], [26, 6], [27, 7], [28, 8], [30, 9]]
+            for k, v in idxmap:
+                self.classmap[k] = v
+        elif num_classes == 5:
+            self.classmap = [4] * 32
+            idxmap = [[15, 0], [16, 0], [17, 0], [18, 0], [22, 0], [23, 0],
+                      [2, 1], [3, 1], [4, 1], [6, 1],
+                      [14, 2], [21, 2],
+                      [9, 3], [12, 3]]
+            for k, v in idxmap:
+                self.classmap[k] = v
 
     def __call__(self, results):
         # img
