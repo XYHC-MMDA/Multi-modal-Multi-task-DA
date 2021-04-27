@@ -10,6 +10,7 @@ from mmdet3d.apis import build_mlp
 
 @DETECTORS.register_module()
 class Single2D3DV2(Base3DDetector):
+    # batch input for 3d network instead of for loop
     def __init__(self,
                  img_backbone=None,
                  pts_backbone=None,
