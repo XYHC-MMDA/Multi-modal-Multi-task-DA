@@ -1,4 +1,5 @@
 # single 3d UNetSCNManual baseline; compare UNetSCNManual and UNetSCN
+# weight_decay=1e-2
 
 ##############################################
 # variants: Runner, model

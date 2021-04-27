@@ -59,7 +59,7 @@ class Single2D3DV2(Base3DDetector):
         pts_feats = self.pts_backbone(scn_input)
         return pts_feats
 
-    def extract_feat(self, img, seg_pts_indices, scn_coords):
+    def extract_feat(self, img, scn_coords, seg_pts_indices):
         sample_feats, pts_feats = None, None
         if self.with_img_backbone:
             sample_feats = self.extract_img_feat(img, seg_pts_indices)
@@ -102,7 +102,7 @@ class Single2D3DV2(Base3DDetector):
         losses = dict()
 
         # img, pts forward
-        sample_feats, pts_feats = self.extract_feat(img, seg_pts_indices, scn_coords)
+        sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
         # sample_feats: list of (N_i, 64) or None; pts_feats: (sigma(N_i), 16) or None
 
         # forward logits
@@ -118,8 +118,8 @@ class Single2D3DV2(Base3DDetector):
         return losses
 
     def simple_test(self, img, seg_label, seg_pts_indices, scn_coords, with_loss):
-        # sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)  # huge bug!!!!!!!!!!!
-        sample_feats, pts_feats = self.extract_feat(img, seg_pts_indices, scn_coords)
+        # sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)  # huge bug: wrong order
+        sample_feats, pts_feats = self.extract_feat(img, scn_coords, seg_pts_indices)
         seg_logits = self.forward_logits(sample_feats, pts_feats)
         if not with_loss:
             return seg_logits
