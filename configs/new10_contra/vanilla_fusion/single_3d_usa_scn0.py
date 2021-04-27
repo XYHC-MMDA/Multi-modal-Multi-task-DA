@@ -1,5 +1,5 @@
 # single 3d UNetSCN baseline; compare UNetSCNManual and UNetSCN
-# weight_decay = 1e-4
+# weight_decay = 1e-4; Single2D3DV2
 
 ##############################################
 # variants: Runner, model
@@ -9,7 +9,7 @@
 runner = 'SourceRunner'  # for any customized runner, use general_train.py
 train_sets = ['source_train']
 
-model_type = 'Single2D3D'  # single 3d
+model_type = 'Single2D3DV2'  # single 3d
 pts_dim = 16
 prelogits_dim = pts_dim
 
