@@ -11,7 +11,7 @@ font = {
 
 src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/baseline2_usa'
-log_dir = '../checkpoints/new10_contra/vanilla_fusion/single_2d_usa_v0'
+log_dir = '../checkpoints/new10_contra/vanilla_fusion/single_3d_usa_scn2'
 # log_dir = '../checkpoints/new10_contra/contra_usa_v1'
 
 
