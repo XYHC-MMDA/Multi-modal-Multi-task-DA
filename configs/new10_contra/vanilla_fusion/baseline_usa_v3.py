@@ -63,12 +63,6 @@ model = dict(
     prelogits_dim=prelogits_dim,
     class_weights=class_weights,
     **contrast_dict
-    # contrast_criterion=contrast_criterion,
-    # max_pts=max_pts,
-    # groups=groups,
-    # lambda_contrast=lambda_contrast,
-    # img_fcs=img_fcs,
-    # pts_fcs=pts_fcs
 )
 
 train_cfg = None
