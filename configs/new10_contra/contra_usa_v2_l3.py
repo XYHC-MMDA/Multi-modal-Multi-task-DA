@@ -1,6 +1,6 @@
 # seg_loss + src_contra_loss + tgt_contra_loss
 # 32 epochs; wd=1e-4; temperature=0.07; SegFusionV4
-# lambda_contrast=0.001
+# lambda_contrast=0.005
 
 ##############################################
 # variants: Runner, model
