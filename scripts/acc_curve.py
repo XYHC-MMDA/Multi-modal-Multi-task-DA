@@ -10,10 +10,9 @@ font = {
 
 src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/contrast_usa_v1'
-# log_dir = '../checkpoints/new10_contra/usa_finetune_v0_w2'
-log_dir = '../checkpoints/new10_contra/vanilla_fusion/single_3d_usa_scn2'
-# log_dir = '../checkpoints/new10_contra/contra_usa_v1'
-# epochs = 24
+# log_dir = '../checkpoints/new10_contra/usa_finetune_v2'
+log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_v3_run2'
+# log_dir = '../checkpoints/new10_contra/contra_usa_v2_l2'
 
 test_files = []
 splits = ['source_test', 'target_test']
@@ -48,7 +47,7 @@ if __name__ == '__main__':
     y_list = curves()
     x_range = np.arange(len(y_list[0][0])) + 1
     for i, (y, split) in enumerate(y_list):
-        print(f'{cfg_name} - {split}: {max(y)}')
+        print(f'{cfg_name} - {split}: Epoch [{np.argmax(y + 1)}] {np.max(y)}')
         plt.plot(x_range, y, label=split, color=plt_colors[i], linewidth=1.5)
     plt.legend(loc='best', prop=font)
     # plt.xticks(range(0, 25))
