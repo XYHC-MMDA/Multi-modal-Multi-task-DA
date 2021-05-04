@@ -1,5 +1,5 @@
 # model = SegFusionV4; 3d_proj = None
-# the same as baseline_usa_v3.py
+# the same as baseline_usa_v3.py except load_from
 
 ##############################################
 # variants: Runner, model
@@ -18,6 +18,8 @@ prelogits_dim = img_dim + pts_dim
 contrast_dict = dict(
     contrast_criterion=None
 )
+# load_from
+load_from = './checkpoints/pretrain/src_usa_pretrain_v0/epoch_32.pth'
 
 # XmudaAug3D, UNetSCN
 scn_scale = 20
