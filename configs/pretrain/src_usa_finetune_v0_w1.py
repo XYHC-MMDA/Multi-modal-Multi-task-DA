@@ -1,5 +1,5 @@
 # model = SegFusionV4; 3d_proj = None
-# the same as baseline_usa_wd0.py except load_from
+# the same as src_usa_finetune_v0.py except wd=0
 
 ##############################################
 # variants: Runner, model
@@ -19,7 +19,7 @@ contrast_dict = dict(
     contrast_criterion=None
 )
 # load_from
-load_from = './checkpoints/pretrain/src_usa_pretrain_v1/epoch_32.pth'
+load_from = './checkpoints/pretrain/src_usa_pretrain_v0/epoch_32.pth'
 
 # XmudaAug3D, UNetSCN
 scn_scale = 20

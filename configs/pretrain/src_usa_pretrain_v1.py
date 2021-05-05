@@ -1,5 +1,5 @@
 # model = SegFusionV4; 3d_proj = None
-# the same as baseline_usa_wd0.py except load_from
+# lambda_contrast = 1.0; t = 0.07; wd=0
 
 ##############################################
 # variants: Runner, model
@@ -8,18 +8,20 @@
 # runner
 runner = 'SourceRunner'  # for any customized runner, use general_train.py
 train_sets = ['source_train']
-only_contrast = False  # default False
-freeze = False  # default False
+only_contrast = True  # default False
 
 # model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV4'
 img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
 contrast_dict = dict(
-    contrast_criterion=None
+    contrast_criterion=dict(type='NT_Xent', temperature=0.07, normalize=True, contrast_mode='cross_entropy'),
+    lambda_contrast=1.,
+    max_pts=100000,
+    groups=1,
+    img_fcs=(img_dim, img_dim, pts_dim),
+    pts_fcs=()
 )
-# load_from
-load_from = './checkpoints/pretrain/src_usa_pretrain_v1/epoch_32.pth'
 
 # XmudaAug3D, UNetSCN
 scn_scale = 20
