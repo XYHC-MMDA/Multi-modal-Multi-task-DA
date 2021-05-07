@@ -12,8 +12,8 @@ src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/contrast_usa_v1'
 # log_dir = '../checkpoints/new10_contra/usa_finetune_v2'
 # log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_v3_run2'
-log_dir = '../checkpoints/new10_contra/contra_usa_v5_p1'
-# log_dir = '../checkpoints/pretrain/src_usa_finetune_v0_w1'
+# log_dir = '../checkpoints/new10_contra/contra_usa_v5'
+log_dir = '../checkpoints/pretrain/src_usa_finetune_v1'
 
 test_files = []
 splits = ['source_test', 'target_test']
