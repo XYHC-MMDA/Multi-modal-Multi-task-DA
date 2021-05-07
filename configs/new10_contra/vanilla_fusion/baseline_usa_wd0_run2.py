@@ -1,26 +1,24 @@
-# seg_loss + src_contra_loss + tgt_contra_loss
-# 32 epochs; wd=0; temperature=0.05; SegFusionV4
-# lambda_contrast=0.001
+"""
+    model_type=SegFusionV4
+    weight_decay=0
+"""
 
 ##############################################
 # variants: Runner, model
 # options: train-test split; class_weights
 ##############################################
 # runner
-runner = 'XmudaRunner'  # for any customized runner, use general_train.py
+runner = 'SourceRunner'  # for any customized runner, use general_train.py
+train_sets = ['source_train']
 only_contrast = False  # default False
+freeze = False  # default False
 
 # model args; if no contrast, just set contrast_criterion to None; assert contrast_criterion is not None or not only_contrast
 model_type = 'SegFusionV4'
 img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
 contrast_dict = dict(
-    contrast_criterion=dict(type='NT_Xent', temperature=0.05, normalize=True, contrast_mode='cross_entropy'),
-    lambda_contrast=0.001,
-    max_pts=100000,
-    groups=1,
-    img_fcs=(img_dim, img_dim, pts_dim),
-    pts_fcs=()
+    contrast_criterion=None
 )
 
 # XmudaAug3D, UNetSCN
@@ -31,7 +29,8 @@ scn_full_scale = 4096
 # src, tgt = 'day', 'night'
 src, tgt = 'usa', 'singapore'
 
-# lr_scheduler
+# optimizer & scheduler
+optimizer = dict(type='Adam', lr=0.001, weight_decay=0)
 lr_step = [16, 24]
 total_epochs = 32
 
@@ -169,7 +168,6 @@ data = dict(
 evaluation = dict(interval=100)
 
 # shedule_2x.py
-optimizer = dict(type='Adam', lr=0.001, weight_decay=0)
 lr_config = dict(
     policy='step',
     warmup='linear',

@@ -16,7 +16,7 @@ img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
 contrast_dict = dict(
     contrast_criterion=dict(type='NT_Xent', temperature=0.07, normalize=True, contrast_mode='cross_entropy'),
-    lambda_contrast=0.005,
+    lambda_contrast=0.001,
     max_pts=100000,
     groups=1,
     img_fcs=(img_dim, img_dim, pts_dim),

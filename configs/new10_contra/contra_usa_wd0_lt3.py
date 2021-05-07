@@ -1,6 +1,5 @@
 # seg_loss + src_contra_loss + tgt_contra_loss
-# 32 epochs; wd=0; temperature=0.05; SegFusionV4
-# lambda_contrast=0.001
+# 32 epochs; wd=0; temperature=0.2; SegFusionV4
 
 ##############################################
 # variants: Runner, model
@@ -15,8 +14,8 @@ model_type = 'SegFusionV4'
 img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
 contrast_dict = dict(
-    contrast_criterion=dict(type='NT_Xent', temperature=0.05, normalize=True, contrast_mode='cross_entropy'),
-    lambda_contrast=0.001,
+    contrast_criterion=dict(type='NT_Xent', temperature=0.2, normalize=True, contrast_mode='cross_entropy'),
+    lambda_contrast=0.01,
     max_pts=100000,
     groups=1,
     img_fcs=(img_dim, img_dim, pts_dim),
