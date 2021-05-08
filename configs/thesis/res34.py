@@ -1,5 +1,6 @@
 # variation:
 # λ: seg det loss balance parameter
+# seg_points: xyz coordinate; w/o reflectance
 # 2d augmentation
 # test augmentation
 
@@ -9,16 +10,6 @@ scatter_shape = [200, 400]
 voxel_size = [0.25, 0.25, 8]
 ann_train = 'nuscenes_boxes_cam_infos_train.pkl'
 ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
-
-img_feat_channels = 64
-pts_feat_dim = 64
-voxel_feat_dim = 128
-det_pts_dim = 4  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
-voxel_in_channels = det_pts_dim + pts_feat_dim + img_feat_channels
-
-backbone_arch = 'regnetx_1.6gf'
-arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
-FPN_in_channels = arch_map[backbone_arch]
 
 # hv_pointpillars_*.py
 img_feat_channels = 64
@@ -43,7 +34,7 @@ model = dict(
     pts_voxel_encoder=dict(
         type='HardVFE',
         in_channels=4 + img_feat_channels,
-        feat_channels=[128, voxel_feat_dim],
+        feat_channels=[128, 128],
         with_distance=False,
         voxel_size=voxel_size,
         with_cluster_center=True,
@@ -52,28 +43,17 @@ model = dict(
         # norm_cfg=dict(type='naiveSyncBN1d', eps=1e-3, momentum=0.01)),
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
-        type='PointPillarsScatter', in_channels=voxel_feat_dim, output_shape=scatter_shape),
-    # pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
-    pretrained=dict(pts='open-mmlab://' + backbone_arch),
+        type='PointPillarsScatter', in_channels=128, output_shape=scatter_shape),
+    pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pts_backbone=dict(
-        type='NoStemRegNet',
-        # arch='regnetx_3.2gf',
-        arch=backbone_arch,
-        out_indices=(1, 2, 3),
-        frozen_stages=-1,
-        strides=(1, 2, 2, 2),
-        base_channels=128,
-        stem_channels=128,
-        # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
-        norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
-        norm_eval=False,
-        style='pytorch'),
+        type='ResNet',
+        depth=34),
     pts_neck=dict(
         type='FPN',
         # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
         act_cfg=dict(type='ReLU'),
-        in_channels=FPN_in_channels,
+        in_channels=[192, 432, 1008],
         out_channels=256,
         start_level=0,
         num_outs=3),
@@ -162,66 +142,64 @@ input_modality = dict(
     use_external=False)
 file_client_args = dict(backend='disk')
 
-img_size = (1600, 900)
-resize = (400, 225)
 train_pipeline = [
     dict(
-        type='LoadPointsFromFile',  # new 'points'
+        type='LoadSegDetPointsFromFile',  # NuscMultiModalDataset
         load_dim=5,
         use_dim=5),
     dict(
-        type='LoadMaskedMultiSweeps',  # modify 'points'; new 'num_seg_pts'
+        type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
-    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),  # new 'gt_bboxes_3d', 'gt_labels_3d'
-    dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
-    dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),  # filter 'points'; new 'pts_indices'
-    dict(type='Aug2D', fliplr=0.5, color_jitter=(0.4, 0.4, 0.4)),
-    # fliplr & color jitter; 'img': PIL.Image to np.array; update 'seg_pts_indices', 'pts_indices' accordingly;
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
+    dict(type='LoadFrontImage'),  # 'seg_pts_indices'
+    dict(type='PointsSensorFilter'),  # 'pts_indices'
     dict(
         type='GlobalRotScaleTrans',
         rot_range=[-0.7854, 0.7854],
         scale_ratio_range=[0.9, 1.1],
-        translation_std=[0.2, 0.2, 0.2]),  # 3D Rot, Scale, Trans for 'points'
+        translation_std=[0.2, 0.2, 0.2]),
     dict(
         type='RandomFlip3D',
-        # flip_ratio_bev_horizontal=0.5,
-        flip_ratio_bev_vertical=0.5),  # do nothing; to read further
-    dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-    # filter 'points', 'pts_indices', 'seg_label'; new 'seg_points', 'seg_pts_indices'
+        flip_ratio_bev_horizontal=0.5,
+        flip_ratio_bev_vertical=0.5),
+    dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
-    dict(type='DetLabelFilter'),  # Filter labels == -1; not in CLASSES
-    dict(type='PointShuffle'),  # shuffle 'points', 'pts_indices'; make sure no index op after shuffle
+    dict(type='ObjectNameFilter', classes=class_names),
+    dict(type='PointShuffle'),
     dict(type='SegDetFormatBundle'),
     dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                  'points', 'pts_indices', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
 test_pipeline = [
     dict(
-        type='LoadPointsFromFile',
+        type='LoadSegDetPointsFromFile',
         load_dim=5,
         use_dim=5),
     dict(
-        type='LoadMaskedMultiSweeps',
+        type='LoadPointsFromMultiSweeps',
         sweeps_num=10,
         file_client_args=file_client_args),
-    dict(type='LoadImgSegLabel', resize=resize),  # new 'img'(PIL.Image), 'seg_label'
-    dict(type='PointsSensorFilterVer2', img_size=img_size, resize=resize),  # filter 'points'; new 'pts_indices'
-    dict(type='Aug2D'),  # No Aug2D in test
+    dict(type='LoadFrontImage'),  # 'seg_pts_indices'
+    dict(type='PointsSensorFilter'),  # 'pts_indices'
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-            dict(type='MergeCat'),
+            dict(
+                type='GlobalRotScaleTrans',
+                rot_range=[0, 0],
+                scale_ratio_range=[1., 1.],
+                translation_std=[0, 0, 0]),
+            dict(type='RandomFlip3D'),
+            dict(type='SegDetPointsRangeFilter', point_cloud_range=point_cloud_range),
             dict(type='SegDetFormatBundle'),
             dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                          'points', 'pts_indices'])
         ])
 ]
-
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
@@ -257,7 +235,7 @@ data = dict(
 evaluation = dict(interval=100)
 
 # shedule_2x.py
-optimizer = dict(type='AdamW', lr=0.001, weight_decay=1e-2)
+optimizer = dict(type='AdamW', lr=0.001, weight_decay=0.01)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 lr_config = dict(
     policy='step',
