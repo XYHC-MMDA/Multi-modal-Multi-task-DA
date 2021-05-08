@@ -8,8 +8,10 @@ from torch.nn import functional as F
 from mmdet3d.core import bbox3d2result
 from mmdet3d.ops import Voxelization
 from mmdet.models import DETECTORS
-from .. import builder
-from .base import Base3DDetector
+from mmdet3d.models import builder
+from mmdet3d.models.detectors.base import Base3DDetector
+# from .. import builder
+# from .base import Base3DDetector
 
 
 @DETECTORS.register_module()
