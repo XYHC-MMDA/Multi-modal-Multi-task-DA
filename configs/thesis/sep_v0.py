@@ -1,8 +1,3 @@
-# variation:
-# λ: seg det loss balance parameter
-# 2d augmentation
-# test augmentation
-
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
 scatter_shape = [200, 400]
@@ -11,19 +6,16 @@ ann_train = 'nuscenes_boxes_cam_infos_train.pkl'
 ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
 
 img_feat_channels = 64
-pts_feat_dim = 64
 voxel_feat_dim = 128
-det_pts_dim = 4  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
-voxel_in_channels = det_pts_dim + pts_feat_dim + img_feat_channels
+# det_pts_dim = 4  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
 
-backbone_arch = 'regnetx_800mf'
+backbone_arch = 'regnetx_1.6gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008], 'regnetx_800mf': [128, 288, 672]}
 FPN_in_channels = arch_map[backbone_arch]
 
 # hv_pointpillars_*.py
-img_feat_channels = 64
 model = dict(
-    type='MultiSensorMultiTaskUni',
+    type='MultiTaskSep',
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
@@ -33,8 +25,8 @@ model = dict(
         img_feat_dim=img_feat_channels,
         seg_pts_dim=4,
         num_classes=11,
-        lidar_fc=[64, 64],
-        concat_fc=[128, 64]),
+        lidar_fc=[],
+        concat_fc=[64]),
     pts_voxel_layer=dict(
         max_num_points=64,
         point_cloud_range=point_cloud_range,
@@ -42,7 +34,7 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=4 + img_feat_channels,
+        in_channels=4,
         feat_channels=[128, voxel_feat_dim],
         with_distance=False,
         voxel_size=voxel_size,
@@ -53,18 +45,15 @@ model = dict(
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
         type='PointPillarsScatter', in_channels=voxel_feat_dim, output_shape=scatter_shape),
-    # pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pretrained=dict(pts='open-mmlab://' + backbone_arch),
     pts_backbone=dict(
         type='NoStemRegNet',
-        # arch='regnetx_3.2gf',
         arch=backbone_arch,
         out_indices=(1, 2, 3),
         frozen_stages=-1,
         strides=(1, 2, 2, 2),
         base_channels=128,
         stem_channels=128,
-        # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
         norm_eval=False,
         style='pytorch'),

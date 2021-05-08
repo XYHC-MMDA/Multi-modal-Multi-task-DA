@@ -1,7 +1,6 @@
 # variation:
 # λ: seg det loss balance parameter
-# 2d augmentation
-# test augmentation
+# seg class_weights
 
 point_cloud_range = [-50, 0, -5, 50, 50, 3]
 anchor_generator_ranges = [[-50, 0, -1.8, 50, 50, -1.8]]
@@ -17,13 +16,12 @@ det_pts_dim = 4  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
 voxel_in_channels = det_pts_dim + pts_feat_dim + img_feat_channels
 
 backbone_arch = 'regnetx_1.6gf'
-arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008]}
+arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008], 'regnetx_800mf': [128, 288, 672]}
 FPN_in_channels = arch_map[backbone_arch]
 
 # hv_pointpillars_*.py
-img_feat_channels = 64
 model = dict(
-    type='MultiSensorMultiTaskUni',
+    type='MultiTaskFusion',
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
@@ -53,11 +51,9 @@ model = dict(
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
         type='PointPillarsScatter', in_channels=voxel_feat_dim, output_shape=scatter_shape),
-    # pretrained=dict(pts='open-mmlab://regnetx_3.2gf'),
     pretrained=dict(pts='open-mmlab://' + backbone_arch),
     pts_backbone=dict(
         type='NoStemRegNet',
-        # arch='regnetx_3.2gf',
         arch=backbone_arch,
         out_indices=(1, 2, 3),
         frozen_stages=-1,

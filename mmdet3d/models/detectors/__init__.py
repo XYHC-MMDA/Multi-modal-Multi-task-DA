@@ -21,6 +21,7 @@ from .target_consistency import TargetConsistency
 from .target_consistency_no_bg import TargetConsistencyNoBG
 from .new_fusion import *
 from .xmuda import *
+from .thesis import *
 
 __all__ = [
     'Base3DDetector', 'MMDA', 'MultiSensorMultiTaskSep', 'MultiSensorMultiTaskUni',
