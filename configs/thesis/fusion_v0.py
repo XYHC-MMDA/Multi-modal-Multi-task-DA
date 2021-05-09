@@ -211,7 +211,6 @@ test_pipeline = [
         flip=False,
         transforms=[
             dict(type='PointsRangeFilterVer2', point_cloud_range=point_cloud_range),
-            dict(type='MergeCat'),
             dict(type='SegDetFormatBundle'),
             dict(type='Collect3D', keys=['img', 'seg_points', 'seg_pts_indices', 'seg_label',
                                          'points', 'pts_indices'])
