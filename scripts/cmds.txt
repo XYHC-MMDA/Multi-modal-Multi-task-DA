@@ -1,3 +1,7 @@
+# thesis
 python tools/train.py configs/thesis/fusion_v0.py --work-dir checkpoints/thesis/fusion_v0/
 
 python tools/mmda_test.py configs/thesis/fusion_v0.py checkpoints/thesis/fusion_v0/epoch_1.pth --eval mAP --json checkpoints/thesis/fusion_v0/01
+
+# scp
+scp xyyue@b3.ist.berkeley.edu:~/xiangyu/Multi-modal-Multi-task-DA/checkpoints/pretrain/src_usa_finetune_v2/*.log /mnt/e/githubrepos/Multi-modal-Multi-task-DA/checkpoints/pretrain/src_usa_finetune_v2
