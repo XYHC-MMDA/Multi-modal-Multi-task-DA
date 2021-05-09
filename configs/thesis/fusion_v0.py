@@ -51,7 +51,7 @@ model = dict(
         norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01)),
     pts_middle_encoder=dict(
         type='PointPillarsScatter', in_channels=voxel_feat_dim, output_shape=scatter_shape),
-    pretrained=dict(pts='open-mmlab://' + backbone_arch),
+    # pretrained=dict(pts='open-mmlab://' + backbone_arch),
     pts_backbone=dict(
         type='NoStemRegNet',
         arch=backbone_arch,
