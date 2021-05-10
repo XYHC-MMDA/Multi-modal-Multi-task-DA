@@ -8,8 +8,6 @@ def load_shuffle_dump(pkl_file, pc=1):
     dir = os.path.dirname(pkl_file)
     pkl_name = os.path.basename(pkl_file).split('.')[0]
     save_path = os.path.join(dir, f'{pkl_name}_{pc}pc.pkl')
-    import pdb
-    pdb.set_trace()
 
     # load pkl
     data = mmcv.load(pkl_file)  # dict with keys=('infos', 'metadata')
@@ -23,12 +21,15 @@ def load_shuffle_dump(pkl_file, pc=1):
     random.shuffle(content)
     save_content = content[:bnum]
     metadata = f'{metadata}_{pc}pc'
-    pdb.set_trace()
 
     # dump
     mmcv.dump(dict(infos=save_content, metadata=metadata), save_path)
 
 
 if __name__ == '__main__':
-    load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/train_usa.pkl', pc=1)
+    load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_day.pkl', pc=1)
+    load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_day.pkl', pc=10)
+    load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_night.pkl', pc=1)
+    load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_night.pkl', pc=10)
+
 
