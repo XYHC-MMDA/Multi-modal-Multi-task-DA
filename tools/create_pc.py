@@ -9,15 +9,19 @@ def load_shuffle_dump(pkl_file, pc=1):
     pkl_name = os.path.basename(pkl_file).split('.')[0]
     save_path = os.path.join(dir, f'{pkl_name}_{pc}pc.pkl')
 
+    # load pkl
     data = mmcv.load(pkl_file)  # dict with keys=('infos', 'metadata')
     content = data['infos']  # list of info dict
     metadata = data['metadata']
 
+    # shuffle content
     anum = len(content)
     bnum = (anum * pc // 100)
+    print('#samples:', anum, bnum)
     random.shuffle(content)
     save_content = content[:bnum]
 
+    # dump
     mmcv.dump(dict(infos=save_content, metadata=metadata), save_path)
 
 
