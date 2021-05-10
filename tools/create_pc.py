@@ -31,5 +31,8 @@ if __name__ == '__main__':
     load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_day.pkl', pc=10)
     load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_night.pkl', pc=1)
     load_shuffle_dump('/home/xyyue/xiangyu/nuscenes_unzip/mmda_xmuda_split/train_night.pkl', pc=10)
-
+    # train_usa: 15695
+    # train_singapore: 9665
+    # train_day: 24745
+    # train_night: 2779
 

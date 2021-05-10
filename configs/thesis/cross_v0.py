@@ -11,8 +11,8 @@ ann_val = 'nuscenes_boxes_cam_infos_val.pkl'
 
 img_feat_channels = 64
 # pts_feat_dim = 64
-voxel_feat_dim = 128
-# det_pts_dim = 4  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
+voxel_feat_dim = 64
+det_pts_dim = 4  # (x, y, z, timestamp); (x, y, z, reflectance) for seg_pts
 
 backbone_arch = 'regnetx_1.6gf'
 arch_map = {'regnetx_1.6gf': [168, 408, 912], 'regnetx_3.2gf': [192, 432, 1008], 'regnetx_800mf': [128, 288, 672]}
@@ -39,8 +39,8 @@ model = dict(
         max_voxels=(30000, 40000)),
     pts_voxel_encoder=dict(
         type='HardVFE',
-        in_channels=4 + img_feat_channels,
-        feat_channels=[128, voxel_feat_dim],
+        in_channels=det_pts_dim + 3,  # 3=rgb
+        feat_channels=[voxel_feat_dim, voxel_feat_dim],
         with_distance=False,
         voxel_size=voxel_size,
         with_cluster_center=True,
