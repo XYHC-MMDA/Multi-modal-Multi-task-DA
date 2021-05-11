@@ -1,5 +1,5 @@
 # seg_loss + src_contra_loss + tgt_contra_loss
-# 32 epochs; wd=0; temperature=2.0; SegFusionV4
+# 32 epochs; wd=0; temperature=3.0; SegFusionV4
 # lambda_contrast=0.03
 
 ##############################################
@@ -15,7 +15,7 @@ model_type = 'SegFusionV4'
 img_dim, pts_dim = 64, 16
 prelogits_dim = img_dim + pts_dim
 contrast_dict = dict(
-    contrast_criterion=dict(type='NT_Xent', temperature=2.0, normalize=True, contrast_mode='cross_entropy'),
+    contrast_criterion=dict(type='NT_Xent', temperature=3.0, normalize=True, contrast_mode='cross_entropy'),
     lambda_contrast=0.03,
     max_pts=100000,
     groups=1,
