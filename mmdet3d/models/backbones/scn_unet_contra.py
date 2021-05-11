@@ -43,6 +43,7 @@ class UNetSCNContra(nn.Module):
 
         # after U-Net
         self.BNReLU = scn.BatchNormReLU(self.out_channels)
+        self.inter_out_layer = scn.OutputLayer(self.dimension)
         self.output_layer = scn.OutputLayer(self.dimension)
 
     def block(self, n_in, n_out):
@@ -131,7 +132,7 @@ class UNetSCNContra(nn.Module):
             x = a_join(x)
 
             if len(inter_features) - i == self.lout:
-                x_m = self.output_layer(x)
+                x_m = self.inter_out_layer(x)
 
         # after U-Net
         x = self.BNReLU(x)
