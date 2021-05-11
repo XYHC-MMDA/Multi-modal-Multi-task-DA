@@ -6,7 +6,8 @@ from .pointnet2_sa_ssg import PointNet2SASSG
 from .second import SECOND
 from .resnet34_unet import UNetResNet34
 from .scn_unet import UNetSCN
-from .scn_unet_manual import UNetSCNManual
+from .scn_unet_contra import UNetSCNContra
+from .resnet34_unet_contra import UNetResNet34Contra
 
 # __all__ = [
 #     'ResNet', 'ResNetV1d', 'ResNeXt', 'SSDVGG', 'HRNet', 'NoStemRegNet',

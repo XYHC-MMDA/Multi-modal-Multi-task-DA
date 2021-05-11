@@ -5,7 +5,7 @@ from mmdet.models import BACKBONES
 
 
 @BACKBONES.register_module()
-class UNetSCNManual(nn.Module):
+class UNetSCNContra(nn.Module):
     def __init__(self,
                  in_channels,
                  m=16,  # number of unet features (multiplied in each layer)
@@ -16,9 +16,10 @@ class UNetSCNManual(nn.Module):
                  DIMENSION=3,
                  downsample=[2, 2],
                  leakiness=0,
-                 n_input_planes=-1
+                 n_input_planes=-1,
+                 lout=5,
                  ):
-        super(UNetSCNManual, self).__init__()
+        super(UNetSCNContra, self).__init__()
 
         # parameters
         self.in_channels = in_channels
@@ -30,6 +31,7 @@ class UNetSCNManual(nn.Module):
         self.dimension = DIMENSION
         self.downsample = downsample
         self.leakiness = leakiness
+        self.lout = lout
         # self.n_input_planes = n_input_planes
 
         # before U-Net
@@ -118,6 +120,7 @@ class UNetSCNManual(nn.Module):
 
         x = self.middle_conv(x)
 
+        x_m = None
         for i in reversed(range(len(inter_features))):
             inter_feat = inter_features[i]
             deconvs = self.dec_convs[i]
@@ -127,11 +130,14 @@ class UNetSCNManual(nn.Module):
             x = join_table([inter_feat, x])
             x = a_join(x)
 
+            if len(inter_features) - i == self.lout:
+                x_m = self.output_layer(x)
+
         # after U-Net
         x = self.BNReLU(x)
         x = self.output_layer(x)
 
-        return x
+        return x_m, x
 
 
 def test():
@@ -148,7 +154,7 @@ def test():
 
     from mmdet3d.models import UNetSCN
     model1 = UNetSCN(in_channels, m=out_channels)
-    model2 = UNetSCNManual(in_channels, m=out_channels)
+    model2 = UNetSCNContra(in_channels, m=out_channels)
     out1 = model1(x)
     out2 = model2(x)
     import pdb
