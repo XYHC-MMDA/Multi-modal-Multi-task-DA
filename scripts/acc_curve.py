@@ -11,8 +11,8 @@ font = {
 src_domain, tgt_domain = 'usa', 'sng'
 # log_dir = '../checkpoints/fusion_consis/xmuda/contrast_usa_v1'
 # log_dir = '../checkpoints/new10_contra/usa_finetune_v2'
-log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_wd0_run2'
-# log_dir = '../checkpoints/new10_contra/contra_usa_wd0_l2'
+# log_dir = '../checkpoints/new10_contra/vanilla_fusion/baseline_usa_wd0_run2'
+log_dir = '../checkpoints/new10_contra/contra_usa_wd0_lt4'
 # log_dir = '../checkpoints/pretrain/src_usa_finetune_v2'
 
 test_files = []
