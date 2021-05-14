@@ -20,7 +20,7 @@ FPN_in_channels = arch_map[backbone_arch]
 
 # hv_pointpillars_*.py
 model = dict(
-    type='MultiTaskFusion',
+    type='MultiTaskCross',
     img_backbone=dict(
         type='UNetResNet34',
         out_channels=img_feat_channels,
@@ -57,8 +57,8 @@ model = dict(
         out_indices=(1, 2, 3),
         frozen_stages=-1,
         strides=(1, 2, 2, 2),
-        base_channels=128,
-        stem_channels=128,
+        base_channels=voxel_feat_dim,
+        stem_channels=voxel_feat_dim,
         # norm_cfg=dict(type='naiveSyncBN2d', eps=1e-3, momentum=0.01),
         norm_cfg=dict(type='BN2d', eps=1e-3, momentum=0.01),
         norm_eval=False,

@@ -40,9 +40,9 @@ usasng_weights = [2.154, 3.298, 4.447, 2.855, 1., 2.841, 2.152, 2.758, 1.541, 1.
 class_weights = usasng_weights if src == 'usa' else daynight_weights
 
 # splits' paths
-source_train = f'mmda_xmuda_split/train_{src}_1pc.pkl'
+source_train = f'mmda_xmuda_split/train_{src}_10pc.pkl'
 source_test = f'mmda_xmuda_split/test_{src}.pkl'
-target_train = f'mmda_xmuda_split/train_{tgt}_1pc.pkl'
+target_train = f'mmda_xmuda_split/train_{tgt}_10pc.pkl'
 target_test = f'mmda_xmuda_split/test_{tgt}.pkl'
 target_val = f'mmda_xmuda_split/val_{tgt}.pkl'
 #######################################################
